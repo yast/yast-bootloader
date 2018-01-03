@@ -51,7 +51,7 @@ module Bootloader
 
       case selected_location
       when :boot, :mbr
-        method = selected_location == :mbr ? :boot_devices : :mbr_devices
+        method = selected_location == :mbr ? :mbr_devices : :boot_devices
         devices = stage1.public_send(method)
         devices.each do |dev|
           stage1.add_udev_device(dev)
@@ -113,6 +113,7 @@ module Bootloader
 
       def propose_boot_location
         selected_location = propose_location
+        log.info "selected location #{selected_location.inspect}"
 
         assign_bootloader_device(selected_location)
 

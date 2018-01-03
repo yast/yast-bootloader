@@ -13,44 +13,29 @@ describe Bootloader::Stage1 do
   end
 
   describe "#propose" do
-    xit "sets devices to proposed locations" do
-      target_map_stub("storage_mdraid.yaml")
+    it "sets devices to proposed locations" do
       subject.propose
 
-      expect(subject.devices).to eq ["/dev/vda"]
+      expect(subject.devices).to eq ["/dev/sda"]
     end
 
-    xit "sets underlaying disks for md raid setup" do
-      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
-      target_map_stub("storage_mdraid.yaml")
-
-      allow(Yast::BootStorage).to receive(:mbr_disk)
-        .and_return("/dev/md")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
-        .and_return("/dev/md1")
+    it "sets underlaying disks for md raid setup" do
+      devicegraph_stub("md_raid.xml")
 
       subject.propose
 
-      expect(subject.devices).to eq ["/dev/vda", "/dev/vdb", "/dev/vdc", "/dev/vdd"]
+      expect(subject.devices).to contain_exactly("/dev/vda", "/dev/vdb", "/dev/vdc", "/dev/vdd")
 
       expect(subject.mbr?).to eq true
     end
 
-    xit "do not set generic_mbr if proposed boot from mbr" do
-      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
-      target_map_stub("storage_mdraid.yaml")
-
-      allow(Yast::BootStorage).to receive(:mbr_disk)
-        .and_return("/dev/md")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
-        .and_return("/dev/md1")
-
+    it "do not set generic_mbr if proposed boot from mbr" do
       subject.propose
 
       expect(subject.generic_mbr?).to eq false
     end
 
-    xcontext "on ppc64" do
+    context "on ppc64" do
       let(:sda) { double("Y2Storage::Disk", gpt?: true) }
       let(:sdb) { double("Y2Storage::Disk", gpt?: true) }
       let(:sdc) { double("Y2Storage::Disk", gpt?: true) }
@@ -73,7 +58,8 @@ describe Bootloader::Stage1 do
         object_double(
           "Yast::BootStorage",
           prep_partitions: [sda1, sdb1, sdc1],
-          detect_disks:    nil
+          detect_disks:    nil,
+          boot_disks:      [sdb]
         ).as_stubbed_const
 
         subject.propose
@@ -87,20 +73,20 @@ describe Bootloader::Stage1 do
       end
 
       it "then it tries to use partition on same disk as /boot" do
+        subject.propose
+
         expect(subject.devices).to eq(["/dev/sdb1"])
       end
 
       it "sets to device first available prep partition as fallback" do
+        allow(Yast::BootStorage).to receive(:boot_disks).and_return([])
         subject.propose
 
         expect(subject.devices).to eq(["/dev/sda1"])
       end
 
-      xit "sets udev link for device" do
-        expect(Yast::Storage).to receive(:GetPartition).with(anything, "/dev/sdc1")
-          .and_return("create" => true)
-
-        expect(Bootloader::UdevMapping).to receive(:to_mountby_device).with("/dev/sdc1")
+      it "sets udev link for device" do
+        expect(Bootloader::UdevMapping).to receive(:to_mountby_device).with("/dev/sdb1")
           .and_return("/dev/disk/by-id/partition1")
 
         subject.propose
@@ -134,44 +120,6 @@ describe Bootloader::Stage1 do
       allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
 
       expect { subject.propose }.to raise_error(RuntimeError)
-    end
-  end
-
-  xdescribe "#add_udev_device" do
-    it "adds underlayed disk device for lvm disk" do
-      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
-      target_map_stub("storage_lvm.yaml")
-
-      allow(Yast::BootStorage).to receive(:mbr_disk)
-        .and_return("/dev/system")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
-        .and_return("/dev/system/root")
-      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
-        .and_return("/dev/system/root")
-
-      subject.add_udev_device("/dev/system")
-
-      expect(subject.devices).to eq(["/dev/vda"])
-
-      expect(subject.mbr?).to eq true
-    end
-
-    it "adds underlayed partition devices for lvm partition" do
-      allow(Bootloader::Stage1Device).to receive(:new).and_call_original
-      target_map_stub("storage_lvm.yaml")
-
-      allow(Yast::BootStorage).to receive(:mbr_disk)
-        .and_return("/dev/system")
-      allow(Yast::BootStorage).to receive(:BootPartitionDevice)
-        .and_return("/dev/system/root")
-      allow(Yast::BootStorage).to receive(:RootPartitionDevice)
-        .and_return("/dev/system/root")
-
-      subject.add_udev_device("/dev/system/root")
-
-      expect(subject.devices).to eq(["/dev/vda3"])
-
-      expect(subject.boot_partition?).to eq true
     end
   end
 
