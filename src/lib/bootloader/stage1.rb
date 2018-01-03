@@ -50,7 +50,7 @@ module Bootloader
     end
 
     # Adds to devices udev variant for given device.
-    # @param dev [String] device to add. Can be also logical device that is translated to 
+    # @param dev [String] device to add. Can be also logical device that is translated to
     #   physical one. If specific string should be added as it is then use #add_device
     def add_udev_device(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)

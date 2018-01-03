@@ -168,11 +168,7 @@ module Yast
 
     # If passed partition is logical, return extended, otherwise return argument
     def extended_for_logical(partition)
-      if partition.type.is?(:logical)
-        partition = extended_partition(partition)
-      end
-
-      partition
+      partition.type.is?(:logical) ? extended_partition(partition) : partition
     end
 
     # get stage1 device suitable for stage1 location
