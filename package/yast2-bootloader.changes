@@ -1,4 +1,19 @@
 -------------------------------------------------------------------
+Wed Jan  3 12:20:05 UTC 2018 - jreidinger@suse.com
+
+- Legacy (non-EFI) x86: Fixed multi-device booting problems
+  (mostly RAID, also LVM and multipath). Now the boot loader is
+  written to ALL physical devices that host the boot partition
+  (or the MBR). Before, only one of them was picked and the BIOS
+  could pick a different one to boot from. (bsc#1072908)
+- Related UI change: "Boot Loader Location" has been simplified. We
+  kept the option "Boot from Master Boot Record", but the remaining
+  three options, for booting from the Boot, Root, or
+  Extended partitions, have been unified to a single option
+  "Boot from Partition".
+- 4.0.10
+
+-------------------------------------------------------------------
 Mon Dec 11 12:41:21 UTC 2017 - jreidinger@suse.com
 
 - fix invalidation of cache causing crash (bsc#1071931)
