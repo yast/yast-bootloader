@@ -26,8 +26,6 @@ module Bootloader
     PROPOSAL_LINKS = [
       "enable_boot_mbr",
       "disable_boot_mbr",
-      "enable_boot_root",
-      "disable_boot_root",
       "enable_boot_boot",
       "disable_boot_boot"
     ].freeze
