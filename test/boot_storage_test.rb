@@ -37,4 +37,19 @@ describe Yast::BootStorage do
       expect(subject.encrypted_boot?).to eq true
     end
   end
+
+  describe ".extended_for_logical" do
+    before do
+      devicegraph_stub("logical.yaml")
+    end
+
+    it "returns partition itself if it is not logical" do
+      partition = find_device("/dev/sda1")
+      expect(subject.extended_for_logical(partition)).to eq partition
+    end
+    it "return extended partion for logical partition" do
+      partition = find_device("/dev/sda5")
+      expect(subject.extended_for_logical(partition)).to eq find_device("/dev/sda2")
+    end
+  end
 end
