@@ -124,10 +124,10 @@ module Bootloader
       end
 
       STAGE1_DEVICES_MAPPING = {
-        "boot_root"     => :boot_devices,
-        "boot_boot"     => :boot_devices,
-        "boot_mbr"      => :mbr_devices,
-        "boot_extended" => :boot_devices
+        "boot_root"     => :boot_partition_names,
+        "boot_boot"     => :boot_partition_names,
+        "boot_mbr"      => :boot_disk_names,
+        "boot_extended" => :boot_partition_names
       }.freeze
       def import_stage1(data, bootloader)
         return unless bootloader.name == "grub2"

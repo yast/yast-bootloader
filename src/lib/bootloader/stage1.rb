@@ -49,6 +49,9 @@ module Bootloader
       include_real_devs?(real_devs_names)
     end
 
+    # Adds to devices udev variant for given device.
+    # @param dev [String] device to add. Can be also logical device that is translated to 
+    #   physical one. If specific string should be added as it is then use #add_device
     def add_udev_device(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
       real_devices = Yast::BootStorage.stage1_device_for_name(kernel_dev)
@@ -56,6 +59,8 @@ module Bootloader
       udev_devices.each { |d| @model.add_device(d) }
     end
 
+    # List of symbolic links of available locations to install. Possible values are
+    # `:mbr` for disks and `:boot` for partitions.
     def available_locations
       case Yast::Arch.architecture
       when "i386", "x86_64"
@@ -69,6 +74,9 @@ module Bootloader
       end
     end
 
+    # Removes device from list of stage 1 placements.
+    # @param dev [String] device to remove, have to be always physical device,
+    #   but can match different udev names.
     def remove_device(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
 
@@ -79,47 +87,37 @@ module Bootloader
       @model.remove_device(dev)
     end
 
+    # Removes all stage1 placements
     def clear_devices
       devices.each do |dev|
         @model.remove_device(dev)
       end
     end
 
-    def detect_devices
-      # check if cache is valid
-      return if @cache_revision == Y2Storage::StorageManager.instance.staging_revision
-
-      devices = Yast::BootStorage.boot_partitions
-      @boot_devices = devices.map(&:name)
-
-      devices = Yast::BootStorage.boot_disks
-      @mbr_devices = devices.map(&:name)
-
-      @cache_revision = Y2Storage::StorageManager.instance.staging_revision
-    end
-
-    def boot_devices
+    # partition names where stage1 can be placed and where /boot lives
+    # @return [Array<String>]
+    def boot_partition_names
       detect_devices
 
       @boot_devices
     end
 
-    def mbr_devices
+    def boot_disk_names
       detect_devices
 
       @mbr_devices
     end
 
     def boot_partition?
-      include_real_devs?(boot_devices)
+      include_real_devs?(boot_partition_names)
     end
 
     def mbr?
-      include_real_devs?(mbr_devices)
+      include_real_devs?(boot_disk_names)
     end
 
     def custom_devices
-      known_devices = mbr_devices + boot_devices
+      known_devices = boot_disk_names + boot_partition_names
       log.info "known devices #{known_devices.inspect}"
 
       devices.select do |dev|
@@ -210,6 +208,19 @@ module Bootloader
           real_dev == Bootloader::UdevMapping.to_kernel_device(map_dev)
         end
       end
+    end
+
+    def detect_devices
+      # check if cache is valid
+      return if @cache_revision == Y2Storage::StorageManager.instance.staging_revision
+
+      devices = Yast::BootStorage.boot_partitions
+      @boot_devices = devices.map(&:name)
+
+      devices = Yast::BootStorage.boot_disks
+      @mbr_devices = devices.map(&:name)
+
+      @cache_revision = Y2Storage::StorageManager.instance.staging_revision
     end
   end
 end

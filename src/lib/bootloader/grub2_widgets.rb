@@ -723,9 +723,9 @@ module Bootloader
 
         case id
         when :boot
-          stage1.boot_devices.each { |d| stage1.add_udev_device(d) }
+          stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
         when :mbr
-          stage1.mbr_devices.each { |d| stage1.add_udev_device(d) }
+          stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
         end
       end
 
