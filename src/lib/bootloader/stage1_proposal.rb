@@ -51,10 +51,10 @@ module Bootloader
 
       case selected_location
       when :boot, :mbr
-        method = selected_location == :mbr ? :stage1_disks_for : :stage1_partitions_for
-        devices = Yast::BootStorage.public_send(method, Yast::BootStorage.boot_mountpoint)
+        method = selected_location == :mbr ? :boot_devices : :mbr_devices
+        devices = stage1.public_send(method)
         devices.each do |dev|
-          stage1.add_udev_device(dev.name)
+          stage1.add_udev_device(dev)
         end
       when :none then log.info "Resetting bootloader device"
       when Array
@@ -134,7 +134,7 @@ module Bootloader
       end
 
       def mbr_disks
-        Yast::BootStorage.stage1_disks_for(Yast::BootStorage.boot_mountpoint)
+        Yast::BootStorage.boot_disks
       end
     end
 
@@ -197,7 +197,7 @@ module Bootloader
           return partition
         end
 
-        boot_disks = Yast::BootStorage.stage1_disks_for(Yast::BootStorage.boot_mountpoint)
+        boot_disks = Yast::BootStorage.boot_disks
         partition = partitions.find { |p| boot_disks.include?(p.partitionable) }
         if partition
           log.info "using prep on boot disk #{partition}"
