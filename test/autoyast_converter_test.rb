@@ -52,7 +52,8 @@ describe Bootloader::AutoyastConverter do
         "timeout"      => 10,
         "activate"     => "true",
         "generic_mbr"  => "false",
-        "trusted_grub" => "true"
+        "trusted_grub" => "true",
+        "boot_boot"    => "true"
       }
 
       bootloader = subject.import("global" => data)
@@ -62,6 +63,7 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.grub_default.os_prober).to be_enabled
       expect(bootloader.grub_default.hidden_timeout).to eq "10"
       expect(bootloader.stage1).to be_activate
+      expect(bootloader.stage1.boot_partition?).to eq true
       expect(bootloader.trusted_boot).to eq true
     end
 

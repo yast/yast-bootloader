@@ -125,6 +125,8 @@ module Yast
     # @param [String] dev_name device name
     # @return [Array<Y2Storage::Device>] list of suitable devices
     def stage1_device_for_name(dev_name)
+      puts "staging: #{staging.inspect}"
+      puts "dev name: #{dev_name.inspect}"
       device = staging.find_by_name(dev_name)
       raise "unknown device #{dev_name}" unless device
 
