@@ -122,7 +122,7 @@ module Yast
     end
 
     # get suitable device for stage1 by string name
-    # @param [String] device name
+    # @param [String] dev_name device name
     # @return [Array<Y2Storage::Device>] list of suitable devices
     def stage1_device_for_name(dev_name)
       device = staging.find_by_name(dev_name)
