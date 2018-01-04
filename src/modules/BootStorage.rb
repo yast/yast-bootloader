@@ -29,7 +29,7 @@ module Yast
 
     # Moint point for /boot. If there is not separated /boot, / is used instead.
     # @return [Y2Storage::Filesystem]
-    def boot_mountpoint
+    def boot_filesystem
       detect_disks
 
       @boot_fs
@@ -111,7 +111,7 @@ module Yast
     end
 
     def encrypted_boot?
-      fs = boot_mountpoint
+      fs = boot_filesystem
       log.info "boot mp = #{fs.inspect}"
       # check if fs is on an encryption
       result = fs.ancestors.any? { |a| a.is?(:encryption) }
@@ -190,12 +190,12 @@ module Yast
 
     # shortcut to get stage1 disks for /boot
     def boot_disks
-      stage1_disks_for(boot_mountpoint)
+      stage1_disks_for(boot_filesystem)
     end
 
     # shortcut to get stage1 partitions for /boot
     def boot_partitions
-      stage1_partitions_for(boot_mountpoint)
+      stage1_partitions_for(boot_filesystem)
     end
 
   private

@@ -181,7 +181,7 @@ module Bootloader
       ret["label_proposal"] = Yast::Bootloader.Summary(simple_mode: true)
 
       # support diskless client (FATE#300779)
-      if Yast::BootStorage.boot_mountpoint.is?(:nfs)
+      if Yast::BootStorage.boot_filesystem.is?(:nfs)
         log.info "Boot partition is nfs type, bootloader will not be installed."
         return ret
       end

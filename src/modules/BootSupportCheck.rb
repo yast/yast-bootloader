@@ -101,7 +101,7 @@ module Yast
     def check_gpt_reserved_partition
       return true unless stage1.mbr?
 
-      boot_fs = BootStorage.boot_mountpoint
+      boot_fs = BootStorage.boot_filesystem
       gpt_disks = BootStorage.stage1_disks_for(boot_fs).select(&:gpt?)
       return true if gpt_disks.empty?
       return true if boot_fs.type != ::Y2Storage::Filesystems::Type::BTRFS

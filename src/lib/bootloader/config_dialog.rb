@@ -44,7 +44,7 @@ module Bootloader
 
       # F#300779 - Install diskless client (NFS-root)
       # additional warning that root partition is nfs type -> bootloader will not be installed
-      nfs = Yast::BootStorage.boot_mountpoint.is?(:nfs)
+      nfs = Yast::BootStorage.boot_filesystem.is?(:nfs)
 
       if nfs && Yast::Mode.installation
         Yast::Popup.Message(

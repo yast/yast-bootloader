@@ -169,7 +169,7 @@ module Bootloader
         # and raise exception.
         # powernv do not have prep partition, so we do not have any partition
         # to activate (bnc#970582)
-        elsif Yast::BootStorage.boot_mountpoint.is?(:nfs) ||
+        elsif Yast::BootStorage.boot_filesystem.is?(:nfs) ||
             Yast::Arch.board_powernv
           stage1.activate = false
           stage1.generic_mbr = false

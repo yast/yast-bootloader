@@ -140,7 +140,7 @@ module Bootloader
     end
 
     def can_use_boot?
-      fs = Yast::BootStorage.boot_mountpoint
+      fs = Yast::BootStorage.boot_filesystem
 
       # no boot assigned
       return false unless fs

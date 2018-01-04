@@ -131,14 +131,14 @@ describe Bootloader::Stage1 do
 
     it "returns false if boot partition fs is xfs" do
       boot_partition = find_device("/dev/sda1")
-      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
+      allow(Yast::BootStorage).to receive(:boot_filesystem).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns false if boot partition is on lvm" do
       boot_partition = find_device("/dev/sde2")
-      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
+      allow(Yast::BootStorage).to receive(:boot_filesystem).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
@@ -146,7 +146,7 @@ describe Bootloader::Stage1 do
     it "returns false if boot partition is on md raid" do
       devicegraph_stub("md_raid.xml")
       boot_partition = find_device("/dev/md0")
-      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
+      allow(Yast::BootStorage).to receive(:boot_filesystem).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
@@ -154,21 +154,21 @@ describe Bootloader::Stage1 do
     it "returns false if boot partition is device for md raid" do
       devicegraph_stub("md_raid.xml")
       boot_partition = find_device("/dev/vdd2")
-      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
+      allow(Yast::BootStorage).to receive(:boot_filesystem).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns false if boot partition is encrypted" do
       boot_partition = find_device("/dev/sda4")
-      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
+      allow(Yast::BootStorage).to receive(:boot_filesystem).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq false
     end
 
     it "returns true otherwise" do
       boot_partition = find_device("/dev/sda2")
-      allow(Yast::BootStorage).to receive(:boot_mountpoint).and_return(boot_partition.filesystem)
+      allow(Yast::BootStorage).to receive(:boot_filesystem).and_return(boot_partition.filesystem)
 
       expect(subject.can_use_boot?).to eq true
     end
