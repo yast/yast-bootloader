@@ -211,12 +211,12 @@ module Bootloader
     def partition_line
       if stage1.boot_partition?
         _(
-          "Install bootcode into partition " \
+          "Install boot code into a partition with /boot " \
             "(<a href=\"disable_boot_boot\">do not install</a>)"
         )
       else
         _(
-          "Do not install bootcode into partition " \
+          "Do not install boot code into a partition with /boot " \
             "(<a href=\"enable_boot_boot\">install</a>)"
         )
       end

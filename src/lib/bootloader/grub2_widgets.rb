@@ -733,7 +733,7 @@ module Bootloader
 
       devs = Yast::UI.QueryWidget(:custom_list, :Value)
       devs.split(",").each do |dev|
-        # add it exactly how user specify
+        # Add it exactly as specified by the user
         stage1.add_device(dev.strip)
       end
     end
