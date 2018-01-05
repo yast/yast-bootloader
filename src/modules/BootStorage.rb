@@ -121,7 +121,14 @@ module Yast
       result
     end
 
-    # get suitable device for stage1 by string name
+    # Find the devices (disks or partitions)
+    # to whose boot records we should put stage1.
+    #
+    # In simple setups it will be one device, but for RAIDs and LVMs and other
+    # multi-device setups we need to put stage1 to *all* the underlying boot
+    # records so that the (Legacy) BIOS does not have a chance to pick
+    # an empty BR to boot from. See bsc#1072908.
+    #
     # @param [String] dev_name device name
     # @return [Array<Y2Storage::Device>] list of suitable devices
     def stage1_device_for_name(dev_name)
@@ -135,9 +142,11 @@ module Yast
       end
     end
 
-    # get stage1 device suitable for stage1 location
-    # ( so e.g. exclude logical partition and use instead extended ones )
+    # Find the partitions to whose boot records we should put stage1.
+    # (In simple setups it will be one partition)
     # @param [Y2Storage::Device] device to check
+    #   eg. a Y2Storage::Filesystems::Base (for a new installation)
+    #   or a Y2Storage::Partition (for an upgrade)
     # @return [Array<Y2Storage::Device>] devices suitable for stage1
     def stage1_partitions_for(device)
       # so how to do search? at first find first partition with parents
@@ -242,7 +251,7 @@ module Yast
     def select_ancestors(device, &predicate)
       results = []
       to_process = [device]
-      while !to_process.empty?
+      until to_process.empty?
         candidate = to_process.pop
         if predicate.call(candidate)
           results << candidate
