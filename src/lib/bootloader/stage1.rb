@@ -43,7 +43,7 @@ module Bootloader
     #   it can also be virtual or real device, method convert it as needed
     def include?(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-      real_devs = Yast::BootStorage.stage1_device_for_name(kernel_dev)
+      real_devs = Yast::BootStorage.stage1_devices_for_name(kernel_dev)
       real_devs_names = real_devs.map(&:name)
 
       include_real_devs?(real_devs_names)
@@ -54,7 +54,7 @@ module Bootloader
     #   physical one. If specific string should be added as it is then use #add_device
     def add_udev_device(dev)
       kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-      real_devices = Yast::BootStorage.stage1_device_for_name(kernel_dev)
+      real_devices = Yast::BootStorage.stage1_devices_for_name(kernel_dev)
       udev_devices = real_devices.map { |d| Bootloader::UdevMapping.to_mountby_device(d.name) }
       udev_devices.each { |d| @model.add_device(d) }
     end
@@ -122,7 +122,7 @@ module Bootloader
 
       devices.select do |dev|
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
-        stage1_for_dev = Yast::BootStorage.stage1_device_for_name(kernel_dev).map(&:name)
+        stage1_for_dev = Yast::BootStorage.stage1_devices_for_name(kernel_dev).map(&:name)
         log.info "stage1 devices for #{dev} as #{kernel_dev} is #{stage1_for_dev.inspect}"
         # devices already covered by known devices by mbr or by partition
         !(stage1_for_dev - known_devices).empty?
