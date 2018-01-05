@@ -27,36 +27,12 @@ module Yast
   class BootStorageClass < Module
     include Yast::Logger
 
-    # Disk where to place MBR code. By default one with /boot partition
-    # @return [Y2Storage::Disk]
-    def mbr_disk
+    # Moint point for /boot. If there is not separated /boot, / is used instead.
+    # @return [Y2Storage::Filesystem]
+    def boot_filesystem
       detect_disks
 
-      @mbr_disk
-    end
-
-    # Partition where lives /boot. If there is not separated /boot, / is used instead.
-    # @return [Y2Storage::Partition]
-    def boot_partition
-      detect_disks
-
-      @boot_partition
-    end
-
-    # Partition where / lives.
-    # @return [Y2Storage::Partition]
-    def root_partition
-      detect_disks
-
-      @root_partition
-    end
-
-    # Extended partition on same disk as /boot, nil if there is none
-    # @return [Y2Storage::Partition, nil]
-    def extended_partition
-      detect_disks
-
-      @extended_partition
+      @boot_fs
     end
 
     def main
@@ -82,10 +58,6 @@ module Yast
       Y2Storage::StorageManager.instance.staging
     end
 
-    def assign_mbr_disk_by_name(dev_name)
-      @mbr_disk = staging.disks.find { |d| d.name == dev_name }
-    end
-
     def storage_read?
       !@storage_revision.nil?
     end
@@ -109,93 +81,19 @@ module Yast
     # Check if the bootloader can be installed at all with current configuration
     # @return [Boolean] true if it can
     def bootloader_installable?
-      return true if Mode.config
-      return true if !Arch.i386 && !Arch.x86_64
-
-# storage-ng
-# rubocop:disable Style/BlockComments
-=begin
-      # the only relevant is the partition holding the /boot filesystem
-      detect_disks
-      Builtins.y2milestone(
-        "Boot partition device: %1",
-        BootStorage.boot_partition.inspect
-      )
-      dev = Storage.GetDiskPartition(BootStorage.boot_partition.name)
-      Builtins.y2milestone("Disk info: %1", dev)
-      # MD, but not mirroring is OK
-      # FIXME: type detection by name deprecated
-      if Ops.get_string(dev, "disk", "") == "/dev/md"
-        tm = Storage.GetTargetMap
-        md = Ops.get_map(tm, "/dev/md", {})
-        parts = Ops.get_list(md, "partitions", [])
-        info = {}
-        Builtins.foreach(parts) do |p|
-          if Ops.get_string(p, "device", "") ==
-              BootStorage.boot_partition.name
-            info = deep_copy(p)
-          end
-        end
-        if Builtins.tolower(Ops.get_string(info, "raid_type", "")) != "raid1"
-          Builtins.y2milestone(
-            "Cannot install bootloader on RAID (not mirror)"
-          )
-          return false
-        end
-
-      # EVMS
-      # FIXME: type detection by name deprecated
-      elsif Builtins.search(boot_partition.name, "/dev/evms/") == 0
-        Builtins.y2milestone("Cannot install bootloader on EVMS")
-        return false
-      end
-=end
-
       true
-    end
-
-    # Find the partition or disk for the filesystem mounted at mountpoint.
-    #
-    # Returns nil if no filesystem is found or the filesystem has no blkdevice
-    # (e.g. NFS).
-    #
-    # If the filesystem is in a virtual device (like a LUKS or LVM volume), it
-    # returns the (first) underlying partition or disk.
-    def find_blk_device_at_mountpoint(mountpoint)
-      fs = staging.filesystems.find { |f| f.mountpoint == mountpoint }
-      return nil unless fs
-
-      part = fs.ancestors.find { |a| a.is?(:partition) }
-      return part if part
-
-      disk = fs.ancestors.find { |a| a.is?(:disk) }
-      return disk if disk
-
-      nil
     end
 
     # Sets properly boot, root and mbr disk.
     # resets disk configuration. Clears cache from #detect_disks
     def reset_disks
-      @boot_partition = @root_partition = @mbr_disk = @extended_partition = nil
+      @boot_fs = nil
     end
 
     def prep_partitions
       partitions = Y2Storage::Partitionable.all(staging).map(&:prep_partitions).flatten
       log.info "detected prep partitions #{partitions.inspect}"
       partitions
-    end
-
-    def disk_with_boot_partition
-      disk = boot_partition.partitionable
-
-      log.info "Boot device - disk: #{disk}"
-
-      disk
-    end
-
-    def separated_boot?
-      boot_partition != root_partition
     end
 
     # Get map of swap partitions
@@ -213,36 +111,155 @@ module Yast
     end
 
     def encrypted_boot?
-      dev = boot_partition
-      log.info "boot device = #{dev.inspect}"
-      # check if on physical partition is any encryption
-      result = dev.descendants.any? { |a| a.is?(:encryption) }
+      fs = boot_filesystem
+      log.info "boot mp = #{fs.inspect}"
+      # check if fs is on an encryption
+      result = fs.ancestors.any? { |a| a.is?(:encryption) }
 
       log.info "encrypted_boot? = #{result}"
 
       result
     end
 
+    # Find the devices (disks or partitions)
+    # to whose boot records we should put stage1.
+    #
+    # In simple setups it will be one device, but for RAIDs and LVMs and other
+    # multi-device setups we need to put stage1 to *all* the underlying boot
+    # records so that the (Legacy) BIOS does not have a chance to pick
+    # an empty BR to boot from. See bsc#1072908.
+    #
+    # @param [String] dev_name device name
+    # @return [Array<Y2Storage::Device>] list of suitable devices
+    def stage1_devices_for_name(dev_name)
+      device = staging.find_by_name(dev_name)
+      raise "unknown device #{dev_name}" unless device
+
+      if device.is?(:partition) || device.is?(:filesystem)
+        stage1_partitions_for(device)
+      else
+        stage1_disks_for(device)
+      end
+    end
+
+    # Find the partitions to whose boot records we should put stage1.
+    # (In simple setups it will be one partition)
+    # @param [Y2Storage::Device] device to check
+    #   eg. a Y2Storage::Filesystems::Base (for a new installation)
+    #   or a Y2Storage::Partition (for an upgrade)
+    # @return [Array<Y2Storage::Device>] devices suitable for stage1
+    def stage1_partitions_for(device)
+      # so how to do search? at first find first partition with parents
+      # that is on disk or multipath (as ancestors method is not sorted)
+      partitions = select_ancestors(device) do |ancestor|
+        if ancestor.is?(:partition)
+          partitionable = ancestor.partitionable
+          partitionable.is?(:disk) || partitionable.is?(:multipath)
+        else
+          false
+        end
+      end
+
+      # now replace all logical partitions for extended
+      partitions.map! { |p| extended_for_logical(p) }
+      partitions.uniq!
+
+      log.info "stage1 partitions for #{device.inspect} are #{partitions.inspect}"
+
+      partitions
+    end
+
+    # If the passed partition is a logical one (sda7),
+    # return its extended "parent" (sda4), otherwise return the argument
+    def extended_for_logical(partition)
+      partition.type.is?(:logical) ? extended_partition(partition) : partition
+    end
+
+    # Find the disks to whose MBRs we should put stage1.
+    # (In simple setups it will be one disk)
+    # @param [Y2Storage::Device] device to check
+    #   eg. a Y2Storage::Filesystems::Base (for a new installation)
+    #   or a Y2Storage::Disk (for an upgrade)
+    # @return [Array<Y2Storage::Device>] devices suitable for stage1
+    def stage1_disks_for(device)
+      # Usually we want just the ancestors, but in the upgrade case
+      # we may start with just 1 of multipath wires and have to
+      # traverse descendants to find the Y2Storage::Multipath to use.
+      component = [device] + device.ancestors + device.descendants
+
+      # The simple case: just get the disks.
+      disks = component.select { |a| a.is?(:disk) }
+      # Eg. 2 Disks are parents of 1 Multipath, the disks are just "wires"
+      # to the real disk.
+      multipaths = component.select { |a| a.is?(:multipath) }
+
+      multipath_wires = multipaths.each_with_object([]) { |m, r| r.concat(m.parents) }
+
+      result = multipaths + disks - multipath_wires
+
+      log.info "stage1 disks for #{device.inspect} are #{result.inspect}"
+
+      result
+    end
+
+    # shortcut to get stage1 disks for /boot
+    def boot_disks
+      stage1_disks_for(boot_filesystem)
+    end
+
+    # shortcut to get stage1 partitions for /boot
+    def boot_partitions
+      stage1_partitions_for(boot_filesystem)
+    end
+
   private
 
     def detect_disks
-      return if @root_partition # quit if already detected
+      return if @boot_fs && !storage_changed? # quit if already detected
 
-      @root_partition = find_blk_device_at_mountpoint("/")
-      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @root_partition
+      @boot_fs = find_mountpoint("/boot")
+      @boot_fs ||= find_mountpoint("/")
 
-      @boot_partition = find_blk_device_at_mountpoint("/boot")
-      @boot_partition ||= @root_partition
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @boot_fs
 
-      log.info "root partition #{root_partition.inspect}"
-      log.info "boot partition #{boot_partition.inspect}"
-
-      @mbr_disk = disk_with_boot_partition
-
-      # get extended partition device (if exists)
-      @extended_partition = @mbr_disk.partitions.find { |p| p.type.is?(:extended) }
+      log.info "boot fs #{@boot_fs.inspect}"
 
       @storage_revision = Y2Storage::StorageManager.instance.staging_revision
+    end
+
+    def extended_partition(partition)
+      part = partition.partitionable.partitions.find { |p| p.type.is?(:extended) }
+      return nil unless part
+
+      log.info "Using extended partition instead: #{part.inspect}"
+      part
+    end
+
+    # Find the filesystem mounted to given mountpoint.
+    def find_mountpoint(mountpoint)
+      staging.filesystems.find { |f| f.mountpoint == mountpoint }
+    end
+
+    # In a device graph, starting at *device* (inclusive), find the parents
+    # that match *predicate*.
+    # NOTE that once the predicate matches, the search stops **for that node**
+    # but continues for other nodes.
+    # @param device [Y2Storage::Device] starting point
+    # @yieldparam [Y2Storage::Device]
+    # @yieldreturn [Boolean]
+    # @return [Array<Y2Storage::Device>]
+    def select_ancestors(device, &predicate)
+      results = []
+      to_process = [device]
+      until to_process.empty?
+        candidate = to_process.pop
+        if predicate.call(candidate)
+          results << candidate
+          next # done with this branch but continue on other branches
+        end
+        to_process.concat(candidate.parents)
+      end
+      results
     end
   end
 

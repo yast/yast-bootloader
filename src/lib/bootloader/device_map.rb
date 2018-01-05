@@ -1,7 +1,6 @@
 require "yast"
 
 require "bootloader/udev_mapping"
-require "bootloader/stage1_device"
 
 require "yast2/target_file"
 require "cfa/grub2/device_map"
@@ -118,86 +117,26 @@ module Bootloader
       # For us priority disk is device where /boot or / lives as we control this disk and
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
-      boot_disk = Yast::BootStorage.disk_with_boot_partition
-      priority_disks = ::Bootloader::Stage1Device.new(boot_disk.name).real_devices
+      priority_disks = Yast::BootStorage.boot_disks
       # if none of priority disk is hd0, then choose one and assign it
       return if any_first_device?(priority_disks)
 
-      change_order(priority_disks.first)
+      change_order(priority_disks.first.name)
     end
 
     def fill_mapping
-      # storage-ng
       # BIOS-ID is not supported in libstorage-ng, so let's simply create a
-      # mapping entry per disk for the time being (see commented code for the
-      # real expected behavior)
+      # mapping entry per disk for the time being and then ensure pick priority one
       staging = Y2Storage::StorageManager.instance.staging
       staging.disk_devices.each_with_index do |disk, index|
         add_mapping("hd#{index}", disk.name)
       end
-# rubocop:disable Style/BlockComments
-=begin
-      target_map = filtered_target_map
-      log.info("Filtered target map: #{target_map}")
-
-      # add devices with known bios_id
-      # collect BIOS IDs which are used
-      ids = {}
-      target_map.each do |target_dev, target|
-        bios_id = target["bios_id"] || ""
-        next if bios_id.empty?
-
-        index = if Yast::Arch.x86_64 || Yast::Arch.i386
-          # it looks like 0x81. It is boot drive unit see http://en.wikipedia.org/wiki/Master_boot_record
-          bios_id[2..-1].to_i(16) - 0x80
-        else
-          raise "no support for bios id '#{bios_id}' on #{Yast::Arch.architecture}"
-        end
-        # FATE #303548 - doesn't add disk with same bios_id with different name (multipath machine)
-        if !ids[index]
-          add_mapping("hd#{index}", target_dev)
-          ids[index] = true
-        end
-      end
-      # and guess other devices
-      # don't use already used BIOS IDs
-      target_map.each do |target_dev, target|
-        next unless target.fetch("bios_id", "").empty?
-
-        index = 0 # find free index
-        index += 1 while ids[index]
-
-        add_mapping("hd#{index}", target_dev)
-        ids[index] = true
-      end
-
-      log.info "complete initial device map filling: #{self}"
-=end
-    end
-
-    def filtered_target_map
-      target_map = Yast::Storage.GetTargetMap.dup
-
-      # select only disk devices
-      target_map.select! do |_k, v|
-        [:CT_DMRAID, :CT_DISK, :CT_DMMULTIPATH].include?(v["type"]) ||
-          (v["type"] == :CT_MDPART &&
-            mdraid_on_disk?(v["devices"] || [], target_map))
-      end
-
-      # filter out members of BIOS RAIDs and multipath devices
-      target_map.delete_if do |k, v|
-        [:UB_DMRAID, :UB_DMMULTIPATH].include?(v["used_by_type"]) ||
-          (v["used_by_type"] == :UB_MDPART && disk_in_mdraid?(k, target_map))
-      end
-
-      target_map
     end
 
     # Returns true if any device from list devices is in device_mapping
     # marked as hd0.
     def any_first_device?(devices)
-      devices.include?(system_device_for("hd0"))
+      devices.map(&:name).include?(system_device_for("hd0"))
     end
 
     # This function changes order of devices in device_mapping.
@@ -218,27 +157,6 @@ module Bootloader
       # switch order only if there was previously device at hd0. It can be empty e.g.
       # if bios_id is defined, but not for 0x80
       add_mapping(grub_dev, replaced_dev) if replaced_dev
-    end
-
-    # Check if MD raid is build on disks not on paritions
-    # @param [Array<String>] devices - list of devices from MD raid
-    # @param [Hash{String => map}] tm - unfiltered target map
-    # @return - true if MD RAID is build on disks (not on partitions)
-    def mdraid_on_disk?(devices, tm)
-      devices.all? do |key|
-        key == "" || tm[key]
-      end
-    end
-
-    # Check if disk is in MDRaid it means completed disk is used in RAID
-    # @param [String] disk (/dev/sda)
-    # @param [Hash{String => map}] tm - target map
-    # @return - true if disk (not only part of disk) is in MDRAID
-    def disk_in_mdraid?(disk, tm)
-      tm.values.any? do |disk_info|
-        disk_info["type"] == :CT_MDPART &&
-          (disk_info["devices"] || []).include?(disk)
-      end
     end
   end
 end

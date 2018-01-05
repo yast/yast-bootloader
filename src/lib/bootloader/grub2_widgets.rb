@@ -708,32 +708,33 @@ module Bootloader
     end
 
     def init
-      if locations[:boot]
+      if locations.include?(:boot)
         Yast::UI.ChangeWidget(Id(:boot), :Value, stage1.boot_partition?)
       end
-      if locations[:root]
-        Yast::UI.ChangeWidget(Id(:root), :Value, stage1.root_partition?)
-      end
-      if locations[:extended]
-        Yast::UI.ChangeWidget(Id(:extended), :Value, stage1.extended_partition?)
-      end
-      Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?) if locations[:mbr]
+      Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?) if locations.include?(:mbr)
 
       init_custom_devices(stage1.custom_devices)
     end
 
     def store
-      locations = stage1.available_locations
       stage1.clear_devices
-      locations.each_pair do |id, dev|
-        stage1.add_udev_device(dev) if Yast::UI.QueryWidget(Id(id), :Value)
+      locations.each do |id|
+        next unless Yast::UI.QueryWidget(Id(id), :Value)
+
+        case id
+        when :boot
+          stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
+        when :mbr
+          stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
+        end
       end
 
       return unless Yast::UI.QueryWidget(:custom, :Value)
 
       devs = Yast::UI.QueryWidget(:custom_list, :Value)
       devs.split(",").each do |dev|
-        stage1.add_udev_device(dev.strip)
+        # Add it exactly as specified by the user
+        stage1.add_device(dev.strip)
       end
     end
 
@@ -769,10 +770,8 @@ module Bootloader
 
     def location_checkboxes
       checkboxes = []
-      checkboxes << checkbox(:boot, _("Boo&t from Boot Partition")) if locations[:boot]
-      checkboxes << checkbox(:root, _("Boo&t from Root Partition")) if locations[:root]
-      checkboxes << checkbox(:mbr, _("Boot from &Master Boot Record")) if locations[:mbr]
-      checkboxes << checkbox(:extended, _("Boot from &Extended Partition")) if locations[:extended]
+      checkboxes << checkbox(:boot, _("Boo&t from Partition")) if locations.include?(:boot)
+      checkboxes << checkbox(:mbr, _("Boot from &Master Boot Record")) if locations.include?(:mbr)
 
       checkboxes.concat(custom_partition_content)
     end

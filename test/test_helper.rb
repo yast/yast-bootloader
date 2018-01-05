@@ -48,8 +48,6 @@ def devicegraph_stub(name)
   else
     Y2Storage::StorageManager.create_test_instance.probe_from_yaml(path)
   end
-  # clears cache for storage devices
-  Yast::BootStorage.reset_disks
 end
 
 def find_device(name)
@@ -62,12 +60,11 @@ RSpec.configure do |config|
   Yast.import "BootStorage"
   Yast.import "Bootloader"
   require "bootloader/udev_mapping"
-  require "bootloader/stage1_device"
 
   config.before do
+    Yast::BootStorage.instance_variable_set(:@storage_revision, nil)
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
-    allow(::Bootloader::Stage1Device).to receive(:new) { |d| double(real_devices: [d]) }
     devicegraph_stub("trivial.yaml")
   end
 end

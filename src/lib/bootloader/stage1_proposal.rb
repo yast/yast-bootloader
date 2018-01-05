@@ -3,7 +3,6 @@ require "yast"
 Yast.import "Arch"
 Yast.import "BootStorage"
 
-require "bootloader/stage1_device"
 require "bootloader/udev_mapping"
 
 module Bootloader
@@ -33,13 +32,6 @@ module Bootloader
       @stage1 = stage1
     end
 
-    DEVICE_MAPPING = {
-      root:     :root_partition,
-      boot:     :boot_partition,
-      extended: :extended_partition,
-      mbr:      :mbr_disk
-    }.freeze
-
     # Set "boot_*" flags in the globals map according to the boot device selected
     # with parameter selected_location. Only a single boot device can be selected
     # with this function. The function cannot be used to set a custom boot device.
@@ -58,9 +50,12 @@ module Bootloader
       stage1.clear_devices
 
       case selected_location
-      when :root, :boot, :extended, :mbr
-        device = Yast::BootStorage.public_send(DEVICE_MAPPING[selected_location])
-        stage1.add_udev_device(device.name)
+      when :boot, :mbr
+        method = selected_location == :mbr ? :boot_disk_names : :boot_partition_names
+        devices = stage1.public_send(method)
+        devices.each do |dev|
+          stage1.add_udev_device(dev)
+        end
       when :none then log.info "Resetting bootloader device"
       when Array
         if selected_location.first != :custom
@@ -89,7 +84,7 @@ module Bootloader
           # partition can remain activated, which causes less problems with
           # other installed OSes like Windows (older versions assign the C:
           # drive letter to the activated partition).
-          used_disks = ::Bootloader::Stage1Device.new(Yast::BootStorage.mbr_disk.name).real_devices
+          used_disks = mbr_disks
           stage1.activate = used_disks.none? { |d| any_boot_flag_partition?(d) }
           stage1.generic_mbr = false
         else
@@ -102,9 +97,8 @@ module Bootloader
 
     private
 
-      def any_boot_flag_partition?(disk_name)
-        disk = Y2Storage::Partitionable.find_by_name(devicegraph, disk_name)
-        log.info "any_boot_flag_partition?(#{disk_name}): #{disk.inspect}"
+      def any_boot_flag_partition?(disk)
+        log.info "any_boot_flag_partition? #{disk.inspect}"
         return false unless disk && disk.partition_table
 
         legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
@@ -118,86 +112,30 @@ module Bootloader
       end
 
       def propose_boot_location
-        selected_location = :mbr
-
-        # there was check if boot device is on logical partition
-        # IMO it is good idea check MBR also in this case
-        # see bug #279837 comment #53
-        selected_location = separated_boot? ? :boot : :root if boot_partition_on_mbr_disk?
-
-        if logical_boot? && Yast::BootStorage.extended_partition
-          log.info "/boot is on logical partition and extended detected, extended proposed"
-          selected_location = :extended
-        end
-
-        # for separate btrfs partition prefer MBR (bnc#940797)
-        if boot_with_btrfs? && (logical_boot? || separated_boot?)
-          log.info "/boot is on logical partition or separated and uses btrfs, mbr is preferred"
-          selected_location = :mbr
-        end
-
-        if !stage1.can_use_boot?
-          log.info "/boot cannot be used to install stage1"
-          selected_location = :mbr
-        end
+        selected_location = propose_location
+        log.info "selected location #{selected_location.inspect}"
 
         assign_bootloader_device(selected_location)
 
         selected_location
       end
 
-      def separated_boot?
-        Yast::BootStorage.separated_boot?
-      end
+      def propose_location
+        # If disk is gpt and there is no bios boot partition, try to use partition if can be used
+        return :mbr unless stage1.can_use_boot?
 
-      def logical_boot?
-        init_boot_info unless @boot_initialized
-
-        @logical_boot
-      end
-
-      def boot_with_btrfs?
-        init_boot_info unless @boot_initialized
-
-        @boot_with_btrfs
-      end
-
-      def init_boot_info
-        return if @boot_initialized
-        @boot_initialized = true
-
-        boot_part = Yast::BootStorage.boot_partition
-        @logical_boot = boot_part.type.is?(:logical)
-        @boot_with_btrfs = with_btrfs?(boot_part)
-
-        # check for sure also underlaying partitions
-        Yast::BootStorage.disk_with_boot_partition.partitions.each do |p|
-          next unless underlaying_boot_partition_devices.include?(p.name)
-
-          @boot_with_btrfs = with_btrfs?(p)
-          @logical_boot = true if p.type.is?(:logical)
+        missing_bios_boot = mbr_disks.any? do |disk|
+          disk.gpt? && disk.partitions.none? { |p| p.id.is?(:bios_boot) }
         end
+
+        return :boot if missing_bios_boot
+
+        # lets prefer for SLE15 MBR where possible to make life of users easier
+        :mbr
       end
 
-      def with_btrfs?(partition)
-        type = partition.filesystem_type
-        return false unless type
-        type.is?(:btrfs)
-      end
-
-      # determine the underlaying devices for the "/boot" partition (either the
-      # BootPartitionDevice, or the devices from which the soft-RAID device for
-      # "/boot" is built)
-      def underlaying_boot_partition_devices
-        @underlaying_boot_partition_devices ||=
-          ::Bootloader::Stage1Device.new(Yast::BootStorage.boot_partition.name).real_devices
-      end
-
-      def boot_partition_on_mbr_disk?
-        underlaying_boot_partition_devices.any? do |dev|
-          disk = devicegraph.disks.find { |d| d.name_or_partition?(dev) }
-          disk == Yast::BootStorage.mbr_disk
-        end
+      def mbr_disks
+        Yast::BootStorage.boot_disks
       end
     end
 
@@ -231,7 +169,7 @@ module Bootloader
         # and raise exception.
         # powernv do not have prep partition, so we do not have any partition
         # to activate (bnc#970582)
-        elsif Yast::BootStorage.disk_with_boot_partition.name == "/dev/nfs" ||
+        elsif Yast::BootStorage.boot_filesystem.is?(:nfs) ||
             Yast::Arch.board_powernv
           stage1.activate = false
           stage1.generic_mbr = false
@@ -260,8 +198,8 @@ module Bootloader
           return partition
         end
 
-        boot_disk = Yast::BootStorage.disk_with_boot_partition
-        partition = partitions.find { |p| p.partitionable == boot_disk }
+        boot_disks = Yast::BootStorage.boot_disks
+        partition = partitions.find { |p| boot_disks.include?(p.partitionable) }
         if partition
           log.info "using prep on boot disk #{partition}"
           return partition

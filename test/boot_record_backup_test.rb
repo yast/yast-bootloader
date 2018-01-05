@@ -14,10 +14,6 @@ describe Bootloader::BootRecordBackup do
 
   subject { Bootloader::BootRecordBackup.new("/dev/sda") }
 
-  before do
-    allow(Yast::BootStorage).to receive(:mbr_disk).and_return(double(name: "/dev/sda"))
-  end
-
   describe "#restore" do
     it "returns true if backup is successfully restored" do
       allow(Yast::SCR).to receive(:Read).with(SIZE_PATH, anything).and_return(10)
@@ -80,12 +76,6 @@ describe Bootloader::BootRecordBackup do
       allow(Yast::SCR).to receive(:Read).with(STAT_PATH, anything).and_return("ctime" => 200)
       allow(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/mv .*backup_boot_sectors.*\s+.*backup_boot_sectors/)
       expect(Yast::SCR).to receive(:Execute).with(Yast::Path.new(".target.remove"), /.*backup_boot_sectors.*/)
-
-      subject.write
-    end
-
-    it "store backup of device first 512 bytes to /boot/backup_mbr if it is MBR of primary disk" do
-      expect(Yast::SCR).to receive(:Execute).with(BASH_PATH, /bin\/dd.* of=\/boot\/backup_mbr/)
 
       subject.write
     end

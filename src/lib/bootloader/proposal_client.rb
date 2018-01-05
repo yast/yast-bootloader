@@ -26,8 +26,6 @@ module Bootloader
     PROPOSAL_LINKS = [
       "enable_boot_mbr",
       "disable_boot_mbr",
-      "enable_boot_root",
-      "disable_boot_root",
       "enable_boot_boot",
       "disable_boot_boot"
     ].freeze
@@ -182,15 +180,11 @@ module Bootloader
       ret["raw_proposal"] = Yast::Bootloader.Summary
       ret["label_proposal"] = Yast::Bootloader.Summary(simple_mode: true)
 
-      # F#300779 - Install diskless client (NFS-root)
-      # kokso:  bootloader will not be installed
-      device = Yast::BootStorage.disk_with_boot_partition.name
-      log.info "Type of BootPartitionDevice: #{device}"
-      if device == "/dev/nfs"
+      # support diskless client (FATE#300779)
+      if Yast::BootStorage.boot_filesystem.is?(:nfs)
         log.info "Boot partition is nfs type, bootloader will not be installed."
         return ret
       end
-      # F#300779 - end
 
       handle_errors(ret)
 

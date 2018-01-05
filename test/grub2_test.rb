@@ -323,7 +323,7 @@ describe Bootloader::Grub2 do
 
       it "replaces all stage1 devices with merged ones" do
         subject.stage1.clear_devices
-        subject.stage1.add_udev_device("/dev/sdb")
+        subject.stage1.add_udev_device("/dev/sda2")
 
         subject.merge(other)
 

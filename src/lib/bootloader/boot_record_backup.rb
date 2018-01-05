@@ -47,12 +47,6 @@ module Bootloader
       # save MBR to yast2 log directory
       logs_path = "/var/log/YaST2/" + device_file
       copy_br(device, logs_path)
-
-      # special backup only if device is mbr disk
-      Yast.import "BootStorage"
-      return if device != Yast::BootStorage.mbr_disk.name
-
-      copy_br(device, "/boot/backup_mbr")
     end
 
     # Restore backup

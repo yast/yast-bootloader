@@ -184,32 +184,16 @@ module Bootloader
     def locations
       locations = []
 
-      partition_location = boot_partition_location
-      locations << partition_location unless partition_location.empty?
-      if stage1.extended_partition?
-        # TRANSLATORS: extended is here for extended partition. Keep translation short.
-        locations << Yast::BootStorage.extended_partition.name + _(" (extended)")
-      end
+      partition_location = Yast::BootStorage.boot_partitions.map(&:name).join(", ")
+      locations << partition_location + _(" (/boot)") if stage1.boot_partition?
       if stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
-        locations << Yast::BootStorage.mbr_disk.name + _(" (MBR)")
+        locations << Yast::BootStorage.boot_disks.map(&:name).join(", ") + _(" (MBR)")
       end
       locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
       locations
-    end
-
-    def boot_partition_location
-      if Yast::BootStorage.separated_boot?
-        if stage1.boot_partition?
-          return Yast::BootStorage.boot_partition.name + " (\"/boot\")"
-        end
-      elsif stage1.root_partition?
-        return Yast::BootStorage.root_partition.name + " (\"/\")"
-      end
-
-      ""
     end
 
     def mbr_line
@@ -225,28 +209,15 @@ module Bootloader
     end
 
     def partition_line
-      # check for separated boot partition, use root otherwise
-      if Yast::BootStorage.separated_boot?
-        if stage1.boot_partition?
-          _(
-            "Install bootcode into /boot partition " \
-              "(<a href=\"disable_boot_boot\">do not install</a>)"
-          )
-        else
-          _(
-            "Do not install bootcode into /boot partition " \
-              "(<a href=\"enable_boot_boot\">install</a>)"
-          )
-        end
-      elsif stage1.root_partition?
+      if stage1.boot_partition?
         _(
-          "Install bootcode into \"/\" partition " \
-            "(<a href=\"disable_boot_root\">do not install</a>)"
+          "Install boot code into a partition with /boot " \
+            "(<a href=\"disable_boot_boot\">do not install</a>)"
         )
       else
         _(
-          "Do not install bootcode into \"/\" partition " \
-            "(<a href=\"enable_boot_root\">install</a>)"
+          "Do not install boot code into a partition with /boot " \
+            "(<a href=\"enable_boot_boot\">install</a>)"
         )
       end
     end
