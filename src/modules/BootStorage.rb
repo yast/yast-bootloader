@@ -138,35 +138,30 @@ module Yast
     # get stage1 device suitable for stage1 location
     # ( so e.g. exclude logical partition and use instead extended ones )
     # @param [Y2Storage::Device] device to check
-    # @return [Array<Y2Storage::Device] devices suitable for stage1
+    # @return [Array<Y2Storage::Device>] devices suitable for stage1
     def stage1_partitions_for(device)
       # so how to do search? at first find first partition with parents
       # that is on disk or multipath (as ancestors method is not sorted)
-      to_process = [device]
-      partitions = []
-      loop do
-        break if to_process.empty?
-        partition = to_process.pop
-        if partition.is?(:partition)
-          partitionable = partition.partitionable
-          if partitionable.is?(:disk) || partitionable.is?(:multipath)
-            partitions << partition
-            next # we are done here, we found partition for this part
-          end
+      partitions = select_ancestors(device) do |ancestor|
+        if ancestor.is?(:partition)
+          partitionable = ancestor.partitionable
+          partitionable.is?(:disk) || partitionable.is?(:multipath)
+        else
+          false
         end
-        to_process.concat(partition.parents)
       end
 
       # now replace all logical partitions for extended
       partitions.map! { |p| extended_for_logical(p) }
       partitions.uniq!
 
-      log.info "stage1 partitions for #{device.inspect} is #{partitions.inspect}"
+      log.info "stage1 partitions for #{device.inspect} are #{partitions.inspect}"
 
       partitions
     end
 
-    # If passed partition is logical, return extended, otherwise return argument
+    # If the passed partition is a logical one (sda7),
+    # return its extended "parent" (sda4), otherwise return the argument
     def extended_for_logical(partition)
       partition.type.is?(:logical) ? extended_partition(partition) : partition
     end
@@ -176,7 +171,7 @@ module Yast
     # @param [Y2Storage::Device] device to check
     #   eg. a Y2Storage::Filesystems::Base (for a new installation)
     #   or a Y2Storage::Disk (for an upgrade)
-    # @return [Array<Y2Storage::Device] devices suitable for stage1
+    # @return [Array<Y2Storage::Device>] devices suitable for stage1
     def stage1_disks_for(device)
       # Usually we want just the ancestors, but in the upgrade case
       # we may start with just 1 of multipath wires and have to
@@ -234,6 +229,28 @@ module Yast
     # Find the filesystem mounted to given mountpoint.
     def find_mountpoint(mountpoint)
       staging.filesystems.find { |f| f.mountpoint == mountpoint }
+    end
+
+    # In a device graph, starting at *device* (inclusive), find the parents
+    # that match *predicate*.
+    # NOTE that once the predicate matches, the search stops **for that node**
+    # but continues for other nodes.
+    # @param device [Y2Storage::Device] starting point
+    # @yieldparam [Y2Storage::Device]
+    # @yieldreturn [Boolean]
+    # @return [Array<Y2Storage::Device>]
+    def select_ancestors(device, &predicate)
+      results = []
+      to_process = [device]
+      while !to_process.empty?
+        candidate = to_process.pop
+        if predicate.call(candidate)
+          results << candidate
+          next # done with this branch but continue on other branches
+        end
+        to_process.concat(candidate.parents)
+      end
+      results
     end
   end
 
