@@ -171,19 +171,29 @@ module Yast
       partition.type.is?(:logical) ? extended_partition(partition) : partition
     end
 
-    # get stage1 device suitable for stage1 location
+    # Find the disks to whose MBRs we should put stage1.
+    # (In simple setups it will be one disk)
     # @param [Y2Storage::Device] device to check
+    #   eg. a Y2Storage::Filesystems::Base (for a new installation)
+    #   or a Y2Storage::Disk (for an upgrade)
     # @return [Array<Y2Storage::Device] devices suitable for stage1
     def stage1_disks_for(device)
-      disks = ([device] + device.ancestors + device.descendants).select { |a| a.is?(:disk) }
-      # filter out multipath wires and instead place there its mutlipath device
-      multipaths = ([device] + device.ancestors + device.descendants).select { |a| a.is?(:multipath) }
+      # Usually we want just the ancestors, but in the upgrade case
+      # we may start with just 1 of multipath wires and have to
+      # traverse descendants to find the Y2Storage::Multipath to use.
+      component = [device] + device.ancestors + device.descendants
+
+      # The simple case: just get the disks.
+      disks = component.select { |a| a.is?(:disk) }
+      # Eg. 2 Disks are parents of 1 Multipath, the disks are just "wires"
+      # to the real disk.
+      multipaths = component.select { |a| a.is?(:multipath) }
 
       multipath_wires = multipaths.each_with_object([]) { |m, r| r.concat(m.parents) }
 
       result = multipaths + disks - multipath_wires
 
-      log.info "stage1 disks for #{device.inspect} is #{result.inspect}"
+      log.info "stage1 disks for #{device.inspect} are #{result.inspect}"
 
       result
     end
