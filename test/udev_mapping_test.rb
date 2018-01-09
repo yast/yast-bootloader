@@ -17,7 +17,7 @@ describe Bootloader::UdevMapping do
       # Y2Storage will ask libstorage-ng to perform a system lookup if the
       # device cannot be found using the information stored in the devicegraph.
       # Unfortunately, that operation misbehaves when executed in an
-      # unprivileged Docker container, so we must mock the call. 
+      # unprivileged Docker container, so we must mock the call.
       allow(Y2Storage::BlkDevice).to receive(:find_by_any_name).and_return nil
     end
 
