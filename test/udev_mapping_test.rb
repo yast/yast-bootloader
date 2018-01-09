@@ -13,6 +13,14 @@ describe Bootloader::UdevMapping do
   end
 
   describe ".to_kernel_device" do
+    before do
+      # Y2Storage will ask libstorage-ng to perform a system lookup if the
+      # device cannot be found using the information stored in the devicegraph.
+      # Unfortunately, that operation misbehaves when executed in an
+      # unprivileged Docker container, so we must mock the call.
+      allow(Y2Storage::BlkDevice).to receive(:find_by_any_name).and_return nil
+    end
+
     it "return argument for non-udev non-raid mapped device names" do
       expect(subject.to_kernel_device("/dev/sda")).to eq "/dev/sda"
     end

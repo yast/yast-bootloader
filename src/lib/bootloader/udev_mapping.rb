@@ -79,16 +79,19 @@ module Bootloader
       # in mode config if not found, then return itself
       return dev if Yast::Mode.config
 
-      devices = Y2Storage::BlkDevice.all(staging)
-      # As wires devices have identical udev devices as its multipath device,
-      # we remove possible multipath wires from the list since we want to translate
-      # udev device to multipath device and not wire
-      devices.reject! { |d| d.is?(:disk) && d.descendants.any? { |i| i.is?(:multipath) } }
-      device = devices.find { |i| i.udev_full_all.include?(dev) }
-      return device.name if device
+      device = staging.find_by_any_name(dev)
 
-      # TRANSLATORS: error message, %s stands for problematic device.
-      raise(Bootloader::BrokenConfiguration, _("Unknown udev device '%s'") % dev)
+      if device.nil?
+        # TRANSLATORS: error message, %s stands for problematic device.
+        raise(Bootloader::BrokenConfiguration, _("Unknown udev device '%s'") % dev)
+      end
+
+      # As wire devices have identical udev devices as its multipath device,
+      # we must ensure we are using the multipath device and not the wire
+      multipath = device.descendants.find { |i| i.is?(:multipath) }
+      device = multipath if device.is?(:disk) && multipath
+
+      device.name
     end
 
     def kernel_to_udev(dev)

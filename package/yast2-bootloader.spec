@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        4.0.10
+Version:        4.0.11
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -27,7 +27,8 @@ Url:            http://github.com/yast/yast-bootloader
 BuildRequires:  yast2 >= 3.1.176
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
-BuildRequires:  yast2-storage-ng
+# Y2Storage::Devicegraph#find_by_any_name
+BuildRequires:  yast2-storage-ng >= 4.0.67
 # lenses needed also for tests
 BuildRequires:  augeas-lenses
 BuildRequires:  rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
@@ -41,7 +42,8 @@ Requires:       yast2 >= 3.1.176
 Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
-Requires:       yast2-storage-ng
+# Y2Storage::Devicegraph#find_by_any_name
+Requires:       yast2-storage-ng >= 4.0.67
 # GrubCfg with boot_entries that filter out unbootable entries
 Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 0.5.1
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also
