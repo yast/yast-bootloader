@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Tue Jan  9 07:25:09 UTC 2018 - ancor@suse.com
+
+- Rely on the new Y2Storage::Devicegraph#find_by_any_name when
+  matching udev names to their corresponding kernel device names
+  (bsc#1073254).
+- 4.0.11
+
+-------------------------------------------------------------------
 Wed Jan  3 12:20:05 UTC 2018 - jreidinger@suse.com
 
 - Legacy (non-EFI) x86: Fixed multi-device booting problems
