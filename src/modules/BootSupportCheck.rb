@@ -138,7 +138,7 @@ module Yast
       disks = Yast::BootStorage.boot_disks
 
       # do not activate for ppc and GPT see bsc#983194
-      return true if Arch.ppc64 && disks.all(&:gpt?)
+      return true if Arch.ppc64 && disks.all?(&:gpt?)
       all_activate = disks.all? do |disk|
         if disk.partition_table
           legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
