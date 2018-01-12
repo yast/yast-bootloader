@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jan 12 09:45:24 UTC 2018 - jsrain@suse.cz
+
+- fix typo in function name (bsc#1075725)
+- 4.0.12
+
+-------------------------------------------------------------------
 Tue Jan  9 07:25:09 UTC 2018 - ancor@suse.com
 
 - Rely on the new Y2Storage::Devicegraph#find_by_any_name when
