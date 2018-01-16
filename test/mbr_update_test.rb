@@ -134,9 +134,19 @@ describe Bootloader::MBRUpdate do
           expect(Yast::Execute).to receive(:locally)
             .with(/parted/, "-s", "/dev/sda", "set", 1, "boot", "on")
           expect(Yast::Execute).to receive(:locally)
-            .with(/parted/, "-s", "/dev/sdb", "set", 1, "boot", "on")
+            .with(/parted/, "-s", "/dev/sdb", "set", 2, "boot", "on")
 
-          subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
+          subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb2"]))
+        end
+
+        it "sets boot flag on a suitable partition on all stage1 disks" do
+          expect(Yast::Execute).to receive(:locally)
+            .with(/parted/, "-s", "/dev/sda", "set", 1, "boot", "on")
+          # here 2 is important as /dev/sdb1 is swap which is not activatable
+          expect(Yast::Execute).to receive(:locally)
+            .with(/parted/, "-s", "/dev/sdb", "set", 2, "boot", "on")
+
+          subject.run(stage1(activate: true, devices: ["/dev/sda", "/dev/sdb"]))
         end
 
         it "resets all old boot flags on disk before set boot flag" do
@@ -157,20 +167,6 @@ describe Bootloader::MBRUpdate do
             .with(/parted/, "-s", "/dev/sda", "set", "3", "boot", "off")
 
           subject.run(stage1(activate: true, devices: ["/dev/sda1", "/dev/sdb1"]))
-        end
-
-        xit "sets boot flag on boot device with the lowest bios id when stage1 partition is on md" do
-          allow(Yast::Storage).to receive(:GetTargetMap).and_return(
-            "/dev/sda" => { "label" => "msdos", "bios_id" => "0x81" },
-            "/dev/sdb" => { "label" => "msdos", "bios_id" => "0x80" }
-          )
-
-          allow(::Bootloader::Stage1Device).to receive(:new).with("/dev/md1")
-            .and_return(double(real_devices: ["/dev/sda1", "/dev/sdb1"]))
-          expect(Yast::Execute).to receive(:locally)
-            .with(/parted/, "-s", "/dev/sdb", "set", 1, "boot", "on")
-
-          subject.run(stage1(activate: true, devices: ["/dev/md1"]))
         end
       end
 
