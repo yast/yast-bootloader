@@ -158,7 +158,16 @@ module Bootloader
       result = @stage1.devices.map { |dev| devicegraph.find_by_name(dev) }
       result.compact!
 
-      result.map! { |partition| Yast::BootStorage.extended_for_logical(partition) }
+      result.map! do |device|
+        if device.respond_to?(:partitions) # so it is disk
+          device = device.partitions.find { |p| !p.id.is?(:swap, :bios_boot) }
+        end
+        res = device ? Yast::BootStorage.extended_for_logical(device) : nil
+        log.info "partition to activate for #{device.inspect} is #{res.inspect}"
+        res
+      end
+
+      result.compact!
 
       result.uniq
     end

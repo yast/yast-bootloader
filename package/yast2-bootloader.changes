@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jan 16 16:51:54 UTC 2018 - jreidinger@suse.com
+
+- fix crash for getting partition to activate when stage1 device
+  is disk (bsc#1076121)
+- 4.0.13
+
+-------------------------------------------------------------------
 Fri Jan 12 09:45:24 UTC 2018 - jsrain@suse.cz
 
 - fix typo in function name (bsc#1075725)
