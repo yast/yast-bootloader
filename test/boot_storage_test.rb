@@ -38,6 +38,14 @@ describe Yast::BootStorage do
     end
   end
 
+  describe ".boot_disks" do
+    it "it contain only multipath device without wires" do
+      devicegraph_stub("multipath.xml")
+
+      expect(subject.boot_disks.map(&:name)).to eq(["/dev/mapper/0QEMU_QEMU_HARDDISK_001"])
+    end
+  end
+
   describe ".extended_for_logical" do
     before do
       devicegraph_stub("logical.yaml")
