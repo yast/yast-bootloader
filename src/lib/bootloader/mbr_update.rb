@@ -2,6 +2,7 @@ require "yast"
 
 require "bootloader/boot_record_backup"
 require "bootloader/stage1_device"
+require "bootloader/udev_mapping"
 require "yast2/execute"
 
 Yast.import "Arch"
@@ -194,6 +195,7 @@ module Bootloader
     # @return a Hash `{ "mbr" => String, "num" => Integer }`
     #  containing disk (eg. "/dev/hda") and partition number (eg. 4)
     def partition_to_activate(loader_device)
+      loader_device = ::Bootloader::UdevMapping.to_kernel_device(loader_device)
       real_device = first_base_device_to_boot(loader_device)
       log.info "real devices for #{loader_device} is #{real_device}"
 
