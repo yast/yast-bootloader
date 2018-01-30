@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Jan 30 11:22:10 UTC 2018 - jreidinger@suse.com
+
+- fix crash when clicking link in proposal (bsc#1078227)
+- 4.0.14
+
+-------------------------------------------------------------------
 Tue Jan 16 16:51:54 UTC 2018 - jreidinger@suse.com
 
 - fix crash for getting partition to activate when stage1 device
