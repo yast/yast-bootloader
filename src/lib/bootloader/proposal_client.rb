@@ -221,7 +221,6 @@ module Bootloader
 
     def single_click_action(option, value)
       stage1 = ::Bootloader::BootloaderFactory.current.stage1
-      locations = stage1.available_locations
       devices = option.to_sym == :mbr ? stage1.boot_disk_names : stage1.boot_partition_names
       log.info "single_click_action #{option} #{value.inspect} #{devices}"
 
