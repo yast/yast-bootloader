@@ -221,11 +221,12 @@ module Bootloader
 
     def single_click_action(option, value)
       stage1 = ::Bootloader::BootloaderFactory.current.stage1
-      locations = stage1.available_locations
-      device = locations[option.to_sym] or raise "invalid option #{option}"
-      log.info "single_click_action #{option} #{value.inspect} #{device}"
+      devices = option.to_sym == :mbr ? stage1.boot_disk_names : stage1.boot_partition_names
+      log.info "single_click_action #{option} #{value.inspect} #{devices}"
 
-      value ? stage1.add_udev_device(device) : stage1.remove_device(device)
+      devices.each do |device|
+        value ? stage1.add_udev_device(device) : stage1.remove_device(device)
+      end
 
       Yast::Bootloader.proposed_cfg_changed = true
     end

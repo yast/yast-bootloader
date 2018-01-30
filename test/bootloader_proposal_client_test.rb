@@ -7,16 +7,6 @@ require "bootloader/main_dialog"
 
 describe Bootloader::ProposalClient do
   before do
-    allow_any_instance_of(::Bootloader::Stage1).to(
-      receive(:available_locations)
-      .and_return(
-        mbr:  "/dev/sda",
-        boot: "/dev/sda1"
-      )
-    )
-
-    allow_any_instance_of(::Bootloader::Stage1).to receive(:propose)
-
     Bootloader::BootloaderFactory.clear_cache
 
     allow(Yast::Bootloader).to receive(:Reset)
@@ -58,7 +48,7 @@ describe Bootloader::ProposalClient do
       end
 
       it "sets to true that proposed cfg changed" do
-        subject.ask_user("chosen_id" => "disable_boot_mbr")
+        subject.ask_user("chosen_id" => "disable_boot_boot")
 
         expect(Yast::Bootloader.proposed_cfg_changed).to be true
       end
