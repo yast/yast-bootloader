@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Mon Oct 30 13:56:22 UTC 2017 - jreidinger@suse.com
+Wed Nov 29 07:55:20 UTC 2017 - jreidinger@suse.com
 
 - Fix detection of upgrade of grub2 (bsc#1059603)
 - Fallback to default when default section does not exists. It can
