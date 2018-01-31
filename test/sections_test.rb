@@ -50,6 +50,11 @@ describe Bootloader::Sections do
 
       expect(subject.default).to eq "windows"
     end
+
+    it "sets default to empty if section do not exists" do
+      subject.default = "non-exist"
+      expect(subject.default).to eq ""
+    end
   end
 
   describe "#write" do

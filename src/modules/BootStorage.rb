@@ -57,6 +57,10 @@ module Yast
       @storage_timestamp != Storage.GetTargetChangeTime
     end
 
+    def storage_read?
+      !@storage_timestamp.nil?
+    end
+
     def gpt_boot_disk?
       require "bootloader/bootloader_factory"
       current_bl = ::Bootloader::BootloaderFactory.current
