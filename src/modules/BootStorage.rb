@@ -129,10 +129,10 @@ module Yast
     # records so that the (Legacy) BIOS does not have a chance to pick
     # an empty BR to boot from. See bsc#1072908.
     #
-    # @param [String] dev_name device name
+    # @param [String] dev_name device name including udev links
     # @return [Array<Y2Storage::Device>] list of suitable devices
     def stage1_devices_for_name(dev_name)
-      device = staging.find_by_name(dev_name)
+      device = staging.find_by_any_name(dev_name)
       raise "unknown device #{dev_name}" unless device
 
       if device.is?(:partition) || device.is?(:filesystem)

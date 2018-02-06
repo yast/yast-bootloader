@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Feb  6 14:48:12 UTC 2018 - jreidinger@suse.com
+
+- Fix activating partition by UUID or label (bsc#1077427,
+  bsc#1076424)
+- 4.0.15
+
+-------------------------------------------------------------------
 Tue Jan 30 11:22:10 UTC 2018 - jreidinger@suse.com
 
 - fix crash when clicking link in proposal (bsc#1078227)
