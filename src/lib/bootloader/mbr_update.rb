@@ -155,7 +155,7 @@ module Bootloader
     # boot partition
     # @return a list of partitions to activate
     def partitions_to_activate
-      result = @stage1.devices.map { |dev| devicegraph.find_by_name(dev) }
+      result = @stage1.devices.map { |dev| devicegraph.find_by_any_name(dev) }
       result.compact!
 
       result.map! do |device|
