@@ -37,9 +37,9 @@ module Bootloader
 
       if pmbr_action
         fs = filesystems
-        efi_partition = fs.find { |f| f.mountpoint == "/boot/efi" }
-        efi_partition ||= fs.find { |f| f.mountpoint == "/boot" }
-        efi_partition ||= fs.find { |f| f.mountpoint == "/" }
+        efi_partition = fs.find { |f| f.mount_path == "/boot/efi" }
+        efi_partition ||= fs.find { |f| f.mount_path == "/boot" }
+        efi_partition ||= fs.find { |f| f.mount_path == "/" }
 
         raise "could not find boot partiton" unless efi_partition
 
