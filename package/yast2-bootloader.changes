@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb  9 13:39:03 UTC 2018 - jlopez@suse.com
+
+- Adapt to new MountPoint API (part of fate#318196).
+- 4.0.16
+
+-------------------------------------------------------------------
 Tue Feb  6 14:48:12 UTC 2018 - jreidinger@suse.com
 
 - Fix activating partition by UUID or label (bsc#1077427,
