@@ -237,7 +237,7 @@ module Yast
 
     # Find the filesystem mounted to given mountpoint.
     def find_mountpoint(mountpoint)
-      staging.filesystems.find { |f| f.mountpoint == mountpoint }
+      staging.filesystems.find { |f| f.mount_path == mountpoint }
     end
 
     # In a device graph, starting at *device* (inclusive), find the parents
