@@ -133,7 +133,7 @@ module Yast
     # @return [Array<Y2Storage::Device>] list of suitable devices
     def stage1_devices_for_name(dev_name)
       device = staging.find_by_any_name(dev_name)
-      raise ::Bootloader::BrokenConfiguration.new("unknown device #{dev_name}") unless device
+      raise ::Bootloader::BrokenConfiguration, "unknown device #{dev_name}" unless device
 
       if device.is?(:partition) || device.is?(:filesystem)
         stage1_partitions_for(device)

@@ -58,7 +58,7 @@ describe Yast::BootStorage do
       # mock staging graph as graph does not return proper value when run as non-root
       allow(subject.staging).to receive(:find_by_any_name).and_return(nil)
 
-      expect{subject.stage1_devices_for_name("/dev/non-existing")}.to(
+      expect { subject.stage1_devices_for_name("/dev/non-existing") }.to(
         raise_error(::Bootloader::BrokenConfiguration)
       )
     end
