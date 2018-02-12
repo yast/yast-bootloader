@@ -52,4 +52,15 @@ describe Yast::BootStorage do
       expect(subject.extended_for_logical(partition)).to eq find_device("/dev/sda2")
     end
   end
+
+  describe ".stage1_devices_for_name" do
+    it "raises BrokenConfiguration exception if gets unknown name" do
+      # mock staging graph as graph does not return proper value when run as non-root
+      allow(subject.staging).to receive(:find_by_any_name).and_return(nil)
+
+      expect { subject.stage1_devices_for_name("/dev/non-existing") }.to(
+        raise_error(::Bootloader::BrokenConfiguration)
+      )
+    end
+  end
 end
