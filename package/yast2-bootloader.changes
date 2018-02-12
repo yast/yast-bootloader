@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 12 15:14:28 UTC 2018 - jreidinger@suse.com
+
+- Detect properly that unknown device is used in bootloader
+  configuration (bsc#1078713)
+- 4.0.17
+
+-------------------------------------------------------------------
 Fri Feb  9 13:39:03 UTC 2018 - jlopez@suse.com
 
 - Adapt to new MountPoint API (part of fate#318196).
