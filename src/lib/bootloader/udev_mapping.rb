@@ -121,6 +121,8 @@ module Bootloader
     def mount_by_udev(device)
       filesystem = device.filesystem
       return nil unless filesystem
+      # mount_by is nil, so not mounted and we need to use our own strategy
+      return nil if filesystem.mount_by.nil?
 
       case filesystem.mount_by.to_sym
       when :device then device.name
