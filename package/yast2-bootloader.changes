@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Feb 15 14:25:47 UTC 2018 - jreidinger@suse.com
+
+- fix nil exception for device with filesystem that is not mounted
+  (bsc#1081018)
+- 4.0.18
+
+-------------------------------------------------------------------
 Mon Feb 12 15:14:28 UTC 2018 - jreidinger@suse.com
 
 - Detect properly that unknown device is used in bootloader
