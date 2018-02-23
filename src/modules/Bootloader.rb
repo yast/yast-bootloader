@@ -181,8 +181,6 @@ module Yast
     # Propose bootloader settings
     def Propose
       log.info "Proposing configuration"
-      # always have a current target map available in the log
-      log.info "unfiltered target map: #{Storage.GetTargetMap.inspect}"
       ::Bootloader::BootloaderFactory.current.propose
 
       log.info "Proposed settings: #{Export()}"
@@ -410,12 +408,7 @@ module Yast
       current_bl = ::Bootloader::BootloaderFactory.current
       return if current_bl.read? || current_bl.proposed?
 
-      if Mode.config
-        log.info "Initialize libstorage in readonly mode" # bnc#942360
-        Storage.InitLibstorage(true)
-        log.info "Not reading settings in Mode::config ()"
-        Propose()
-      elsif Stage.initial && !Mode.update
+      if Mode.config || (Stage.initial && !Mode.update)
         Propose()
       else
         progress_orig = Progress.set(false)

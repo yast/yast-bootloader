@@ -83,11 +83,10 @@ describe Yast::Bootloader do
       subject.ReadOrProposeIfNeeded
     end
 
-    xit "propose in config mode" do
-      allow(Yast::Storage).to receive(:InitLibstorage).and_return(true)
+    it "propose in config mode" do
       expect(subject).to receive(:Propose)
       expect(subject).to_not receive(:Read)
-      expect(Yast::Mode).to receive(:config).and_return(true)
+      allow(Yast::Mode).to receive(:config).and_return(true)
 
       subject.ReadOrProposeIfNeeded
     end
