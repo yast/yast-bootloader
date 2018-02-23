@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Feb 23 12:15:11 UTC 2018 - igonzalezsosa@suse.com
+
+- Remove calls to the old yast2-storage layer (bsc#1071978)
+- 4.0.19
+
+-------------------------------------------------------------------
 Thu Feb 15 14:25:47 UTC 2018 - jreidinger@suse.com
 
 - fix nil exception for device with filesystem that is not mounted
