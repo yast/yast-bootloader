@@ -180,6 +180,7 @@ module Bootloader
     end
 
     def merge_pmbr_action(other)
+      log.info "merging pmbr action. own #{@pmbr_action}, other #{other.pmbr_action}"
       @pmbr_action = other.pmbr_action if other.pmbr_action
     end
 

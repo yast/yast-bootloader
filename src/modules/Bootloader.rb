@@ -91,6 +91,9 @@ module Yast
       end
       factory.current = proposed_configuration
 
+      # mark that it is not clear proposal (bsc#1081967)
+      Yast::Bootloader.proposed_cfg_changed = true
+
       true
     end
 
