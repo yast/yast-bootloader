@@ -34,6 +34,9 @@ module Bootloader
         import_stage1(data, bootloader)
         import_default(data, bootloader.grub_default)
         import_device_map(data, bootloader)
+        # always nil pmbr as autoyast does not support it yet,
+        # so use nil to always use proposed value (bsc#1081967)
+        bootloader.pmbr_action = nil
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
