@@ -184,7 +184,7 @@ module Bootloader
         self.generic_mbr = generic_mbr? || other.generic_mbr?
       else
         clear_devices
-        other.devices.each { |d| add_udev_device(d) }
+        other.devices.each { |d| add_device(d) }
 
         self.activate    = other.activate?
         self.generic_mbr = other.generic_mbr?
