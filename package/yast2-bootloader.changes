@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 12 14:43:36 UTC 2018 - jreidinger@suse.com
+
+- Respect if custom boot is logical volume and display it
+  correctly (bsc#1084815)
+- 4.0.21
+
+-------------------------------------------------------------------
 Wed Mar  7 13:49:53 UTC 2018 - jreidinger@suse.com
 
 - do not repropose configuration in autoyast confirm mode

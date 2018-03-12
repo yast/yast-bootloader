@@ -119,10 +119,9 @@ module Bootloader
       log.info "known devices #{known_devices.inspect}"
 
       devices.select do |dev|
-        stage1_for_dev = Yast::BootStorage.stage1_devices_for_name(dev).map(&:name)
-        log.info "stage1 devices for #{dev} is #{stage1_for_dev.inspect}"
-        # devices already covered by known devices by mbr or by partition
-        !(stage1_for_dev - known_devices).empty?
+        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+        log.info "stage1 devices for #{dev} is #{kernel_dev.inspect}"
+        !known_devices.include?(kernel_dev)
       end
     end
 
@@ -184,7 +183,7 @@ module Bootloader
         self.generic_mbr = generic_mbr? || other.generic_mbr?
       else
         clear_devices
-        other.devices.each { |d| add_udev_device(d) }
+        other.devices.each { |d| add_device(d) }
 
         self.activate    = other.activate?
         self.generic_mbr = other.generic_mbr?
