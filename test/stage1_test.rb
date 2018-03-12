@@ -196,4 +196,17 @@ describe Bootloader::Stage1 do
       end
     end
   end
+
+  describe "#merge" do
+    it "keeps logical volume if specified in other" do
+      devicegraph_stub("xfs.yaml")
+
+      other = described_class.new
+      other.add_device("/dev/sda5")
+
+      subject.merge(other)
+
+      expect(subject.devices).to eq ["/dev/sda5"]
+    end
+  end
 end
