@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 14 13:54:06 UTC 2018 - jreidinger@suse.com
+
+- fix detection of kernel name for alternative raid names (it
+  ensures that fix for bsc#944041 works)
+- 4.0.22
+
+-------------------------------------------------------------------
 Mon Mar 12 14:43:36 UTC 2018 - jreidinger@suse.com
 
 - Respect if custom boot is logical volume and display it
