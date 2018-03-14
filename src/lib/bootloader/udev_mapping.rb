@@ -30,12 +30,8 @@ module Bootloader
       log.info "call to_kernel_device for #{dev}"
       raise "invalid device nil" unless dev
 
-      # for non-udev devices try to see specific raid names (bnc#944041)
-      if dev =~ /^\/dev\/disk\/by-/
-        udev_to_kernel(dev)
-      else
-        alternative_raid_to_kernel(dev)
-      end
+      # for non-udev devices udev_to_kernel also work (bnc#944041)
+      udev_to_kernel(dev)
     end
 
     # Converts udev or kernel device (disk or partition) to udev name that fits best.
@@ -149,25 +145,6 @@ module Bootloader
 
     def udev_by_path(device)
       device.udev_full_paths.first
-    end
-
-    def alternative_raid_to_kernel(dev)
-# storage-ng
-# FIXME
-# rubocop:disable Style/BlockComments
-=begin
-      param = Yast::ArgRef.new({})
-      result = Yast::Storage.GetContVolInfo(dev, param)
-      return dev unless result # not raid with funny name
-
-      info = param.value
-      return info["vdevice"] unless info["vdevice"].empty?
-      return info["cdevice"] unless info["cdevice"].empty?
-
-      raise "unknown value for raid device '#{info.inspect}'"
-=end
-
-      dev
     end
   end
 end
