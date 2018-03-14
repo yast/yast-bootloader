@@ -30,7 +30,7 @@ module Bootloader
       log.info "call to_kernel_device for #{dev}"
       raise "invalid device nil" unless dev
 
-      # for non-udev devices udev_to_kernel also work (bnc#944041)
+      # method udev_to_kernel works also for alternative raid names (bnc#944041)
       udev_to_kernel(dev)
     end
 

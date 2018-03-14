@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Wed Mar 14 13:54:06 UTC 2018 - jreidinger@suse.com
 
-- fix detection of kernel name for alternative raid (ensure that
-  fix for bsc#944041 works)
+- fix detection of kernel name for alternative raid names (it
+  ensures that fix for bsc#944041 works)
 - 4.0.22
 
 -------------------------------------------------------------------
