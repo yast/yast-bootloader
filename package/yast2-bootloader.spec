@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        4.0.22
+Version:        4.0.23
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build

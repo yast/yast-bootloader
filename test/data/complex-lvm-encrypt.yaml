@@ -21,7 +21,7 @@
         label:        root
 
     - partition:
-        size:         10
+        size:         10 KiB
         name:         /dev/sda3
         id:           lvm
 
