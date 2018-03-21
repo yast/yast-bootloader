@@ -189,7 +189,7 @@ module Bootloader
       popup = VBox(
         MultiSelectionBox(
           Id(:devnames),
-          "&Devices:",
+          _("&Devices:"),
           devices
         ),
         ending_buttons,
