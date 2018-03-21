@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 21 11:33:54 UTC 2018 - mfilka@suse.com
+
+- bnc#1083938
+  - missing translation
+- 4.0.24 
+
+-------------------------------------------------------------------
 Tue Mar 20 12:32:44 UTC 2018 - jlopez@suse.com
 
 - Fix tests to not create zero size partitions
