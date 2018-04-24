@@ -217,11 +217,15 @@ module Bootloader
     end
 
     def merge_attributes(default, other)
-      # string attributes
-      [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-       :gfxmode, :theme, :default].each do |attr|
-        val = other.public_send(attr)
-        default.public_send((attr.to_s + "=").to_sym, val) if val
+      begin
+        # string attributes
+        [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
+         :gfxmode, :theme, :default].each do |attr|
+          val = other.public_send(attr)
+          default.public_send((attr.to_s + "=").to_sym, val) if val
+        end
+      rescue RuntimeError
+        raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
       end
 
       # specific attributes that are not part of cfa
@@ -257,7 +261,11 @@ module Bootloader
     end
 
     def propose_terminal
-      return if grub_default.terminal
+      begin
+        return if grub_default.terminal
+      rescue RuntimeError => e
+        log.info "Proposing terminal again due to #{e}"
+      end
 
       # for ppc: Boards with graphics are rare and those are PowerNV, where
       # modules are not used, see bsc#911682

@@ -146,10 +146,17 @@ module Yast
         ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
         ::Bootloader::BootloaderFactory.current.propose
       rescue ::Bootloader::BrokenConfiguration => e
-        ret = Yast::Report.AnyQuestion(_("Broken Configuration"),
+        msg = if e.is_a?(::Bootloader::BrokenConfiguration)
           # TRANSLATORS: %s stands for readon why yast cannot process it
           _("YaST cannot process current bootloader configuration (%s). " \
-            "Propose new configuration from scratch?") % e.reason,
+            "Propose new configuration from scratch?") % e.reason
+        else
+          e.message
+        end
+
+        ret = Yast::Report.AnyQuestion(_("Unsupported Configuration"),
+          # TRANSLATORS: %s stands for readon why yast cannot process it
+          msg,
           _("Propose"),
           _("Quit"),
           :yes) # focus proposing new one

@@ -26,6 +26,22 @@ module Bootloader
     end
   end
 
+  class UnsupportedOption < RuntimeError
+    include Yast::I18n
+    attr_reader :option
+
+    def initialize(option)
+      @reason = option
+      textdomain "bootloader"
+
+      # TRANSLATORS: %s is name of option that has unsupported value
+      super _("Option '%s' contain unsupported value. YaST2 Bootloader cannot handle it." \
+        " To use YaST2 Bootloader proposal have to be reproposed " \
+        "or configuration have to be edit manually.") % option
+    end
+
+  end
+
   # Represents error when serial console arguments are not valid
   class InvalidSerialConsoleArguments < BrokenConfiguration
     MESSAGE = "Invalid serial console arguments".freeze
