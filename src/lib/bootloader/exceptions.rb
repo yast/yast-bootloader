@@ -26,6 +26,8 @@ module Bootloader
     end
   end
 
+  # Represent unsupported value in given option. Used mainly when value contain something that
+  # bootloader does not understand yet.
   class UnsupportedOption < RuntimeError
     include Yast::I18n
     attr_reader :option
@@ -39,7 +41,6 @@ module Bootloader
         " To use YaST2 Bootloader proposal have to be reproposed " \
         "or configuration have to be edit manually.") % option
     end
-
   end
 
   # Represents error when serial console arguments are not valid

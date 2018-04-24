@@ -171,12 +171,7 @@ module Bootloader
 
       log.info "System language is #{lang}"
 
-      {
-        "LC_MESSAGES" => nil,
-        "LC_ALL"      => nil,
-        "LANGUAGE"    => nil,
-        "LANG"        => lang
-      }
+      { "LC_MESSAGES" => nil, "LC_ALL" => nil, "LANGUAGE" => nil, "LANG" => lang }
     end
 
     def merge_pmbr_action(other)
