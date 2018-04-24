@@ -82,6 +82,17 @@ describe Bootloader::ProposalClient do
 
         subject.ask_user({})
       end
+
+      it "shows unsupported popup when upgrading from grub2 (bsc#1070233)" do
+        Yast.import "Mode"
+        allow(Yast::Mode).to receive(:update).and_return(true)
+
+        expect(subject).to receive("old_bootloader").and_return("grub2")
+
+        expect(Yast::Bootloader).to_not receive(:Export)
+        expect(Yast2::Popup).to receive(:show)
+        subject.ask_user({})
+      end
     end
   end
 
