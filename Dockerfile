@@ -1,2 +1,2 @@
-FROM yastdevel/ruby:sle15
+FROM yastdevel/ruby
 COPY . /usr/src/app
