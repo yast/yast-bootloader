@@ -219,6 +219,8 @@ module Bootloader
           val = other.public_send(attr)
           default.public_send((attr.to_s + "=").to_sym, val) if val
         end
+      # FIXME: only temporary solution to catch too complex grub terminal option (bsc#1053559)
+      # will be removed when cfa_grub2 and yast understand more complex terminal configuration
       rescue RuntimeError
         raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
       end

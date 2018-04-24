@@ -145,7 +145,7 @@ module Yast
 
         ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
         ::Bootloader::BootloaderFactory.current.propose
-      rescue ::Bootloader::BrokenConfiguration => e
+      rescue ::Bootloader::BrokenConfiguration, ::Bootloader::UnsupportedOption => e
         msg = if e.is_a?(::Bootloader::BrokenConfiguration)
           # TRANSLATORS: %s stands for readon why yast cannot process it
           _("YaST cannot process current bootloader configuration (%s). " \

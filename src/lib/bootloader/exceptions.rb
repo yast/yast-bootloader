@@ -37,9 +37,9 @@ module Bootloader
       textdomain "bootloader"
 
       # TRANSLATORS: %s is name of option that has unsupported value
-      super _("Option '%s' contain unsupported value.\nYaST2 Bootloader cannot handle it.\n" \
-        "To use YaST2 Bootloader configuration have to be reproposed\n" \
-        "or configuration have to be edited manually.") % option
+      super _("Option '%s' contains an unrecognized value.\nYaST Bootloader cannot handle it.\n" \
+        "Either the whole bootloader configuration needs to be proposed again\n" \
+        "or YaST must quit and you can edit it manually.") % option
     end
   end
 
