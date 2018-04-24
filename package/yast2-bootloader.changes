@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Apr 24 08:30:10 UTC 2018 - jreidinger@suse.com
+
+- Show understandable popup when grub2 terminal option contain
+  complex string that is not yet supported (bsc#1053559)
+- 4.0.25
+
+-------------------------------------------------------------------
 Wed Mar 21 11:33:54 UTC 2018 - mfilka@suse.com
 
 - bnc#1083938
