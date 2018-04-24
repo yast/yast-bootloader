@@ -81,7 +81,7 @@ module Bootloader
             # TRANSLATORS: popup text when user click on link and we forbid to continue
             _("Changing the bootloader configuration during an upgrade is not supported.")
           )
-          return { "workflow_sequence" => :next }
+          return { "workflow_sequence" => :cancel }
         end
       end
       chosen_id = param["chosen_id"]
