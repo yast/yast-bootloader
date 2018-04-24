@@ -79,7 +79,7 @@ module Bootloader
         if grub2_update?(current_bl)
           ::Yast2::Popup.show(
             # TRANSLATORS: popup text when user click on link and we forbid to continue
-            _("Changing of bootloader configuration during upgrade is not supported.")
+            _("Changing the bootloader configuration during an upgrade is not supported.")
           )
           return { "workflow_sequence" => :next }
         end
