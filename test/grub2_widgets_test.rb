@@ -557,6 +557,12 @@ describe Bootloader::ConsoleWidget do
 
       subject.init
     end
+
+    it "raises UnsupportedOption if terminal is complex expression" do
+      allow(bootloader.grub_default).to receive(:terminal).and_raise(RuntimeError)
+
+      expect { subject.init }.to raise_error(::Bootloader::UnsupportedOption)
+    end
   end
 
   context "event handling" do

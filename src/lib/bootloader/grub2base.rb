@@ -171,12 +171,7 @@ module Bootloader
 
       log.info "System language is #{lang}"
 
-      {
-        "LC_MESSAGES" => nil,
-        "LC_ALL"      => nil,
-        "LANGUAGE"    => nil,
-        "LANG"        => lang
-      }
+      { "LC_MESSAGES" => nil, "LC_ALL" => nil, "LANGUAGE" => nil, "LANG" => lang }
     end
 
     def merge_pmbr_action(other)
@@ -217,11 +212,17 @@ module Bootloader
     end
 
     def merge_attributes(default, other)
-      # string attributes
-      [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-       :gfxmode, :theme, :default].each do |attr|
-        val = other.public_send(attr)
-        default.public_send((attr.to_s + "=").to_sym, val) if val
+      begin
+        # string attributes
+        [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
+         :gfxmode, :theme, :default].each do |attr|
+          val = other.public_send(attr)
+          default.public_send((attr.to_s + "=").to_sym, val) if val
+        end
+      # FIXME: only temporary solution to catch too complex grub terminal option (bsc#1053559)
+      # will be removed when cfa_grub2 and yast understand more complex terminal configuration
+      rescue RuntimeError
+        raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
       end
 
       # specific attributes that are not part of cfa
@@ -257,7 +258,11 @@ module Bootloader
     end
 
     def propose_terminal
-      return if grub_default.terminal
+      begin
+        return if grub_default.terminal
+      rescue RuntimeError => e
+        log.info "Proposing terminal again due to #{e}"
+      end
 
       # for ppc: Boards with graphics are rare and those are PowerNV, where
       # modules are not used, see bsc#911682
