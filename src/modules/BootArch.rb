@@ -57,6 +57,11 @@ module Yast
           "hvc_iucv=8 TERM=dumb"
         end
         parameters = "#{features} #{termparm}"
+        # pick selected params from installation command line (bsc#1086665)
+        if kernel_cmdline =~ /(net\.ifnames=\S*)/
+          parameters << " #{Regexp.last_match(1)}"
+        end
+
         parameters << " resume=#{resume}" unless resume.empty?
         return parameters
       else
