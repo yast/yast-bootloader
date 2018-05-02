@@ -32,7 +32,7 @@ describe Bootloader::UdevMapping do
     end
 
     it "return kernel device name for udev mapped name" do
-      expect(subject.to_kernel_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")).to eq "/dev/sda1"
+      expect(subject.to_kernel_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")).to eq "/dev/sda3"
     end
 
     it "raise exception if udev link is not known" do
@@ -48,57 +48,47 @@ describe Bootloader::UdevMapping do
       allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
     end
 
-    it "returns udev link in same format as used to its mounting if defined" do
-      allow(device).to receive(:blk_filesystem).and_return(
-        double(
-          mount_by: Y2Storage::Filesystems::MountByType.new(:uuid),
-          uuid:     "3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
-        )
-      )
+    it "returns udev link in same format as used to its mounting" do
+      device.filesystem.mount_point.mount_by = Y2Storage::Filesystems::MountByType.new(:uuid)
 
       expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
     end
 
     it "returns udev link by label if defined" do
-      allow(device).to receive(:blk_filesystem).and_return(
-        double(
-          mount_by: Y2Storage::Filesystems::MountByType.new(:uuid),
-          uuid:     nil,
-          label:    "DATA"
-        )
-      )
+      device.filesystem.remove_mount_point
 
       expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-label/DATA"
     end
 
     it "returns udev link by uuid if defined" do
-      allow(device).to receive(:blk_filesystem).and_return(
-        double(
-          mount_by: Y2Storage::Filesystems::MountByType.new(:label),
-          uuid:     "3de29985-8cc6-4c9d-8562-2ede26b0c5b6",
-          label:    ""
-        )
-      )
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
 
       expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
     end
 
     it "returns first udev link by id if defined" do
-      allow(device).to receive(:blk_filesystem).and_return(nil)
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
+      allow(device).to receive(:udev_full_uuid).and_return(nil)
       allow(device).to receive(:udev_ids).and_return(["abc", "cde"])
 
       expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-id/abc"
     end
 
     it "returns first udev link by path if defined" do
-      allow(device).to receive(:blk_filesystem).and_return(nil)
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
+      allow(device).to receive(:udev_full_uuid).and_return(nil)
       allow(device).to receive(:udev_paths).and_return(["abc", "cde"])
 
       expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-path/abc"
     end
 
     it "returns kernel name as last fallback" do
-      allow(device).to receive(:blk_filesystem).and_return(nil)
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
+      allow(device).to receive(:udev_full_uuid).and_return(nil)
 
       expect(subject.to_mountby_device(device.name)).to eq device.name
     end
