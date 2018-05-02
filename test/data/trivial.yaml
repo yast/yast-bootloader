@@ -10,7 +10,7 @@
         name:         /dev/sda1
         id:           bios_boot
         file_system:  vfat
-        uuid:         3de29985-8cc6-4c9d-8562-2ede26b0c5b6
+        uuid:         3de29985-8cc6-4c9d-8562-2ede26b0c5b7
 
     - partition:
         size:         1002 MiB
@@ -25,3 +25,5 @@
         name:         /dev/sda3
         file_system:  btrfs
         mount_point:  "/"
+        uuid:         3de29985-8cc6-4c9d-8562-2ede26b0c5b6
+        label:        DATA
