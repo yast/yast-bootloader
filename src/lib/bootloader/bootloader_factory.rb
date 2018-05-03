@@ -18,6 +18,7 @@ module Bootloader
       "grub2-efi"
     ].freeze
 
+    # Keyword used in autoyast for default bootloader used for given system.
     DEFAULT_KEYWORD = "default".freeze
 
     class << self
