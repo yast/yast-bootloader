@@ -16,6 +16,8 @@ Yast.import "PackagesProposal"
 module Bootloader
   # Autoyast client for bootloader
   class AutoClient < ::Installation::AutoClient
+    include Yast::I18n
+
     class << self
       attr_accessor :changed
     end
@@ -32,6 +34,7 @@ module Bootloader
       begin
         Yast::Bootloader.Import(data)
       rescue Bootloader::UnsupportedBootloader => e
+        textdomain "bootloader"
         possible_values = BootloaderFactory.supported_names + ["default"]
         AutoInstall.issues_list.add(:invalid_value, "bootloader", "loader_type",
             e.bootloader_name,
