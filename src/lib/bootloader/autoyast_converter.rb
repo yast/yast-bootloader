@@ -178,7 +178,7 @@ module Bootloader
 
       def bootloader_from_data(data)
         loader_type = data["loader_type"] || "default"
-        allowed = BootloaderFactory::SUPPORTED_BOOTLOADERS + ["default"]
+        allowed = BootloaderFactory.supported_names + ["default"]
 
         raise UnsupportedBootloader, loader_type if !allowed.include?(loader_type)
 
