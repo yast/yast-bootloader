@@ -38,7 +38,7 @@ module Bootloader
         possible_values = BootloaderFactory.supported_names + ["default"]
         AutoInstall.issues_list.add(:invalid_value, "bootloader", "loader_type",
             e.bootloader_name,
-            _("Bootloader is not supported on this architecture. Possible values: ") + 
+            _("The selected bootloader is not supported on this architecture. Possible values: ") +
               possible_values.join(", "),
             :fatal
         )
