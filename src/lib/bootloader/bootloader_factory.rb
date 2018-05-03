@@ -18,6 +18,8 @@ module Bootloader
       "grub2-efi"
     ].freeze
 
+    DEFAULT_KEYWORD = "default".freeze
+
     class << self
       attr_writer :current
 
@@ -44,7 +46,7 @@ module Bootloader
       def supported_names
         if Yast::Mode.config
           # default means bootloader use what it think is the best
-          return BootloaderFactory::SUPPORTED_BOOTLOADERS + ["default"]
+          return BootloaderFactory::SUPPORTED_BOOTLOADERS + [DEFAULT_KEYWORD]
         end
 
         system_bl = begin
