@@ -41,7 +41,8 @@ module Bootloader
           _("The selected bootloader is not supported on this architecture. Possible values: ") +
             possible_values.join(", "),
           :fatal)
-        return false
+        # AutoInstall issues itself will abort import, so do not stop here prematurely.
+        return true
       end
 
       Yast::PackagesProposal.AddResolvables("yast2-bootloader",
