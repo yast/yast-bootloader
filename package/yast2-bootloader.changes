@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Fri May  4 12:43:44 UTC 2018 - jreidinger@suse.com
 
-- Inform user when bootloader is in supported in autoyast profile
-  together with allowed values (bsc#1091284)
+- Inform user when an unsupported bootloader is defined in the
+  AutoYaST profile, display the valid values (bsc#1091284)
 - 4.0.29
 
 -------------------------------------------------------------------
