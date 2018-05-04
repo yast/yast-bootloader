@@ -33,10 +33,10 @@ module Bootloader
     def import(data)
       begin
         Yast::Bootloader.Import(data)
-      rescue Bootloader::UnsupportedBootloader => e
+      rescue ::Bootloader::UnsupportedBootloader => e
         textdomain "bootloader"
         possible_values = BootloaderFactory.supported_names + [BootloaderFactory::DEFAULT_KEYWORD]
-        AutoInstall.issues_list.add(:invalid_value, "bootloader", "loader_type",
+        Yast::AutoInstall.issues_list.add(:invalid_value, "bootloader", "loader_type",
           e.bootloader_name,
           _("The selected bootloader is not supported on this architecture. Possible values: ") +
             possible_values.join(", "),
