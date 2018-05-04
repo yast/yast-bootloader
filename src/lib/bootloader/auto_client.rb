@@ -3,8 +3,10 @@ require "yast"
 require "installation/auto_client"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
+require "bootloader/exceptions"
 require "bootloader/main_dialog"
 
+Yast.import "AutoInstall"
 Yast.import "Bootloader"
 Yast.import "BootStorage"
 Yast.import "Initrd"
@@ -14,6 +16,8 @@ Yast.import "PackagesProposal"
 module Bootloader
   # Autoyast client for bootloader
   class AutoClient < ::Installation::AutoClient
+    include Yast::I18n
+
     class << self
       attr_accessor :changed
     end
@@ -27,7 +31,19 @@ module Bootloader
     end
 
     def import(data)
-      Yast::Bootloader.Import(data)
+      begin
+        Yast::Bootloader.Import(data)
+      rescue ::Bootloader::UnsupportedBootloader => e
+        textdomain "bootloader"
+        possible_values = BootloaderFactory.supported_names + [BootloaderFactory::DEFAULT_KEYWORD]
+        Yast::AutoInstall.issues_list.add(:invalid_value, "bootloader", "loader_type",
+          e.bootloader_name,
+          _("The selected bootloader is not supported on this architecture. Possible values: ") +
+            possible_values.join(", "),
+          :fatal)
+        # AutoInstall issues itself will abort import, so do not stop here prematurely.
+        return true
+      end
 
       Yast::PackagesProposal.AddResolvables("yast2-bootloader",
         :package, BootloaderFactory.current.packages)

@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May  4 12:43:44 UTC 2018 - jreidinger@suse.com
+
+- Inform user when an unsupported bootloader is defined in the
+  AutoYaST profile, display the valid values (bsc#1091284)
+- 4.0.29
+
+-------------------------------------------------------------------
 Wed May  2 10:35:56 UTC 2018 - jreidinger@suse.com
 
 - Fix test failure on s390 (no functionality change)(bsc#1091631)
