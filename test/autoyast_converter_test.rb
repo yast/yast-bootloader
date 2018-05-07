@@ -10,6 +10,7 @@ describe Bootloader::AutoyastConverter do
 
   describe ".import" do
     before do
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       allow(Bootloader::BootloaderFactory).to receive(:proposed).and_return(Bootloader::Grub2.new)
     end
 
