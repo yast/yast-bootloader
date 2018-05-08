@@ -204,7 +204,8 @@ module Yast
       # kokso: additional warning that root partition is nfs type -> bootloader will not be installed
       if BootStorage.boot_filesystem.is?(:nfs)
         log.info "Bootloader::Summary() -> Boot partition is nfs type, bootloader will not be installed."
-        return _("The boot partition is of type NFS. Bootloader cannot be installed.")
+        msg = _("The boot partition is of type NFS. Bootloader cannot be installed.")
+        return (simple_mode ? [msg] : [Yast::HTML.Colorize(msg, "red")])
       end
 
       ::Bootloader::BootloaderFactory.current.summary(simple_mode: simple_mode)
