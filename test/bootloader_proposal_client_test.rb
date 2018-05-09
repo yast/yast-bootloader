@@ -117,11 +117,11 @@ describe Bootloader::ProposalClient do
       expect(subject.make_proposal({})).to include("raw_proposal")
     end
 
-    # FIXME: create yaml file with root on nfs
-    xit "do not check installation errors if install on nfs" do
-      expect(Yast::BootStorage).to receive(:disk_with_boot_partition).and_return("/dev/nfs").at_least(:once)
-
-      expect(subject.make_proposal({})).to_not include("warning")
+    it "proposes a none bootloader if the boot filesystem is nfs" do
+      devicegraph_stub("nfs_root.xml")
+      subject.make_proposal({})
+      expect(Yast::BootStorage.boot_filesystem.is?(:nfs)).to eq(true)
+      expect(::Bootloader::BootloaderFactory.current.name).to eq("none")
     end
 
     it "report warning if no bootloader selected" do
