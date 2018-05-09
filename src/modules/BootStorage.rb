@@ -154,7 +154,7 @@ module Yast
       partitions = select_ancestors(device) do |ancestor|
         if ancestor.is?(:partition)
           partitionable = ancestor.partitionable
-          partitionable.is?(:disk) || partitionable.is?(:multipath)
+          partitionable.is?(:disk) || partitionable.is?(:multipath) || partitionable.is?(:bios_raid)
         else
           false
         end
@@ -192,10 +192,14 @@ module Yast
       # Eg. 2 Disks are parents of 1 Multipath, the disks are just "wires"
       # to the real disk.
       multipaths = component.select { |a| a.is?(:multipath) }
-
       multipath_wires = multipaths.each_with_object([]) { |m, r| r.concat(m.parents) }
 
-      result = multipaths + disks - multipath_wires
+      # And same for bios raids
+      bios_raids = component.select { |a| a.is?(:bios_raid) }
+      raid_members = bios_raids.each_with_object([]) { |m, r| r.concat(m.parents) }
+
+
+      result = multipaths + disks + bios_raids - multipath_wires - raid_members
 
       log.info "stage1 disks for #{device.inspect} are #{result.inspect}"
 
