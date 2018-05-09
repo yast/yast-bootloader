@@ -118,6 +118,7 @@ module Bootloader
       # want to modify its MBR. So we get disk of such partition and change order to add it
       # to top of device map. For details see bnc#887808,bnc#880439
       priority_disks = Yast::BootStorage.boot_disks
+      return if priority_disks.empty?
       # if none of priority disk is hd0, then choose one and assign it
       return if any_first_device?(priority_disks)
 
