@@ -198,7 +198,6 @@ module Yast
       bios_raids = component.select { |a| a.is?(:bios_raid) }
       raid_members = bios_raids.each_with_object([]) { |m, r| r.concat(m.parents) }
 
-
       result = multipaths + disks + bios_raids - multipath_wires - raid_members
 
       log.info "stage1 disks for #{device.inspect} are #{result.inspect}"
