@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu May 10 06:29:10 UTC 2018 - jreidinger@suse.com
+
+- Fix installation on BIOS Raid like Intel RSTe (bsc#1091283)
+- 4.0.32
+
+-------------------------------------------------------------------
 Tue May  8 14:02:52 UTC 2018 - knut.anderssen@suse.com
 
 - Use "none" bootloader when the boot filesystem is nfs
