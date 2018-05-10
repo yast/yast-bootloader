@@ -63,4 +63,28 @@ describe Yast::BootStorage do
       )
     end
   end
+
+  describe ".boot_disks" do
+    context "intel RSTe" do
+      before do
+        devicegraph_stub("intel_rst.xml")
+      end
+
+      it "returns md raid disk device where /boot lives" do
+        expect(subject.boot_disks.map(&:name)).to eq ["/dev/md/Volume0_0"]
+      end
+    end
+  end
+
+  describe ".boot_partitions" do
+    context "intel RSTe" do
+      before do
+        devicegraph_stub("intel_rst.xml")
+      end
+
+      it "returns md raid partitions device where /boot lives" do
+        expect(subject.boot_partitions.map(&:name)).to eq ["/dev/md/Volume0_0p5"]
+      end
+    end
+  end
 end
