@@ -38,7 +38,7 @@ module Yast
     S390_WHITELIST = [
       /net\.ifnames=\S*/,
       /fips=\S*/
-    ]
+    ].freeze
 
     # Get parameters for the default kernel
     # @param [String] resume string device to resume from (or empty not to set it)
@@ -66,9 +66,7 @@ module Yast
         parameters = "#{features} #{termparm}"
         # pick selected params from installation command line
         S390_WHITELIST.each do |pattern|
-          if kernel_cmdline =~ pattern
-            parameters << " #{Regexp.last_match(0)}"
-          end
+          parameters << " #{Regexp.last_match(0)}" if kernel_cmdline =~ pattern
         end
 
         parameters << " resume=#{resume}" unless resume.empty?
