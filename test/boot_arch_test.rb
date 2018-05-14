@@ -107,6 +107,15 @@ describe Yast::BootArch do
       it "adds net.ifnames if boot command line contains it" do
         allow(Yast::Kernel).to receive(:GetCmdLine).and_return("danger kill=1 murder=allowed net.ifnames=1 anarchy=0")
         expect(subject.DefaultKernelParams("/dev/dasd2")).to include("net.ifnames=1")
+      end
+
+      it "adds fips if boot command line contains it" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("danger kill=1 murder=allowed fips=1 anarchy=0")
+        expect(subject.DefaultKernelParams("/dev/dasd2")).to include("fips=1")
+      end
+
+      it "does not add other boot params" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("danger kill=1 murder=allowed anarchy=0")
         expect(subject.DefaultKernelParams("/dev/dasd2")).to_not include("danger")
         expect(subject.DefaultKernelParams("/dev/dasd2")).to_not include("kill=1")
         expect(subject.DefaultKernelParams("/dev/dasd2")).to_not include("murder=allowed")
