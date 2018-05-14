@@ -1,5 +1,9 @@
 ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 
+# localization agnostic tests
+ENV["LC_ALL"] = "en_US.utf-8"
+ENV["LANG"] = "en_US.utf-8"
+
 require "yast"
 require "yast/rspec"
 require "yaml"
