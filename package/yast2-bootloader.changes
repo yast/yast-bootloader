@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon May 14 07:29:05 UTC 2018 - jreidinger@suse.com
+
+- Propose fips boot parameter if it is used for installation
+  on s390 (bsc#1043029)
+- 4.0.33
+
+-------------------------------------------------------------------
 Thu May 10 06:29:10 UTC 2018 - jreidinger@suse.com
 
 - Fix installation on BIOS Raid like Intel RSTe (bsc#1091283)
