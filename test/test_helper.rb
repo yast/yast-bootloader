@@ -1,5 +1,9 @@
 ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 
+# localization agnostic tests
+ENV["LC_ALL"] = "en_US.utf-8"
+ENV["LANG"] = "en_US.utf-8"
+
 require "yast"
 require "yast/rspec"
 require "yaml"
@@ -7,6 +11,7 @@ require "y2storage"
 
 # force utf-8 encoding for external
 Encoding.default_external = Encoding::UTF_8
+
 
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
