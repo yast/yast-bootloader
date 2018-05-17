@@ -193,10 +193,12 @@ module Yast
       # to the real disk.
       multipaths = component.select { |a| a.is?(:multipath) }
       multipath_wires = multipaths.each_with_object([]) { |m, r| r.concat(m.parents) }
+      log.info "multipath devices #{multipaths.inspect} and its wires #{multipath_wires.inspect}"
 
       # And same for bios raids
       bios_raids = component.select { |a| a.is?(:bios_raid) }
       raid_members = bios_raids.each_with_object([]) { |m, r| r.concat(m.parents) }
+      log.info "bios_raids devices #{multipaths.inspect} and its members #{multipath_wires.inspect}"
 
       result = multipaths + disks + bios_raids - multipath_wires - raid_members
 
