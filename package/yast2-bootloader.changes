@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu May 17 12:34:52 UTC 2018 - jreidinger@suse.com
+
+- Extend fix for BIOS RAIDs to work with more complex setup when
+  system contain also physical partitions (bsc#1092417)
+- 4.0.34
+
+-------------------------------------------------------------------
 Mon May 14 07:29:05 UTC 2018 - jreidinger@suse.com
 
 - Propose fips boot parameter if it is used for installation
