@@ -9,11 +9,11 @@
 
 This module has two main responsibilities:
 
-1. Proposing bootable configuration so even beginners who never heard about
-   booting can get bootable distribution out of box without any interaction.
+1. Proposing a bootable configuration so even beginners who've never heard about
+   booting can get a bootable distribution out of the box without any interaction.
 
-2. Allow to edit existing configuration or proposal for advanced users which
-   already know what they want to achieve.
+2. Letting advanced users who already know what they want to achieve
+   to edit an existing configuration or a proposal.
 
 Check our list of [supported scenarios.](SUPPORTED_SCENARIOS.md)
 
@@ -21,23 +21,25 @@ Check our list of [supported scenarios.](SUPPORTED_SCENARIOS.md)
 
 ### High Level Overview
 
-Bootloader module consist of two more or less separated components. UI including dialogs, widgets and similar and backend that is responsible for reading, writting, proposing.
+The bootloader module consists of two more or less separated components.
+The **UI** including dialogs, widgets and similar, and
+the **backend** that is responsible for reading, writing, proposing.
 
 ### Backend
 
 ![overview picture](doc/bootloader_backend.svg)
 
-Entry point to backend is [bootloader factory](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/BootloaderFactory),
-that itself hold and also can propose bootloader implementation. So now lets explain each component on image:
+The entry point to the backend is the [bootloader factory](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/BootloaderFactory),
+that holds and also can propose the bootloader implementation. So now let's explain each component of the picture:
 
 - [GRUB2](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2) for legacy booting or emulated grub2 boot like s390x.
 - [GRUB2-EFI](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2EFI) for EFI variant of GRUB2 bootloader
-- [None](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/NoneBootloader) when yast2 does not manage booting
-- [GRUB2 base](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2Base) is shared functionality for both GRUB2 implementations
-- [GRUB password](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/GRUB2Pwd) is specific class that manage password protection of grub2
-- [Sections](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Sections) is component responsible for getting info about generated grub2 sections and what is default section for boot
-- [GRUB2 install](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/GrubInstall) is responsible for calling grub2-install script with correct arguments. For legacy booting it gets target stage1 devices.
-- [Device Map](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/DeviceMap) is component responsible for managing mapping between grub device name and kernel/udev name.
-- [Stage1](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Stage1) holds information about stage1 location for grub2, also if generic MBR is needed and if partition should be activated.
+- [None](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/NoneBootloader) when YaST does not manage booting
+- [GRUB2 base](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2Base) is the shared functionality for both GRUB2 implementations
+- [GRUB password](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/GRUB2Pwd) is a specific class that manages password protection of grub2
+- [Sections](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Sections) is a component responsible for getting info about generated grub2 sections and what the default section for booting is
+- [GRUB2 install](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/GrubInstall) is responsible for calling the `grub2-install` script with correct arguments. For legacy booting it gets target stage1 devices.
+- [Device Map](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/DeviceMap) is a component responsible for managing the mapping between grub device names and kernel/udev names.
+- [Stage1](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Stage1) holds information about stage1 location for grub2, also whether a generic MBR is needed and whether a partition should be activated.
 - [MBR Update](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/MBRUpdate) is responsible for generic MBR and stage1 if needed
-- [Boot Record backup](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/BootRecordBackup) creates backup of boot record for devices which code touches
+- [Boot Record backup](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/BootRecordBackup) creates a backup of boot record for devices which the code touched
