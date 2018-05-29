@@ -87,4 +87,74 @@ describe Yast::BootStorage do
       end
     end
   end
+
+  describe ".gpt_boot_disk?" do
+    before do
+      # make test arch agnostic as we need it on x86_64 only
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+    end
+
+    it "returns true if bootloader is grub2-efi" do
+      require "bootloader/bootloader_factory"
+
+      ::Bootloader::BootloaderFactory.current_name = "grub2-efi"
+
+      expect(subject.gpt_boot_disk?).to eq true
+    end
+
+    it "returns false if bootloader is none" do
+      require "bootloader/bootloader_factory"
+
+      ::Bootloader::BootloaderFactory.current_name = "none"
+
+      expect(subject.gpt_boot_disk?).to eq false
+    end
+
+    context "bootloader is grub2" do
+      before do
+        require "bootloader/bootloader_factory"
+        ::Bootloader::BootloaderFactory.clear_cache
+
+        ::Bootloader::BootloaderFactory.current_name = "grub2"
+      end
+
+      after do
+        ::Bootloader::BootloaderFactory.clear_cache
+      end
+
+      it "returns true if stage1 contains gpt disk" do
+        devicegraph_stub("trivial.yaml")
+
+        ::Bootloader::BootloaderFactory.current.stage1.add_device("/dev/sda")
+
+        expect(subject.gpt_boot_disk?).to eq true
+      end
+
+      it "returns true if stage1 contains partition on gpt disk" do
+        devicegraph_stub("trivial.yaml")
+
+        ::Bootloader::BootloaderFactory.current.stage1.add_device("/dev/sda2")
+
+        expect(subject.gpt_boot_disk?).to eq true
+      end
+
+      it "understands udev links" do
+        devicegraph_stub("trivial.yaml")
+
+        ::Bootloader::BootloaderFactory.current.stage1
+          .add_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")
+
+        expect(subject.gpt_boot_disk?).to eq true
+      end
+
+      it "returns false if there is no gpt disks in stage1" do
+        devicegraph_stub("trivial_dos.yaml")
+
+        ::Bootloader::BootloaderFactory.current.stage1
+          .add_device("/dev/sda")
+
+        expect(subject.gpt_boot_disk?).to eq false
+      end
+    end
+  end
 end
