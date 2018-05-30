@@ -62,7 +62,7 @@ module Bootloader
 
       # TODO: own class handling PBMR
       # set it only for gpt disk bsc#1008092
-      pmbr_setup(*::Yast::BootStorage.gpt_boot_disks.map(&:name))
+      pmbr_setup(*::Yast::BootStorage.gpt_disks(stage1.devices))
 
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
@@ -79,9 +79,8 @@ module Bootloader
       stage1.propose
       # for GPT add protective MBR flag otherwise some systems won't
       # boot, safer option for legacy booting (bnc#872054)
-      self.pmbr_action = :add if Yast::BootStorage.gpt_boot_disk?
-      log.info "proposed pmbr_action #{pmbr_action}. " \
-        "gpt boot disk? #{Yast::BootStorage.gpt_boot_disk?}"
+      self.pmbr_action = :add
+      log.info "proposed pmbr_action #{pmbr_action}."
       device_map.propose if Yast::Arch.x86_64 || Yast::Arch.i386
     end
 

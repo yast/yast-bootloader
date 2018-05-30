@@ -43,7 +43,7 @@ describe Bootloader::Grub2 do
       allow(Bootloader::MBRUpdate).to receive(:new).and_return(double(run: nil))
       allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
       allow(Bootloader::DeviceMap).to receive(:new).and_return(double.as_null_object)
-      allow(Yast::BootStorage).to receive(:gpt_boot_disks).and_return([double(name: "/dev/sdb")])
+      allow(Yast::BootStorage).to receive(:gpt_disks).and_return(["/dev/sdb"])
     end
 
     it "writes stage1 location" do
@@ -121,22 +121,11 @@ describe Bootloader::Grub2 do
       subject.propose
     end
 
-    it "propose to add pmbr flag if boot disk is with gpt label" do
-      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
-
+    it "propose to add pmbr flag" do
       subject.propose
 
       expect(subject.pmbr_action).to eq :add
     end
-
-    it "propose to do not change pmbr flag if boot disk is not with gpt label" do
-      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(false)
-
-      subject.propose
-
-      expect(subject.pmbr_action).to eq :nothing
-    end
-
   end
 
   describe "#name" do
