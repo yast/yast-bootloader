@@ -62,7 +62,6 @@ module Yast
       !@storage_revision.nil?
     end
 
-
     # Returns if any of boot disks has gpt
     def gpt_boot_disk?
       boot_disks.any? { |d| d.gpt? }
