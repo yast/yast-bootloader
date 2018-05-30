@@ -142,7 +142,7 @@ describe Yast::BootStorage do
         devicegraph_stub("trivial.yaml")
 
         ::Bootloader::BootloaderFactory.current.stage1
-          .add_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")
+                                       .add_device("/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6")
 
         expect(subject.gpt_boot_disk?).to eq true
       end
@@ -151,7 +151,7 @@ describe Yast::BootStorage do
         devicegraph_stub("trivial_dos.yaml")
 
         ::Bootloader::BootloaderFactory.current.stage1
-          .add_device("/dev/sda")
+                                       .add_device("/dev/sda")
 
         expect(subject.gpt_boot_disk?).to eq false
       end
