@@ -87,4 +87,23 @@ describe Yast::BootStorage do
       end
     end
   end
+
+  describe ".gpt_boot_disk?" do
+    before do
+      # make test arch agnostic as we need it on x86_64 only
+      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+    end
+
+    it "returns true if boot disks contains gpt disk" do
+      devicegraph_stub("trivial.yaml")
+
+      expect(subject.gpt_boot_disk?).to eq true
+    end
+
+    it "returns false if there is no gpt boot disks" do
+      devicegraph_stub("trivial_dos.yaml")
+
+      expect(subject.gpt_boot_disk?).to eq false
+    end
+  end
 end

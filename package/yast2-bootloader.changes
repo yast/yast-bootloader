@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 30 06:04:06 UTC 2018 - jreidinger@suse.com
+
+- Fix detection of GPT disk to properly set pmbr flag (bsc#1093887)
+- 4.1.0
+
+-------------------------------------------------------------------
 Thu May 17 12:34:52 UTC 2018 - jreidinger@suse.com
 
 - Extend fix for BIOS RAIDs to work with more complex setup when

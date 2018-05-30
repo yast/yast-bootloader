@@ -62,19 +62,23 @@ module Yast
       !@storage_revision.nil?
     end
 
+    # Returns if any of boot disks has gpt
     def gpt_boot_disk?
-      require "bootloader/bootloader_factory"
-      current_bl = ::Bootloader::BootloaderFactory.current
+      boot_disks.any? { |d| d.gpt? }
+    end
 
-      # efi require gpt disk, so it is always one
-      return true if current_bl.name == "grub2efi"
-      # if bootloader do not know its location, then we do not care
-      return false unless current_bl.respond_to?(:stage1)
+    # Returns detected gpt disks
+    # @param devices[Array<String>] devices to inspect, can be disk, partition or its udev links
+    # @return [Array<String>] gpt disks only
+    def gpt_disks(devices)
+      targets = devices.map { |dev_name| staging.find_by_any_name(dev_name) }
+      boot_disks = targets.each_with_object([]) { |t, r| r.concat(stage1_disks_for(t)) }
 
-      targets = current_bl.stage1.devices
-      boot_disks = staging.disks.select { |d| targets.any? { |t| d.name_or_partition?(t) } }
+      result = boot_disks.select { |disk| disk.gpt? }
 
-      boot_disks.any? { |disk| disk.gpt? }
+      log.info "Found these gpt boot disks: #{result.inspect}"
+
+      result.map(&:name)
     end
 
     # FIXME: merge with BootSupportCheck
