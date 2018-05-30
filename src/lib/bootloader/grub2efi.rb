@@ -47,9 +47,7 @@ module Bootloader
         # set only gpt disks
         disks.select! { |disk| disk.gpt? }
 
-        disks.each do |efi_disk|
-          pmbr_setup(efi_disk.name)
-        end
+        pmbr_setup(*disks.map(&:name))
       end
 
       @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)

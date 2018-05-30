@@ -43,6 +43,7 @@ describe Bootloader::Grub2 do
       allow(Bootloader::MBRUpdate).to receive(:new).and_return(double(run: nil))
       allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
       allow(Bootloader::DeviceMap).to receive(:new).and_return(double.as_null_object)
+      allow(Yast::BootStorage).to receive(:gpt_boot_disks).and_return([double(name: "/dev/sdb")])
     end
 
     it "writes stage1 location" do
