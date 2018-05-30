@@ -62,7 +62,7 @@ module Bootloader
 
       # TODO: own class handling PBMR
       # set it only for gpt disk bsc#1008092
-      pmbr_setup(*gpt_disks_devices) if Yast::BootStorage.gpt_boot_disk?
+      pmbr_setup(*::Yast::BootStorage.gpt_boot_disks.map(&:name))
 
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
@@ -160,15 +160,6 @@ module Bootloader
 
     def devicegraph
       Y2Storage::StorageManager.instance.staging
-    end
-
-    def gpt_disks_devices
-      boot_devices = stage1.devices
-      boot_discs = devicegraph.disks.select do |disk|
-        boot_devices.any? { |bd| disk.name_or_partition?(bd) }
-      end
-      gpt_disks = boot_discs.select { |d| d.gpt? }
-      gpt_disks.map { |d| d.name }
     end
 
     def disk_order_summary
