@@ -29,6 +29,8 @@ the **backend** that is responsible for reading, writing, proposing.
 
 ![overview picture](doc/bootloader_backend.svg)
 
+To get to the clickable links in the image, right-click the diagram and choose "Display Image" (Firefox) or "Open Image in New Tab" (Chromium).
+
 The entry point to the backend is the [bootloader factory](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/BootloaderFactory),
 that holds and also can propose the bootloader implementation. So now let's explain each component of the picture:
 
