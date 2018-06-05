@@ -33,6 +33,13 @@ module Yast
       Yast.import "Stage"
     end
 
+    # list of regexp to match kernel params that should be added
+    # from installation to running kernel on s390 (bsc#1086665)
+    S390_WHITELIST = [
+      /net\.ifnames=\S*/,
+      /fips=\S*/
+    ].freeze
+
     # Get parameters for the default kernel
     # @param [String] resume string device to resume from (or empty not to set it)
     # @return [String] parameters for default kernel
@@ -57,6 +64,11 @@ module Yast
           "hvc_iucv=8 TERM=dumb"
         end
         parameters = "#{features} #{termparm}"
+        # pick selected params from installation command line
+        S390_WHITELIST.each do |pattern|
+          parameters << " #{Regexp.last_match(0)}" if kernel_cmdline =~ pattern
+        end
+
         parameters << " resume=#{resume}" unless resume.empty?
         return parameters
       else
