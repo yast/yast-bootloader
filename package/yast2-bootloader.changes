@@ -3,6 +3,7 @@ Mon Jun  4 15:08:17 UTC 2018 - jreidinger@suse.com
 
 - Propose fips boot parameter if it is used for installation
   on s390 (bsc#1043029)
+- Propagate net.ifnames boot parameter on s390 (bsc#1086665)
 - 3.2.28
 
 -------------------------------------------------------------------
