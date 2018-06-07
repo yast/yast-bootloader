@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun  7 12:38:40 UTC 2018 - jreidinger@suse.com
+
+- Use full path to parted (bsc#1030620)
+- 4.1.1
+
+-------------------------------------------------------------------
 Wed May 30 06:04:06 UTC 2018 - jreidinger@suse.com
 
 - Fix detection of GPT disk to properly set pmbr flag (bsc#1093887)
