@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jun  8 10:58:26 UTC 2018 - jreidinger@suse.com
+
+- fix type in parted path (bsc#1030620)
+- 4.1.2
+
+-------------------------------------------------------------------
 Thu Jun  7 12:38:40 UTC 2018 - jreidinger@suse.com
 
 - Use full path to parted (bsc#1030620)

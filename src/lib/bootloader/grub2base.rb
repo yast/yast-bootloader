@@ -70,7 +70,7 @@ module Bootloader
       end
 
       devices.each do |dev|
-        Yast::Execute.locally("/usb/sbin/parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
+        Yast::Execute.locally("/usr/sbin/parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
       end
     end
 
