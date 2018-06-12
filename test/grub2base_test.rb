@@ -241,7 +241,7 @@ describe Bootloader::Grub2Base do
           expect(subject.grub_default.kernel_params.serialize).to include("product_aurora=shot")
         end
 
-        it "adds quiet argument" do
+        it "adds \"quiet\" argument" do
           subject.propose
 
           expect(subject.grub_default.kernel_params.serialize).to include("quiet")

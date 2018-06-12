@@ -63,7 +63,7 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("")).to_not include("resume")
       end
 
-      it "adds quiet parameter" do
+      it "adds \"quiet\" parameter" do
         expect(subject.DefaultKernelParams("/dev/sda2")).to include(" quiet")
       end
     end
@@ -127,7 +127,7 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 resume=/dev/sda2 console=ttyS1 quiet"
       end
 
-      it "adds quiet parameter" do
+      it "adds \"quiet\" parameter" do
         expect(subject.DefaultKernelParams("/dev/sda2")).to include(" quiet")
       end
     end
