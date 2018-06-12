@@ -41,6 +41,7 @@ module Yast
     ].freeze
 
     # Get parameters for the default kernel
+    # @note for possible arguments for kernel see `man kernel-command-line`
     # @param [String] resume string device to resume from (or empty not to set it)
     # @return [String] parameters for default kernel
     def DefaultKernelParams(resume)
@@ -54,8 +55,7 @@ module Yast
         ret = kernel_cmdline
         ret << " resume=#{resume}" unless resume.empty?
         ret << " #{features}" unless features.empty?
-        ret.gsub!(/(?:\A|\s)splash=\S*/, "")
-        ret << " splash=silent quiet showopts"
+        ret << " quiet"
         return ret
       elsif Arch.s390
         termparm = if ENV["TERM"] == "linux"
