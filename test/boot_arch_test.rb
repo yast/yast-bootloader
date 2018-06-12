@@ -55,15 +55,6 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
 
-      it "removes splash param from command line or product file and add it silent" do
-        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("splash=verbose splash=quit splash=hell")
-
-        expect(subject.DefaultKernelParams("/dev/sda2")).to include("splash=silent")
-        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=verbose")
-        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=quit")
-        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("splash=hell")
-      end
-
       it "adds passed parameter as resume device" do
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("resume=/dev/sda2")
       end
@@ -72,8 +63,8 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("")).to_not include("resume")
       end
 
-      it "adds splash=silent quit showopts parameters" do
-        expect(subject.DefaultKernelParams("/dev/sda2")).to include(" splash=silent quiet showopts")
+      it "adds \"quiet\" parameter" do
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include(" quiet")
       end
     end
 
@@ -129,15 +120,15 @@ describe Yast::BootArch do
       end
 
       it "returns parameters from current command line" do
-        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0 splash=verbose")
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
         # just to test that it do not add product features
         allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS1")
 
-        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 resume=/dev/sda2 console=ttyS1 splash=silent quiet showopts"
+        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 resume=/dev/sda2 console=ttyS1 quiet"
       end
 
-      it "adds splash=silent quit showopts parameters" do
-        expect(subject.DefaultKernelParams("/dev/sda2")).to include(" splash=silent quiet showopts")
+      it "adds \"quiet\" parameter" do
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include(" quiet")
       end
     end
   end

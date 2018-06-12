@@ -241,20 +241,10 @@ describe Bootloader::Grub2Base do
           expect(subject.grub_default.kernel_params.serialize).to include("product_aurora=shot")
         end
 
-        it "removes splash argument and always add splash=silent" do
-          kernel_params = "splash=verbose,theme:st_theme verbose suse=rulezz"
-          allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
-
+        it "adds \"quiet\" argument" do
           subject.propose
 
-          expect(subject.grub_default.kernel_params.serialize).to_not include("splash=verbose,theme:st_theme")
-          expect(subject.grub_default.kernel_params.serialize).to include("splash=silent")
-        end
-
-        it "adds quiet and showopts arguments" do
-          subject.propose
-
-          expect(subject.grub_default.kernel_params.serialize).to include("quiet showopts")
+          expect(subject.grub_default.kernel_params.serialize).to include("quiet")
         end
       end
 
