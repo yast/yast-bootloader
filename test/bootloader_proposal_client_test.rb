@@ -5,6 +5,8 @@ require "bootloader/proposal_client"
 require "bootloader/bootloader_factory"
 require "bootloader/main_dialog"
 
+Yast.import "Mode"
+
 describe Bootloader::ProposalClient do
   before do
     Bootloader::BootloaderFactory.clear_cache
@@ -84,7 +86,6 @@ describe Bootloader::ProposalClient do
       end
 
       it "shows unsupported popup when upgrading from grub2 (bsc#1070233)" do
-        Yast.import "Mode"
         allow(Yast::Mode).to receive(:update).and_return(true)
 
         expect(subject).to receive("old_bootloader").and_return("grub2")
@@ -154,7 +155,6 @@ describe Bootloader::ProposalClient do
     end
 
     it "call bootloader propose in common installation" do
-      Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(false)
       expect(Bootloader::BootloaderFactory.current).to receive(:propose)
 
@@ -162,10 +162,9 @@ describe Bootloader::ProposalClient do
     end
 
     it "reproprose from scrach during update if old bootloader is not grub2" do
-      Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(true)
 
-      expect(subject).to receive("old_bootloader").and_return("grub").twice
+      expect(subject).to receive("old_bootloader").and_return("grub").at_least(:once)
 
       expect(Yast::Bootloader).to receive(:Reset).at_least(:once)
       expect(Bootloader::BootloaderFactory).to receive(:proposed).and_call_original
@@ -174,7 +173,6 @@ describe Bootloader::ProposalClient do
     end
 
     it "do not propose during update if if old bootloader is none" do
-      Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(true)
 
       expect(subject).to receive("old_bootloader").and_return("none").twice
@@ -183,7 +181,6 @@ describe Bootloader::ProposalClient do
     end
 
     it "propose no change if old bootloader is grub2" do
-      Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(true)
 
       expect(subject).to receive("old_bootloader").and_return("grub2")
@@ -208,7 +205,6 @@ describe Bootloader::ProposalClient do
     end
 
     it "do not resets configuration in automode and even if force_reset passed" do
-      Yast.import "Mode"
       allow(Yast::Mode).to receive(:autoinst).and_return(true)
       expect(Yast::Bootloader).to_not receive(:Reset)
 
@@ -221,6 +217,14 @@ describe Bootloader::ProposalClient do
       expect(Yast::PackagesProposal).to receive(:RemoveResolvables).with("yast2-bootloader", :package, current_packages)
       expect(Yast::PackagesProposal).to receive(:AddResolvables).with("yast2-bootloader", :package, packages_to_propose)
       subject.make_proposal({})
+    end
+
+    it "returns warning if old system use different boot technology then new one" do
+      allow(Yast::Mode).to receive(:update).and_return(true)
+
+      expect(subject).to receive("old_bootloader").and_return("grub2-efi").at_least(:once)
+
+      expect(subject.make_proposal({})["warning_level"]).to eq :warning
     end
   end
 end

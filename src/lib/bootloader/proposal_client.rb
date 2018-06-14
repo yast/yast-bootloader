@@ -7,6 +7,46 @@ require "yast2/popup"
 module Bootloader
   # Proposal client for bootloader configuration
   class ProposalClient < ::Installation::ProposalClient
+    # Error when during update media is booted by different technology than target system.
+    class MismatchBootloader < RuntimeError
+      include Yast::I18n
+
+      def initialize(old_bootloader, new_bootloader)
+        @old_bootloader = old_bootloader
+        @new_bootloader = new_bootloader
+
+        raise "Invalid old bootloader #{old_bootloader}" unless boot_map[old_bootloader]
+        raise "Invalid new bootloader #{new_bootloader}" unless boot_map[new_bootloader]
+
+        super("Mismatching bootloaders")
+      end
+
+      def boot_map
+        textdomain "bootloader"
+
+        {
+          # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
+          "grub2"     => _("Legacy BIOS boot"),
+          # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
+          "grub2-efi" => _("EFI boot")
+        }
+      end
+
+      def user_message
+        textdomain "bootloader"
+
+        # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
+        format(_(
+                 "Cannot upgrade the bootloader because of a mismatch of the boot technology. " \
+       "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
+       "has been booted using <i>%{new_boot}</i>.<br><br>" \
+       "This scenario is not supported, the upgraded system may not boot " \
+       "or the upgrade process can fail later."
+        ),
+          old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
+      end
+    end
+
     include Yast::I18n
     include Yast::Logger
 
@@ -32,46 +72,18 @@ module Bootloader
     ].freeze
 
     def make_proposal(attrs)
-      if Yast::BootStorage.boot_filesystem.is?(:nfs)
-        ::Bootloader::BootloaderFactory.current_name = "none"
-        return construct_proposal_map
-      end
-      force_reset = attrs["force_reset"]
-      storage_read = Yast::BootStorage.storage_read?
-      storage_changed = Yast::BootStorage.storage_changed?
-      log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
-      log.info "Storage read previously #{storage_read.inspect}"
-      # clear storage-ng devices cache otherwise it crashes (bsc#1071931)
-      Yast::BootStorage.reset_disks if storage_changed
-
-      if reset_needed?(force_reset, storage_changed && storage_read)
-        # force re-calculation of bootloader proposal
-        # this deletes any internally cached values, a new proposal will
-        # not be partially based on old data now any more
-        log.info "Recalculation of bootloader configuration"
-        Yast::Bootloader.Reset
-      end
-
-      if Yast::Mode.update
-        return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
-      elsif Yast::Bootloader.proposed_cfg_changed
-        # do nothing as user already modify it
-      else
-        # in installation always propose missing stuff
-        # current below use proposed value if not already set
-        # If set, then use same bootloader, but propose it again
-        bl = ::Bootloader::BootloaderFactory.current
-        bl.propose
-      end
-
-      update_required_packages
-
-      construct_proposal_map
+      make_proposal_raising(attrs)
     rescue ::Bootloader::NoRoot
       {
         "label_proposal" => [],
         "warning_level"  => :fatal,
         "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
+    rescue MismatchBootloader => e
+      {
+        "label_proposal" => [],
+        "warning_level"  => :warning,
+        "warning"        => e.user_message
       }
     end
 
@@ -123,6 +135,45 @@ module Bootloader
 
   private
 
+    # make proposal without handling of exceptions
+    def make_proposal_raising(attrs)
+      if Yast::BootStorage.boot_filesystem.is?(:nfs)
+        ::Bootloader::BootloaderFactory.current_name = "none"
+        return construct_proposal_map
+      end
+      force_reset = attrs["force_reset"]
+      storage_read = Yast::BootStorage.storage_read?
+      storage_changed = Yast::BootStorage.storage_changed?
+      log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
+      log.info "Storage read previously #{storage_read.inspect}"
+      # clear storage-ng devices cache otherwise it crashes (bsc#1071931)
+      Yast::BootStorage.reset_disks if storage_changed
+
+      if reset_needed?(force_reset, storage_changed && storage_read)
+        # force re-calculation of bootloader proposal
+        # this deletes any internally cached values, a new proposal will
+        # not be partially based on old data now any more
+        log.info "Recalculation of bootloader configuration"
+        Yast::Bootloader.Reset
+      end
+
+      if Yast::Mode.update
+        return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
+      elsif Yast::Bootloader.proposed_cfg_changed
+        # do nothing as user already modify it
+      else
+        # in installation always propose missing stuff
+        # current below use proposed value if not already set
+        # If set, then use same bootloader, but propose it again
+        bl = ::Bootloader::BootloaderFactory.current
+        bl.propose
+      end
+
+      update_required_packages
+
+      construct_proposal_map
+    end
+
     # returns if proposal should be reseted
     # logic in this condition:
     # when reset is forced or user do not modify proposal, reset proposal,
@@ -169,6 +220,9 @@ module Bootloader
         ::Bootloader::BootloaderFactory.current.read
 
         return false
+      # old one is grub2, but mismatch of EFI and non-EFI (bsc#1081355)
+      elsif old_bootloader =~ /grub2/ && old_bootloader != current_bl.name
+        raise MismatchBootloader.new(old_bootloader, current_bl.name)
       elsif !current_bl.proposed? || force_reset
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
@@ -185,7 +239,7 @@ module Bootloader
     end
 
     def grub2_update?(current_bl)
-      ["grub2", "grub2-efi"].include?(old_bootloader) &&
+      [current_bl.name].include?(old_bootloader) &&
         !current_bl.proposed? &&
         !Yast::Bootloader.proposed_cfg_changed
     end

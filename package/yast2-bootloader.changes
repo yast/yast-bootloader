@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun 14 12:16:02 UTC 2018 - jreidinger@suse.com
+
+- Warn user when updating with different boot technology
+  (bsc#1081355)
+- 4.1.4
+
+-------------------------------------------------------------------
 Tue Jun 12 14:02:46 UTC 2018 - jreidinger@suse.com
 
 - Do not propose obsolete kernel parameters (bsc#1047222)
