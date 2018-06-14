@@ -30,8 +30,8 @@ module Bootloader
         # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
         format(_(
           "Cannot update bootloader as there is mismatch of boot technology.\n" \
-            "System to update is booted via %{old_boot} and media is boot via %{new_boot}.\n" \
-            "This scenario is not support. Updated system may stop booting when continue or \n" \
+            "System to update is booted via %{old_boot} and media is booted via %{new_boot}.\n" \
+            "This scenario is not supported. Updated system may stop booting when continue or \n" \
             "update itself can fail."
           ),
           old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader]
