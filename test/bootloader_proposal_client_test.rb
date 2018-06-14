@@ -165,7 +165,7 @@ describe Bootloader::ProposalClient do
       Yast.import "Mode"
       allow(Yast::Mode).to receive(:update).and_return(true)
 
-      expect(subject).to receive("old_bootloader").and_return("grub").twice
+      expect(subject).to receive("old_bootloader").and_return("grub").at_least(:once)
 
       expect(Yast::Bootloader).to receive(:Reset).at_least(:once)
       expect(Bootloader::BootloaderFactory).to receive(:proposed).and_call_original
@@ -221,6 +221,15 @@ describe Bootloader::ProposalClient do
       expect(Yast::PackagesProposal).to receive(:RemoveResolvables).with("yast2-bootloader", :package, current_packages)
       expect(Yast::PackagesProposal).to receive(:AddResolvables).with("yast2-bootloader", :package, packages_to_propose)
       subject.make_proposal({})
+    end
+
+    it "returns warning if old system use different boot technology then new one" do
+      Yast.import "Mode"
+      allow(Yast::Mode).to receive(:update).and_return(true)
+
+      expect(subject).to receive("old_bootloader").and_return("grub2-efi").at_least(:once)
+
+      expect(subject.make_proposal({})["warning_level"]).to eq :warning
     end
   end
 end

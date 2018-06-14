@@ -7,6 +7,38 @@ require "yast2/popup"
 module Bootloader
   # Proposal client for bootloader configuration
   class ProposalClient < ::Installation::ProposalClient
+
+    class MismatchBootloader < RuntimeError
+      include Yast::I18n
+
+      def initialize(old_bootloader, new_bootloader)
+        @old_bootloader = old_bootloader
+        @new_bootloader = new_bootloader
+
+        super("Mismatching bootloaders")
+      end
+
+      def user_message
+        textdomain "bootloader"
+
+        boot_map = {
+          # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
+          "grub2" => _("Legacy BIOS boot"),
+          # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
+          "grub2-efi" => _("EFI boot")
+        }
+        # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
+        format(_(
+          "Cannot update bootloader as there is mismatch of boot technology.\n" \
+            "System to update is booted via %{old_boot} and media is boot via %{new_boot}.\n" \
+            "This scenario is not support. Updated system may stop booting when continue or \n" \
+            "update itself can fail."
+          ),
+          old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader]
+        )
+      end
+    end
+
     include Yast::I18n
     include Yast::Logger
 
@@ -72,6 +104,12 @@ module Bootloader
         "label_proposal" => [],
         "warning_level"  => :fatal,
         "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
+    rescue MismatchBootloader => e
+      {
+        "label_proposal" => [],
+        "warning_level"  => :warning,
+        "warning"        => e.user_message
       }
     end
 
@@ -169,6 +207,9 @@ module Bootloader
         ::Bootloader::BootloaderFactory.current.read
 
         return false
+      # old one is grub2, but mismatch of EFI and non-EFI (bsc#1081355)
+      elsif old_bootloader =~ /grub2/ && old_bootloader != current_bl.name
+        raise MismatchBootloader.new(old_bootloader, current_bl.name)
       elsif !current_bl.proposed? || force_reset
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
@@ -185,7 +226,7 @@ module Bootloader
     end
 
     def grub2_update?(current_bl)
-      ["grub2", "grub2-efi"].include?(old_bootloader) &&
+      [current_bl.name].include?(old_bootloader) &&
         !current_bl.proposed? &&
         !Yast::Bootloader.proposed_cfg_changed
     end
