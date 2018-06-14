@@ -15,25 +15,33 @@ module Bootloader
         @old_bootloader = old_bootloader
         @new_bootloader = new_bootloader
 
+        raise "Invalid old bootloader #{old_bootloader}" unless boot_map[old_bootloader]
+        raise "Invalid new bootloader #{new_bootloader}" unless boot_map[new_bootloader]
+
         super("Mismatching bootloaders")
       end
 
-      def user_message
+      def boot_map
         textdomain "bootloader"
 
-        boot_map = {
+        {
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
           "grub2"     => _("Legacy BIOS boot"),
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
           "grub2-efi" => _("EFI boot")
         }
+      end
+
+      def user_message
+        textdomain "bootloader"
+
         # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
         format(_(
-                 "Cannot update bootloader as there is mismatch of boot technology.<br>" \
-                   "System to update is booted via %{old_boot} and " \
-                   "media is booted via %{new_boot}.<br>" \
-                   "This scenario is not supported. Updated system may stop booting " \
-                   "when continue or update itself can fail."
+                 "<p>Cannot upgrade the bootloader because of a mismatch of the boot technology. " \
+       "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
+       "has been booted using <i>%{new_boot}</i>.</p>" \
+       "<p>This scenario is not supported, the upgraded system may not boot " \
+       "or the upgrade process can fail later.</p>"
         ),
           old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
       end
