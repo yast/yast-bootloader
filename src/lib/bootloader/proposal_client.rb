@@ -39,7 +39,7 @@ module Bootloader
         format(_(
                  "Cannot upgrade the bootloader because of a mismatch of the boot technology. " \
        "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
-       "has been booted using <i>%{new_boot}</i>.<br>" \
+       "has been booted using <i>%{new_boot}</i>.<br><br>" \
        "This scenario is not supported, the upgraded system may not boot " \
        "or the upgrade process can fail later."
         ),
