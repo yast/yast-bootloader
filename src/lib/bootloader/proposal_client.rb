@@ -37,11 +37,11 @@ module Bootloader
 
         # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
         format(_(
-                 "<p>Cannot upgrade the bootloader because of a mismatch of the boot technology. " \
+                 "Cannot upgrade the bootloader because of a mismatch of the boot technology. " \
        "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
-       "has been booted using <i>%{new_boot}</i>.</p>" \
-       "<p>This scenario is not supported, the upgraded system may not boot " \
-       "or the upgrade process can fail later.</p>"
+       "has been booted using <i>%{new_boot}</i>.<br>" \
+       "This scenario is not supported, the upgraded system may not boot " \
+       "or the upgrade process can fail later."
         ),
           old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
       end
