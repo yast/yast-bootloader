@@ -7,7 +7,7 @@ require "yast2/popup"
 module Bootloader
   # Proposal client for bootloader configuration
   class ProposalClient < ::Installation::ProposalClient
-
+    # Error when during update media is booted by different technology than target system.
     class MismatchBootloader < RuntimeError
       include Yast::I18n
 
@@ -23,19 +23,19 @@ module Bootloader
 
         boot_map = {
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
-          "grub2" => _("Legacy BIOS boot"),
+          "grub2"     => _("Legacy BIOS boot"),
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
           "grub2-efi" => _("EFI boot")
         }
         # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
         format(_(
-          "Cannot update bootloader as there is mismatch of boot technology.\n" \
-            "System to update is booted via %{old_boot} and media is booted via %{new_boot}.\n" \
-            "This scenario is not supported. Updated system may stop booting when continue or \n" \
-            "update itself can fail."
-          ),
-          old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader]
-        )
+                 "Cannot update bootloader as there is mismatch of boot technology.<br>" \
+                   "System to update is booted via %{old_boot} and " \
+                   "media is booted via %{new_boot}.<br>" \
+                   "This scenario is not supported. Updated system may stop booting " \
+                   "when continue or update itself can fail."
+        ),
+          old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
       end
     end
 
@@ -64,41 +64,7 @@ module Bootloader
     ].freeze
 
     def make_proposal(attrs)
-      if Yast::BootStorage.boot_filesystem.is?(:nfs)
-        ::Bootloader::BootloaderFactory.current_name = "none"
-        return construct_proposal_map
-      end
-      force_reset = attrs["force_reset"]
-      storage_read = Yast::BootStorage.storage_read?
-      storage_changed = Yast::BootStorage.storage_changed?
-      log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
-      log.info "Storage read previously #{storage_read.inspect}"
-      # clear storage-ng devices cache otherwise it crashes (bsc#1071931)
-      Yast::BootStorage.reset_disks if storage_changed
-
-      if reset_needed?(force_reset, storage_changed && storage_read)
-        # force re-calculation of bootloader proposal
-        # this deletes any internally cached values, a new proposal will
-        # not be partially based on old data now any more
-        log.info "Recalculation of bootloader configuration"
-        Yast::Bootloader.Reset
-      end
-
-      if Yast::Mode.update
-        return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
-      elsif Yast::Bootloader.proposed_cfg_changed
-        # do nothing as user already modify it
-      else
-        # in installation always propose missing stuff
-        # current below use proposed value if not already set
-        # If set, then use same bootloader, but propose it again
-        bl = ::Bootloader::BootloaderFactory.current
-        bl.propose
-      end
-
-      update_required_packages
-
-      construct_proposal_map
+      make_proposal_raising(attrs)
     rescue ::Bootloader::NoRoot
       {
         "label_proposal" => [],
@@ -160,6 +126,45 @@ module Bootloader
     end
 
   private
+
+    # make proposal without handling of exceptions
+    def make_proposal_raising(attrs)
+      if Yast::BootStorage.boot_filesystem.is?(:nfs)
+        ::Bootloader::BootloaderFactory.current_name = "none"
+        return construct_proposal_map
+      end
+      force_reset = attrs["force_reset"]
+      storage_read = Yast::BootStorage.storage_read?
+      storage_changed = Yast::BootStorage.storage_changed?
+      log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
+      log.info "Storage read previously #{storage_read.inspect}"
+      # clear storage-ng devices cache otherwise it crashes (bsc#1071931)
+      Yast::BootStorage.reset_disks if storage_changed
+
+      if reset_needed?(force_reset, storage_changed && storage_read)
+        # force re-calculation of bootloader proposal
+        # this deletes any internally cached values, a new proposal will
+        # not be partially based on old data now any more
+        log.info "Recalculation of bootloader configuration"
+        Yast::Bootloader.Reset
+      end
+
+      if Yast::Mode.update
+        return { "raw_proposal" => [_("do not change")] } unless propose_for_update(force_reset)
+      elsif Yast::Bootloader.proposed_cfg_changed
+        # do nothing as user already modify it
+      else
+        # in installation always propose missing stuff
+        # current below use proposed value if not already set
+        # If set, then use same bootloader, but propose it again
+        bl = ::Bootloader::BootloaderFactory.current
+        bl.propose
+      end
+
+      update_required_packages
+
+      construct_proposal_map
+    end
 
     # returns if proposal should be reseted
     # logic in this condition:
