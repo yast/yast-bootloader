@@ -2,7 +2,6 @@ require "installation/proposal_client"
 require "bootloader/exceptions"
 require "bootloader/main_dialog"
 require "bootloader/bootloader_factory"
-require "yast2/popup"
 
 module Bootloader
   # Proposal client for bootloader configuration
@@ -22,6 +21,7 @@ module Bootloader
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
       Yast.import "Product"
+      Yast.import "Popup"
       Yast.import "PackagesProposal"
     end
 
@@ -82,7 +82,7 @@ module Bootloader
 
         # we upgrading grub2, so no change there
         if grub2_update?(current_bl)
-          ::Yast2::Popup.show(
+          ::Yast::Popup.Warning(
             # TRANSLATORS: popup text when user click on link and we forbid to continue
             _("Changing the bootloader configuration during an upgrade is not supported.")
           )

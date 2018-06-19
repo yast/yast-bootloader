@@ -107,7 +107,7 @@ describe Bootloader::ProposalClient do
         expect(subject).to receive("old_bootloader").and_return("grub2")
 
         expect(Yast::Bootloader).to_not receive(:Export)
-        expect(Yast2::Popup).to receive(:show)
+        expect(Yast::Popup).to receive(:Warning)
         subject.ask_user({})
       end
     end
