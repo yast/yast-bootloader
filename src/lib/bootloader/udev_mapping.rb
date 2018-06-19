@@ -207,6 +207,7 @@ module Bootloader
     #
     def map_devices
       @all_devices = {}
+      log.info "Target map used for udev mapping:\n #{Yast::Storage.GetTargetMap.inspect}"
       Yast::Storage.GetTargetMap.each_pair do |device, value|
         map_disks(value, device)
 
