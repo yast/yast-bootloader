@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jun 28 15:36:26 CEST 2018 - schubi@suse.de
+
+- Added additional searchkeys to desktop file (fate#321043).
+- 4.1.5
+
+-------------------------------------------------------------------
 Thu Jun 14 12:16:02 UTC 2018 - jreidinger@suse.com
 
 - Warn user when updating with different boot technology
