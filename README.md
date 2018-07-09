@@ -47,3 +47,7 @@ that holds and also can propose the bootloader implementation. So now let's expl
 - [Boot Record backup](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/BootRecordBackup) creates a backup of boot record for devices which the code touched
 - [Serial Console](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/SerialConsole) converts between grub2 serial console configuration and kernel serial console configuration
 - [Sysconfig](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Sysconfig) read/write sysconfig configuration for bootloader. Sysconfig basically holds currently used grub2 implementation and configuration that is not in grub2 itself like if use secure boot or trusted grub
+
+### See Also
+
+The bootloader module uses custom CFA (config files API) implementation - [See CFA for Grub](https://github.com/config-files-api/config_files_api_grub2)
