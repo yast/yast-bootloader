@@ -482,12 +482,12 @@ module Bootloader
     end
 
     def init
-      enable = grub_default.terminal == :serial
+      enable = grub_default.terminal.include?(:serial)
       Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
       args = grub_default.serial_console || ""
       Yast::UI.ChangeWidget(Id(:console_args), :Value, args)
 
-      enable = grub_default.terminal == :gfxterm
+      enable = grub_default.terminal.include?(:gfxterm)
       Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
 
       Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
