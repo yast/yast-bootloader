@@ -497,8 +497,6 @@ module Bootloader
       Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
 
       Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme || "")
-    # FIXME: just temporary workaround for terminal that does contain
-    # more complex string (bsc#1053559)
     rescue RuntimeError
       raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
     end

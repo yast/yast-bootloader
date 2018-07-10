@@ -212,17 +212,11 @@ module Bootloader
     end
 
     def merge_attributes(default, other)
-      begin
-        # string attributes
-        [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-         :gfxmode, :theme, :default].each do |attr|
-          val = other.public_send(attr)
-          default.public_send((attr.to_s + "=").to_sym, val) if val
-        end
-      # FIXME: only temporary solution to catch too complex grub terminal option (bsc#1053559)
-      # will be removed when cfa_grub2 and yast understand more complex terminal configuration
-      rescue RuntimeError
-        raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
+      # string attributes
+      [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
+       :gfxmode, :theme, :default].each do |attr|
+        val = other.public_send(attr)
+        default.public_send((attr.to_s + "=").to_sym, val) if val
       end
 
       # specific attributes that are not part of cfa
