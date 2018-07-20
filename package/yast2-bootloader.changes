@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jul 20 15:12:13 CEST 2018 - schubi@suse.de
+
+- Update: Fixed crash while reading grub settings from installed
+  system (bsc#1094031).
+- 4.0.37
+
+-------------------------------------------------------------------
 Thu Jun 28 15:36:26 CEST 2018 - schubi@suse.de
 
 - Added additional searchkeys to desktop file (fate#321043).
