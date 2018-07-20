@@ -422,7 +422,22 @@ module Yast
         Propose()
       else
         progress_orig = Progress.set(false)
+        if Mode.update
+          # SCR has been currently set to inst-sys. So we have
+          # set the SCR to installed system in order to read
+          # grub settings
+          old_SCR = WFM.SCRGetDefault
+          new_SCR = WFM.SCROpen("chroot=/mnt:scr", false)
+          WFM.SCRSetDefault(new_SCR)
+        end
         Read()
+        if Mode.update
+          # settings have been read from the target system
+          current_bl.read
+          # reset target system to inst-sys
+          WFM.SCRSetDefault(old_SCR)
+          WFM.SCRClose(new_SCR)
+        end
         Progress.set(progress_orig)
       end
     end
