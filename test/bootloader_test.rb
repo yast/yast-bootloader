@@ -110,6 +110,8 @@ describe Yast::Bootloader do
 
     it "reads configuration in update mode" do
       expect(subject).to_not receive(:Propose)
+      # switching SCR to /mnt
+      expect(Yast::WFM).to receive(:SCROpen).with("chroot=/mnt:scr", false)
       expect(subject).to receive(:Read)
       allow(Yast::Mode).to receive(:update).and_return(true)
       allow(Yast::Stage).to receive(:initial).and_return(true)
