@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 # File:
-#      modules/Bootloader.ycp
+#      modules/Bootloader.rb
 #
 # Module:
 #      Bootloader installation and configuration
@@ -30,6 +30,7 @@ Yast.import "Mode"
 Yast.import "Progress"
 Yast.import "Report"
 Yast.import "Stage"
+Yast.import "Installation"
 
 module Yast
   class BootloaderClass < Module
@@ -422,7 +423,23 @@ module Yast
         Propose()
       else
         progress_orig = Progress.set(false)
+        if Stage.initial && Mode.update
+          # SCR has been currently set to inst-sys. So we have
+          # set the SCR to installed system in order to read
+          # grub settings
+          old_SCR = WFM.SCRGetDefault
+          new_SCR = WFM.SCROpen("chroot=#{Yast::Installation.destdir}:scr",
+            false)
+          WFM.SCRSetDefault(new_SCR)
+        end
         Read()
+        if Stage.initial && Mode.update
+          # settings have been read from the target system
+          current_bl.read
+          # reset target system to inst-sys
+          WFM.SCRSetDefault(old_SCR)
+          WFM.SCRClose(new_SCR)
+        end
         Progress.set(progress_orig)
       end
     end
