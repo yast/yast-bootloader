@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 # File:
-#      modules/Bootloader.ycp
+#      modules/Bootloader.rb
 #
 # Module:
 #      Bootloader installation and configuration
