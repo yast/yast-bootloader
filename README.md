@@ -50,4 +50,4 @@ that holds and also can propose the bootloader implementation. So now let's expl
 
 ### See Also
 
-The bootloader module uses custom CFA (config files API) implementation - [See CFA for Grub](https://github.com/config-files-api/config_files_api_grub2)
+The bootloader module uses CFA (config files API) module for GRUB2 - [See CFA for GRUB2 repository](https://github.com/config-files-api/config_files_api_grub2)
