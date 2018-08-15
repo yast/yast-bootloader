@@ -213,8 +213,14 @@ module Bootloader
 
     def merge_attributes(default, other)
       # string attributes
-      [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
+      [:serial_console, :timeout, :hidden_timeout, :distributor,
        :gfxmode, :theme, :default].each do |attr|
+        val = other.public_send(attr)
+        default.public_send((attr.to_s + "=").to_sym, val) if val
+      end
+
+      # array attributes with multiple values allowed
+      [:terminal].each do |attr|
         val = other.public_send(attr)
         default.public_send((attr.to_s + "=").to_sym, val) if val
       end
