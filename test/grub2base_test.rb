@@ -465,6 +465,16 @@ describe Bootloader::Grub2Base do
       expect(subject.password).to be_password
     end
 
+    it "use terminal configuration specified in the merged object" do
+      TERMINAL_DEFINITION = [:console, :serial].freeze
+
+      allow(other.grub_default).to receive(:terminal).and_return(TERMINAL_DEFINITION)
+
+      subject.merge(other)
+
+      expect(subject.grub_default.terminal).to eql TERMINAL_DEFINITION
+    end
+
     it "overwrites default section with merged one if specified" do
       allow(other.sections).to receive(:all).and_return(["Win crap", "openSUSE"])
       allow(subject.sections).to receive(:all).and_return(["Win crap", "openSUSE"])
