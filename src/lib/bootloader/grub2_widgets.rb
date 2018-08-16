@@ -482,12 +482,12 @@ module Bootloader
     end
 
     def init
-      enable = grub_default.terminal.include?(:serial)
+      enable = grub_default.terminal.include?(:serial) if grub_default.terminal
       Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
       args = grub_default.serial_console || ""
       Yast::UI.ChangeWidget(Id(:console_args), :Value, args)
 
-      enable = grub_default.terminal.include?(:gfxterm)
+      enable = grub_default.terminal.include?(:gfxterm) if grub_default.terminal
       Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
 
       Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
@@ -533,9 +533,9 @@ module Bootloader
         console_value = Yast::UI.QueryWidget(Id(:console_args), :Value)
         BootloaderFactory.current.enable_serial_console(console_value)
       elsif use_gfxterm
-        grub_default.terminal = :gfxterm
+        grub_default.terminal = [:gfxterm]
       else
-        grub_default.terminal = :console
+        grub_default.terminal = [:console]
       end
 
       mode = Yast::UI.QueryWidget(Id(:gfxmode), :Value)
