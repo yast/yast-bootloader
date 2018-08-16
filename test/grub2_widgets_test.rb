@@ -519,7 +519,7 @@ describe Bootloader::ConsoleWidget do
     end
 
     it "checks serial console checkbox if grub use it" do
-      bootloader.grub_default.terminal = :serial
+      bootloader.grub_default.terminal = [:serial]
 
       expect(Yast::UI).to receive(:ChangeWidget).with(Id(:console_frame), :Value, true)
 
@@ -535,7 +535,7 @@ describe Bootloader::ConsoleWidget do
     end
 
     it "checks graphical console checkbox if grub use it" do
-      bootloader.grub_default.terminal = :gfxterm
+      bootloader.grub_default.terminal = [:gfxterm]
 
       expect(Yast::UI).to receive(:ChangeWidget).with(Id(:gfxterm_frame), :Value, true)
 
@@ -602,7 +602,7 @@ describe Bootloader::ConsoleWidget do
 
       subject.store
 
-      expect(bootloader.grub_default.terminal).to eq :serial
+      expect(bootloader.grub_default.terminal).to eq [:serial]
       expect(bootloader.grub_default.serial_console).to eq "serial --unit=1 --speed=9600 --parity=even"
       # it also sets console args to kernel params, but it will be duplication of serial console test
     end
@@ -612,7 +612,7 @@ describe Bootloader::ConsoleWidget do
 
       subject.store
 
-      expect(bootloader.grub_default.terminal).to eq :gfxterm
+      expect(bootloader.grub_default.terminal).to eq [:gfxterm]
     end
 
     it "sets serial terminal if both graphical and serial is selected" do
@@ -623,7 +623,7 @@ describe Bootloader::ConsoleWidget do
 
       subject.store
 
-      expect(bootloader.grub_default.terminal).to eq :serial
+      expect(bootloader.grub_default.terminal).to eq [:serial]
     end
 
     it "sets console terminal if neither graphical nor serial console selected" do
@@ -632,7 +632,7 @@ describe Bootloader::ConsoleWidget do
 
       subject.store
 
-      expect(bootloader.grub_default.terminal).to eq :console
+      expect(bootloader.grub_default.terminal).to eq [:console]
     end
 
     it "stores theme value" do

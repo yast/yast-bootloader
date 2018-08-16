@@ -88,7 +88,14 @@ module Bootloader
           val = data["global"][key]
           next unless val
 
-          default.public_send(:"#{method}=", SYMBOL_PARAM.include?(key) ? val.to_sym : val)
+          default.public_send(:"#{method}=", val)
+        end
+
+        DEFAULT_ARRAY_MAPPING.each do |key, method|
+          val = data["global"][key]
+          next unless val
+
+          default.public_send(:"#{method}=", val.split.map { |v| v.to_sym })
         end
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
@@ -209,7 +216,10 @@ module Bootloader
 
       DEFAULT_STRING_MAPPING = {
         "gfxmode"  => :gfxmode,
-        "serial"   => :serial_console,
+        "serial"   => :serial_console
+      }.freeze
+
+      DEFAULT_ARRAY_MAPPING = {
         "terminal" => :terminal
       }.freeze
 
@@ -219,9 +229,6 @@ module Bootloader
         "xen_kernel_append" => :xen_hypervisor_params
       }.freeze
 
-      SYMBOL_PARAM = [
-        "terminal"
-      ].freeze
       def export_default(res, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = default.public_send(method)
@@ -231,6 +238,11 @@ module Bootloader
         DEFAULT_STRING_MAPPING.each do |key, method|
           val = default.public_send(method)
           res[key] = val.to_s if val
+        end
+
+        DEFAULT_ARRAY_MAPPING.each do |key, method|
+          val = default.public_send(method)
+          res[key] = val.join(" ") if val
         end
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
