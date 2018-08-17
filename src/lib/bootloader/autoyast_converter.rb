@@ -215,8 +215,8 @@ module Bootloader
       }.freeze
 
       DEFAULT_STRING_MAPPING = {
-        "gfxmode"  => :gfxmode,
-        "serial"   => :serial_console
+        "gfxmode" => :gfxmode,
+        "serial"  => :serial_console
       }.freeze
 
       DEFAULT_ARRAY_MAPPING = {

@@ -482,19 +482,8 @@ module Bootloader
     end
 
     def init
-      enable = grub_default.terminal.include?(:serial) if grub_default.terminal
-      Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
-      args = grub_default.serial_console || ""
-      Yast::UI.ChangeWidget(Id(:console_args), :Value, args)
-
-      enable = grub_default.terminal.include?(:gfxterm) if grub_default.terminal
-      Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
-
-      Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
-      mode = grub_default.gfxmode
-
-      # there's mode specified, use it
-      Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
+      init_console
+      init_gfxterm
 
       Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme || "")
     rescue RuntimeError
@@ -563,6 +552,26 @@ module Bootloader
     end
 
   private
+
+    # Initializates serial console specific widgets
+    def init_console
+      enable = grub_default.terminal.include?(:serial) if grub_default.terminal
+      Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
+      args = grub_default.serial_console || ""
+      Yast::UI.ChangeWidget(Id(:console_args), :Value, args)
+    end
+
+    # Initializates gfxterm specific widgets
+    def init_gfxterm
+      enable = grub_default.terminal.include?(:gfxterm) if grub_default.terminal
+      Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
+
+      Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
+      mode = grub_default.gfxmode
+
+      # there's mode specified, use it
+      Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
+    end
 
     # Explanation for help and error messages
     def syntax
