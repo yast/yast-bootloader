@@ -515,15 +515,15 @@ module Bootloader
     def store
       use_serial = Yast::UI.QueryWidget(Id(:console_frame), :Value)
       use_gfxterm = Yast::UI.QueryWidget(Id(:gfxterm_frame), :Value)
+      use_console = !use_serial && !use_gfxterm
 
-      use_gfxterm = false if use_gfxterm && use_serial
+      grub_default.terminal = []
+      grub_default.terminal = [:gfxterm] if use_gfxterm
 
       if use_serial
         console_value = Yast::UI.QueryWidget(Id(:console_args), :Value)
         BootloaderFactory.current.enable_serial_console(console_value)
-      elsif use_gfxterm
-        grub_default.terminal = [:gfxterm]
-      else
+      elsif use_console
         grub_default.terminal = [:console]
       end
 

@@ -615,7 +615,7 @@ describe Bootloader::ConsoleWidget do
       expect(bootloader.grub_default.terminal).to eq [:gfxterm]
     end
 
-    it "sets serial terminal if both graphical and serial is selected" do
+    it "sets terminal to enable both if graphical and serial is selected" do
       expect(Yast::UI).to receive(:QueryWidget).with(Id(:console_frame), :Value).and_return(true)
       expect(Yast::UI).to receive(:QueryWidget).with(Id(:gfxterm_frame), :Value).and_return(true)
       allow(Yast::UI).to receive(:QueryWidget).with(Id(:console_args), :Value)
@@ -623,7 +623,7 @@ describe Bootloader::ConsoleWidget do
 
       subject.store
 
-      expect(bootloader.grub_default.terminal).to eq [:serial]
+      expect(bootloader.grub_default.terminal).to eq [:gfxterm, :serial]
     end
 
     it "sets console terminal if neither graphical nor serial console selected" do
