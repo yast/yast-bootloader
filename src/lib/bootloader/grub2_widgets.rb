@@ -450,7 +450,14 @@ module Bootloader
     end
   end
 
-  # Represents graphical and serial console for bootloader
+  # Represents graphical and serial console setup for bootloader
+  #
+  # Allows to configure terminal for grub. It can configure grub
+  # to use either graphical terminal, console or console over serial line.
+  #
+  # Graphical or serial terminal has to be selected explicitly. Either
+  # one of them or both at once.
+  # Native console is configured as a fallback when nothing else is selected.
   class ConsoleWidget < CWM::CustomWidget
     include Grub2Widget
 
@@ -482,23 +489,10 @@ module Bootloader
     end
 
     def init
-      enable = grub_default.terminal == :serial
-      Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
-      args = grub_default.serial_console || ""
-      Yast::UI.ChangeWidget(Id(:console_args), :Value, args)
-
-      enable = grub_default.terminal == :gfxterm
-      Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
-
-      Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
-      mode = grub_default.gfxmode
-
-      # there's mode specified, use it
-      Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
+      init_console
+      init_gfxterm
 
       Yast::UI.ChangeWidget(Id(:theme), :Value, grub_default.theme || "")
-    # FIXME: just temporary workaround for terminal that does contain
-    # more complex string (bsc#1053559)
     rescue RuntimeError
       raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
     end
@@ -528,16 +522,16 @@ module Bootloader
     def store
       use_serial = Yast::UI.QueryWidget(Id(:console_frame), :Value)
       use_gfxterm = Yast::UI.QueryWidget(Id(:gfxterm_frame), :Value)
+      use_console = !use_serial && !use_gfxterm
 
-      use_gfxterm = false if use_gfxterm && use_serial
+      grub_default.terminal = []
+      grub_default.terminal = [:gfxterm] if use_gfxterm
 
       if use_serial
         console_value = Yast::UI.QueryWidget(Id(:console_args), :Value)
         BootloaderFactory.current.enable_serial_console(console_value)
-      elsif use_gfxterm
-        grub_default.terminal = :gfxterm
-      else
-        grub_default.terminal = :console
+      elsif use_console
+        grub_default.terminal = [:console]
       end
 
       mode = Yast::UI.QueryWidget(Id(:gfxmode), :Value)
@@ -565,6 +559,26 @@ module Bootloader
     end
 
   private
+
+    # Initializates serial console specific widgets
+    def init_console
+      enable = grub_default.terminal.include?(:serial) if grub_default.terminal
+      Yast::UI.ChangeWidget(Id(:console_frame), :Value, enable)
+      args = grub_default.serial_console || ""
+      Yast::UI.ChangeWidget(Id(:console_args), :Value, args)
+    end
+
+    # Initializates gfxterm specific widgets
+    def init_gfxterm
+      enable = grub_default.terminal.include?(:gfxterm) if grub_default.terminal
+      Yast::UI.ChangeWidget(Id(:gfxterm_frame), :Value, enable)
+
+      Yast::UI.ChangeWidget(Id(:gfxmode), :Items, vga_modes_items)
+      mode = grub_default.gfxmode
+
+      # there's mode specified, use it
+      Yast::UI.ChangeWidget(Id(:gfxmode), :Value, mode) if mode && mode != ""
+    end
 
     # Explanation for help and error messages
     def syntax

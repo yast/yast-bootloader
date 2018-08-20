@@ -144,7 +144,7 @@ describe Bootloader::Grub2Base do
           it "proposes to use serial terminal" do
             subject.propose
 
-            expect(subject.grub_default.terminal).to eq :serial
+            expect(subject.grub_default.terminal).to include :serial
           end
         end
 
@@ -156,7 +156,7 @@ describe Bootloader::Grub2Base do
           it "proposes to use console terminal" do
             subject.propose
 
-            expect(subject.grub_default.terminal).to eq :console
+            expect(subject.grub_default.terminal).to eq [:console]
           end
         end
       end
@@ -169,7 +169,7 @@ describe Bootloader::Grub2Base do
         it "proposes to use console terminal" do
           subject.propose
 
-          expect(subject.grub_default.terminal).to eq :console
+          expect(subject.grub_default.terminal).to eq [:console]
         end
 
         it "sets GFXPAYLOAD_LINUX to text" do
@@ -187,7 +187,7 @@ describe Bootloader::Grub2Base do
         it "proposes gfx terminal" do
           subject.propose
 
-          expect(subject.grub_default.terminal).to eq :gfxterm
+          expect(subject.grub_default.terminal).to eq [:gfxterm]
         end
       end
     end
@@ -426,7 +426,7 @@ describe Bootloader::Grub2Base do
       subject.grub_default.default = "0"
       other.grub_default.default = "saved"
 
-      subject.grub_default.terminal = :gfxterm
+      subject.grub_default.terminal = [:gfxterm]
 
       subject.grub_default.os_prober.enable
       other.grub_default.os_prober.disable
@@ -434,7 +434,7 @@ describe Bootloader::Grub2Base do
       subject.merge(other)
 
       expect(subject.grub_default.default).to eq "saved"
-      expect(subject.grub_default.terminal).to eq :gfxterm
+      expect(subject.grub_default.terminal).to eq [:gfxterm]
       expect(subject.grub_default.os_prober).to be_disabled
     end
 
@@ -453,6 +453,16 @@ describe Bootloader::Grub2Base do
       subject.merge(other)
 
       expect(subject.password).to be_password
+    end
+
+    it "use terminal configuration specified in the merged object" do
+      TERMINAL_DEFINITION = [:console, :serial].freeze
+
+      allow(other.grub_default).to receive(:terminal).and_return(TERMINAL_DEFINITION)
+
+      subject.merge(other)
+
+      expect(subject.grub_default.terminal).to eql TERMINAL_DEFINITION
     end
 
     it "overwrites default section with merged one if specified" do
