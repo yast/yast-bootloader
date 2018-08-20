@@ -450,7 +450,14 @@ module Bootloader
     end
   end
 
-  # Represents graphical and serial console for bootloader
+  # Represents graphical and serial console setup for bootloader
+  #
+  # Allows to configure terminal for grub. It can configure grub
+  # to use either graphical terminal, console or console over serial line.
+  #
+  # Graphical or serial terminal has to be selected explicitly. Either
+  # one of them or both at once.
+  # Native console is configured as a fallback when nothing else is selected.
   class ConsoleWidget < CWM::CustomWidget
     include Grub2Widget
 
