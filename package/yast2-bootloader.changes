@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Aug 21 07:59:53 UTC 2018 - jreidinger@suse.com
+
+- Update: Do not crash in detection of gpt disks when some disk
+  disappear (bsc#1105351 )
+- 4.1.8
+
+-------------------------------------------------------------------
 Wed Aug 15 07:41:01 UTC 2018 - mfilka@suse.com
 
 - bnc#1053559
