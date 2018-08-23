@@ -58,7 +58,7 @@ Recommends:     syslinux
 %endif
 
 Summary:        YaST2 - Bootloader Configuration
-License:        GPL-2.0+
+License:        GPL-2.0-or-later
 Group:          System/YaST
 
 %description
