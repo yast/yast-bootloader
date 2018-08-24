@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Aug 24 07:55:49 UTC 2018 - mfilka@suse.com
+
+- bnc#1053559
+  - do not crash with internal error when GRUB_TERMINAL contains
+    multiple values
+- 4.0.38
+
+-------------------------------------------------------------------
 Fri Jul 20 15:12:13 CEST 2018 - schubi@suse.de
 
 - Update: Fixed crash while reading grub settings from installed
