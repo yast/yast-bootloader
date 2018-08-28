@@ -37,8 +37,9 @@ describe Bootloader::Grub2 do
   end
 
   describe "write" do
+    let(:stage1) { double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil) }
+
     before do
-      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
       allow(Bootloader::MBRUpdate).to receive(:new).and_return(double(run: nil))
       allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)

@@ -12,13 +12,29 @@ module Bootloader
     def initialize
       @read = false
       @proposed = false
+      @initial_sysconfig = Sysconfig.from_system
+    end
+
+    # Prepares the system to (before write the configuration)
+    #
+    # Writes the new sysconfig and, when the Mode.normal is set, tries to install the required packages.
+    # If user decides to cancel the installation, it restores the previous sysconfig.
+    #
+    # @return [Boolean] true whether the system could be prepared as expected;
+    #                   false when user cancel the installation of needed packages
+    def prepare
+      write_sysconfig
+
+      return true unless Yast::Mode.normal
+      return true if Yast::PackageSystem.InstallAll(packages)
+
+      restore_initial_sysconfig
+
+      false
     end
 
     # writes configuration to target disk
     def write
-      write_sysconfig
-      # in running system install package, for other modes, it need specific handling
-      Yast::PackageSystem.InstallAll(packages) if Yast::Mode.normal
     end
 
     # reads configuration from target disk
@@ -64,6 +80,13 @@ module Bootloader
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name)
       prewrite ? sysconfig.pre_write : sysconfig.write
+    end
+
+    # Writes the sysconfig readed in the initialization
+    #
+    # Useful to "rollback" sysconfig changes if something is fails before finish the configuration
+    def restore_initial_sysconfig
+      @initial_sysconfig.write
     end
 
     # merges other bootloader configuration into this one.
