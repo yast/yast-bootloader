@@ -133,19 +133,9 @@ module Bootloader
 
     def packages
       res = super
-
       res << "grub2"
-
-      # do not require it in insts-sys as insts-sys have it itself (bsc#1004229)
-      if stage1.generic_mbr? && !Yast::Stage.initial
-        # needed for generic _mbr binary files
-        res << "syslinux"
-      end
-
-      if Yast::Arch.x86_64 || Yast::Arch.i386
-        res << "trustedgrub2" << "trustedgrub2-i386-pc" if trusted_boot
-      end
-
+      res << "syslinux" if include_syslinux_package?
+      res << "trustedgrub2" << "trustedgrub2-i386-pc" if include_trustedgrub2_packages?
       res
     end
 
@@ -157,6 +147,25 @@ module Bootloader
     end
 
   private
+
+    # Checks if syslinux package should be included
+    #
+    # Needed for generic_mbr binary files, but it must not be required in inst-sys as inst-sys have
+    # it itself (bsc#1004229).
+    #
+    # @return [Boolean] true if syslinux package should be included; false otherwise
+    def include_syslinux_package?
+      return false if Yast::Stage.initial
+
+      stage1.generic_mbr?
+    end
+
+    # @return [Boolean] true when trustedgrub2 packages should be included; false otherwise
+    def include_trustedgrub2_packages?
+      return false unless trusted_boot
+
+      Yast::Arch.x86_64 || Yast::Arch.i386
+    end
 
     def devicegraph
       Y2Storage::StorageManager.instance.staging

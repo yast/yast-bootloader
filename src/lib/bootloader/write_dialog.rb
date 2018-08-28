@@ -9,11 +9,13 @@ module Bootloader
     include Yast::I18n
 
     # Write settings dialog
-    # @return `:abort` if aborted and `:next` otherwise
+    #
+    # @return [Symbol] :abort if aborted
+    #                  :next otherwise
     def run
       Yast::Wizard.RestoreHelp(help_text)
-      ret = Yast::Bootloader.Write
-      ret ? :next : :abort
+
+      Yast::Bootloader.Write ? :next : :abort
     end
 
   private

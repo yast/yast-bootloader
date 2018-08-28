@@ -17,8 +17,8 @@ module Bootloader
 
     # Prepares the system to (before write the configuration)
     #
-    # Writes the new sysconfig and, when the Mode.normal is set, tries to install the required packages.
-    # If user decides to cancel the installation, it restores the previous sysconfig.
+    # Writes the new sysconfig and, when the Mode.normal is set, tries to install the required
+    # packages. If user decides to cancel the installation, it restores the previous sysconfig.
     #
     # @return [Boolean] true whether the system could be prepared as expected;
     #                   false when user cancel the installation of needed packages
@@ -66,11 +66,8 @@ module Bootloader
     def packages
       res = []
 
-      # added kexec-tools fate# 303395
-      if !Yast::Mode.live_installation &&
-          Yast::Linuxrc.InstallInf("kexec_reboot") != "0"
-        res << "kexec-tools"
-      end
+      # added kexec-tools fate#303395
+      res << "kexec-tools" if include_kexec_tools_package?
 
       res
     end
@@ -82,13 +79,6 @@ module Bootloader
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
-    # Writes the sysconfig readed in the initialization
-    #
-    # Useful to "rollback" sysconfig changes if something is fails before finish the configuration
-    def restore_initial_sysconfig
-      @initial_sysconfig.write
-    end
-
     # merges other bootloader configuration into this one.
     # It have to be same bootloader type.
     def merge(other)
@@ -96,6 +86,22 @@ module Bootloader
 
       @read ||= other.read?
       @proposed ||= other.proposed?
+    end
+
+  private
+
+    # @return [Boolean] true when kexec-tools package should be included; false otherwise
+    def include_kexec_tools_package?
+      return false if Yast::Mode.live_installation
+
+      Yast::Linuxrc.InstallInf("kexec_reboot") != "0"
+    end
+
+    # Writes the sysconfig readed in the initialization
+    #
+    # Useful to "rollback" sysconfig changes if something is fails before finish the configuration
+    def restore_initial_sysconfig
+      @initial_sysconfig.write
     end
   end
 end
