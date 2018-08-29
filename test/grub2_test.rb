@@ -136,24 +136,81 @@ describe Bootloader::Grub2 do
   end
 
   describe "#packages" do
-    it "return list containing grub2 package" do
+    let(:initial_stage) { true }
+    let(:generic_mbr) { true }
+    let(:stage1) { double(generic_mbr?: generic_mbr) }
+
+    before do
+      allow(Yast::Stage).to receive(:initial).and_return(initial_stage)
+      allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
+    end
+
+    it "contains grub2 package" do
       expect(subject.packages).to include("grub2")
     end
 
-    it "returns list containing syslinux package if generic_mbr is used" do
-      stage1 = double(generic_mbr?: true)
-      allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
-
-      expect(subject.packages).to include("syslinux")
+    context "when is in initial stage" do
+      it "does not include syslinux" do
+        expect(subject.packages).to_not include("syslinux")
+      end
     end
 
-    it "returns list without syslinux package if generic_mbr is not used" do
-      stage1 = double(generic_mbr?: false)
-      allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
+    context "when is not in initial stage" do
+      let(:initial_stage) { false }
 
-      expect(subject.packages).to_not include("syslinux")
+      context "and generic_mbr is used" do
+        it "contains syslinux package" do
+          expect(subject.packages).to include("syslinux")
+        end
+      end
+
+      context "and generic_mbr is not used" do
+        let(:generic_mbr) { false }
+
+        it "contains syslinux package" do
+          expect(subject.packages).to_not include("syslinux")
+        end
+      end
     end
 
+    context "when trusted boot is required" do
+      before do
+        allow(subject).to receive(:trusted_boot).and_return(true)
+      end
+
+      context "and is x86_64 architecture" do
+        before do
+          allow(Yast::Arch).to receive(:x86_64).and_return(true)
+        end
+
+        it "contains trustedgrub2 packages" do
+          expect(subject.packages).to include("trustedgrub2")
+          expect(subject.packages).to include("trustedgrub2-i386-pc")
+        end
+      end
+
+      context "and is i386 architecture" do
+        before do
+          allow(Yast::Arch).to receive(:x86_64).and_return(true)
+        end
+
+        it "contains trustedgrub2 packages" do
+          expect(subject.packages).to include("trustedgrub2")
+          expect(subject.packages).to include("trustedgrub2-i386-pc")
+        end
+      end
+    end
+
+    context "when trusted boot is not required" do
+      before do
+        allow(subject).to receive(:trusted_boot).and_return(false)
+      end
+
+      it "does not contain the trusged grub packages" do
+        expect(subject.packages).to_not include("trustedgrub2")
+        expect(subject.packages).to_not include("trustedgrub2-i386-pc")
+      end
+    end
   end
 
   describe "#summary" do
