@@ -99,7 +99,8 @@ module Bootloader
 
     # Writes the sysconfig readed in the initialization
     #
-    # Useful to "rollback" sysconfig changes if something is fails before finish the configuration
+    # Useful to "rollback" sysconfig changes if something fails before finish writing the
+    # configuration
     def restore_initial_sysconfig
       @initial_sysconfig.write
     end
