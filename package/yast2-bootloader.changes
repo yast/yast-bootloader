@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
-Wed Aug 29 08:14:54 UTC 2018 - David Díaz <dgonzalez@suse.com>
+Wed Aug 29 08:14:54 UTC 2018 - dgonzalez@suse.com
 
 - Do not crash when required package is not installed (bsc#1089829)
 - 4.1.9
