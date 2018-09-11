@@ -212,17 +212,17 @@ module Bootloader
     end
 
     def merge_attributes(default, other)
-      begin
-        # string attributes
-        [:serial_console, :terminal, :timeout, :hidden_timeout, :distributor,
-         :gfxmode, :theme, :default].each do |attr|
-          val = other.public_send(attr)
-          default.public_send((attr.to_s + "=").to_sym, val) if val
-        end
-      # FIXME: only temporary solution to catch too complex grub terminal option (bsc#1053559)
-      # will be removed when cfa_grub2 and yast understand more complex terminal configuration
-      rescue RuntimeError
-        raise ::Bootloader::UnsupportedOption, "GRUB_TERMINAL"
+      # string attributes
+      [:serial_console, :timeout, :hidden_timeout, :distributor,
+       :gfxmode, :theme, :default].each do |attr|
+        val = other.public_send(attr)
+        default.public_send((attr.to_s + "=").to_sym, val) if val
+      end
+
+      # array attributes with multiple values allowed
+      [:terminal].each do |attr|
+        val = other.public_send(attr)
+        default.public_send((attr.to_s + "=").to_sym, val) if val
       end
 
       # specific attributes that are not part of cfa
@@ -266,7 +266,7 @@ module Bootloader
 
       # for ppc: Boards with graphics are rare and those are PowerNV, where
       # modules are not used, see bsc#911682
-      grub_default.terminal = (Yast::Arch.s390 || Yast::Arch.ppc) ? :console : :gfxterm
+      grub_default.terminal = (Yast::Arch.s390 || Yast::Arch.ppc) ? [:console] : [:gfxterm]
       grub_default.generic_set("GRUB_GFXPAYLOAD_LINUX", "text") if Yast::Arch.ppc
     end
 

@@ -60,7 +60,7 @@ describe Bootloader::AutoyastConverter do
       bootloader = subject.import("global" => data)
 
       expect(bootloader.grub_default.kernel_params.serialize).to eq "verbose nomodeset"
-      expect(bootloader.grub_default.terminal).to eq :gfxterm
+      expect(bootloader.grub_default.terminal).to eq [:gfxterm]
       expect(bootloader.grub_default.os_prober).to be_enabled
       expect(bootloader.grub_default.hidden_timeout).to eq "10"
       expect(bootloader.stage1).to be_activate
@@ -109,7 +109,7 @@ describe Bootloader::AutoyastConverter do
 
     it "export to global key configuration" do
       bootloader.grub_default.kernel_params.replace("verbose nomodeset")
-      bootloader.grub_default.terminal = :gfxterm
+      bootloader.grub_default.terminal = [:gfxterm]
       bootloader.grub_default.os_prober.enable
       bootloader.grub_default.hidden_timeout = "10"
       bootloader.stage1.activate = true
