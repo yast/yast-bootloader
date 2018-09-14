@@ -24,17 +24,17 @@ describe Bootloader::Sections do
 
   describe "#default" do
     it "gets name of default section stored in grub2" do
-      expect(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/grub2-editenv", "list", stdout: :capture)
-        .and_return("saved_entry=alien>windows\nbla_bla=no\n")
+      expect(Yast::SCR).to receive(:Execute)
+        .with(anything, "/usr/bin/grub2-editenv list")
+        .and_return("exit" => 0, "stdout" => "saved_entry=alien>windows\nbla_bla=no\n")
 
       expect(subject.default).to eq "windows"
     end
 
     it "gets first section if nothing stored in grub2" do
-      expect(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/grub2-editenv", "list", stdout: :capture)
-        .and_return("\n")
+      expect(Yast::SCR).to receive(:Execute)
+        .with(anything, "/usr/bin/grub2-editenv list")
+        .and_return("exit" => 0, "stdout" => "\n")
 
       expect(subject.default).to eq "linux"
     end

@@ -52,9 +52,11 @@ module Bootloader
     #   or something goes wrong
     # @note shows error popup if calling grub2-editenv failed
     def read_default
-      # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
-      # can continue with empty default section
-      saved = Yast::Execute.on_target("/usr/bin/grub2-editenv", "list", stdout: :capture) || ""
+      saved = Yast::SCR.Execute(
+        Yast::Path.new(".target.bash_output"),
+        "/usr/bin/grub2-editenv list"
+      )
+      saved = saved["exit"] == 0 ? saved["stdout"] : ""
       saved_line = saved.lines.grep(/saved_entry=/).first || ""
 
       default_path = saved_line[/saved_entry=(.*)$/, 1]
