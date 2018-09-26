@@ -22,6 +22,31 @@ describe Yast::Bootloader do
     allow(::Bootloader::BootloaderFactory.current).to receive(:read)
   end
 
+  describe ".Write" do
+    context "when user cancels the installation of required packages" do
+      before do
+        allow(Yast::PackageSystem).to receive(:InstallAll).and_return(false)
+        allow(Yast2::Popup).to receive(:show)
+      end
+
+      it "shows an information message" do
+        expect(Yast2::Popup).to receive(:show)
+
+        subject.Write
+      end
+
+      it "returns false" do
+        expect(subject.Write).to eq(false)
+      end
+
+      it "logs an error" do
+        expect(subject.log).to receive(:error).with(/could not be prepared/)
+
+        subject.Write
+      end
+    end
+  end
+
   describe ".Import" do
     before do
     end

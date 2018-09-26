@@ -3,28 +3,76 @@ require_relative "test_helper"
 require "bootloader/bootloader_base"
 
 describe Bootloader::BootloaderBase do
-  describe "#write" do
+  describe "#prepare" do
+    let(:initial_sysconfig) { double(Bootloader::Sysconfig, write: nil) }
+    let(:new_sysconfig) { double(Bootloader::Sysconfig, write: nil) }
+    let(:bootloader) { "funny_bootloader" }
+    let(:normal_mode) { false }
+
     before do
-      allow(Bootloader::Sysconfig).to receive(:new).and_return(double(write: nil))
+      allow(Yast::Mode).to receive(:normal).and_return(normal_mode)
+
+      allow(Bootloader::Sysconfig).to receive(:new).and_return(new_sysconfig)
+      allow(Bootloader::Sysconfig).to receive(:from_system).and_return(initial_sysconfig)
+
       allow(Yast::PackageSystem).to receive(:InstallAll)
+
+      allow(Yast2::Popup).to receive(:show).and_return(true)
 
       subject.define_singleton_method(:name) { "funny_bootloader" }
     end
 
     it "writes to sysconfig name of its child" do
-      sysconfig = double(Bootloader::Sysconfig, write: nil)
       expect(Bootloader::Sysconfig).to receive(:new)
         .with(bootloader: "funny_bootloader")
-        .and_return(sysconfig)
+        .and_return(new_sysconfig)
 
-      subject.write
+      subject.prepare
     end
 
-    context "Mode.normal is set" do
-      it "install packages required by bootloader" do
+    context "when is not Mode.normal" do
+      it "returns true" do
+        expect(subject.prepare).to eq(true)
+      end
+    end
+
+    context "when is Mode.normal" do
+      let(:normal_mode) { true }
+
+      it "tries to install required packages" do
         expect(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"])
 
-        subject.write
+        subject.prepare
+      end
+
+      context "and the user accepts the installation" do
+        before do
+          allow(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"]).and_return(true)
+        end
+
+        it "returns true" do
+          expect(subject.prepare).to eq(true)
+        end
+
+        it "does not rollback the sysconfig" do
+          expect(initial_sysconfig).to_not receive(:write)
+        end
+      end
+
+      context "and the user does not accept the installation" do
+        before do
+          allow(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"]).and_return(false)
+        end
+
+        it "restores the initial sysconfig" do
+          expect(initial_sysconfig).to receive(:write)
+
+          subject.prepare
+        end
+
+        it "returns false" do
+          expect(subject.prepare).to eq(false)
+        end
       end
     end
   end
