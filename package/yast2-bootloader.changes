@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 26 14:29:36 UTC 2018 - dgonzalez@suse.com
+
+- Do not crash when required package is not installed (bsc#1089829)
+- 4.0.39
+
+-------------------------------------------------------------------
 Fri Aug 24 07:55:49 UTC 2018 - mfilka@suse.com
 
 - bnc#1053559
