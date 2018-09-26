@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 29 08:14:54 UTC 2018 - dgonzalez@suse.com
+
+- Do not crash when required package is not installed (bsc#1089829)
+- 4.1.9
+
+-------------------------------------------------------------------
 Wed Aug 22 16:33:37 CEST 2018 - schubi@suse.de
 
 - Switched license in spec file from SPDX2 to SPDX3 format. 

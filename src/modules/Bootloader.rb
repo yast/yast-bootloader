@@ -16,6 +16,7 @@
 # $Id$
 #
 require "yast"
+require "yast2/popup"
 require "bootloader/exceptions"
 require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
@@ -226,42 +227,42 @@ module Yast
 
       log.info "Writing bootloader configuration"
 
-      # run Progress bar
       stages = [
-        # progress stage, text in dialog (short)
+        _("Prepare system"),
         _("Create initrd"),
-        # progress stage, text in dialog (short)
         _("Save boot loader configuration")
       ]
       titles = [
-        # progress step, text in dialog (short)
+        _("Preparing system..."),
         _("Creating initrd..."),
-        # progress step, text in dialog (short)
         _("Saving boot loader configuration...")
       ]
-      # progress bar caption
+
       if Mode.normal
-        # progress line
-        Progress.New(
-          _("Saving Boot Loader Configuration"),
-          " ",
-          stages.size,
-          stages,
-          titles,
-          ""
-        )
+        Progress.New(_("Saving Boot Loader Configuration"), " ", stages.size, stages, titles, "")
         Progress.NextStage
       else
         Progress.Title(titles[0])
       end
 
-      ret = write_initrd
+      # Prepare system
+      progress_state = Progress.set(false)
+      if !::Bootloader::BootloaderFactory.current.prepare
+        log.error("System could not be prepared successfully, required packages were not installed")
+        Yast2::Popup.show(_("Cannot continue without install required packages"))
+        return false
+      end
+      Progress.set(progress_state)
 
-      log.error "Error occurred while creating initrd" unless ret
-
-      Progress.NextStep
+      # Create initrd
+      Progress.NextStage
       Progress.Title(titles[1]) unless Mode.normal
 
+      write_initrd || log.error("Error occurred while creating initrd")
+
+      # Save boot loader configuration
+      Progress.NextStage
+      Progress.Title(titles[2]) unless Mode.normal
       ::Bootloader::BootloaderFactory.current.write
 
       true
