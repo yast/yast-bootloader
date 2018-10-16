@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        4.1.9
+Version:        4.1.10
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -103,7 +103,7 @@ rake install DESTDIR="%{buildroot}"
 %{yast_libdir}/bootloader
 
 %dir %{yast_docdir}
-%license %{yast_docdir}/COPYING
+%license COPYING
 %doc %{yast_docdir}/README.md
 %doc %{yast_docdir}/CONTRIBUTING.md
 
