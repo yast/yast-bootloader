@@ -155,6 +155,17 @@ describe Yast::BootStorage do
 
         expect(subject.gpt_boot_disk?).to eq false
       end
+
+      it "raises BrokenConfiguration if in stage1 is unknown device" do
+        allow(subject.staging).to receive(:find_by_any_name).and_return(nil)
+
+        devicegraph_stub("trivial.yaml")
+
+        ::Bootloader::BootloaderFactory.current.stage1
+                                       .add_device("/dev/disk/by-uuid/FROZEN-H3LL")
+
+        expect{subject.gpt_boot_disk?}.to raise_error(Bootloader::BrokenConfiguration)
+      end
     end
   end
 end
