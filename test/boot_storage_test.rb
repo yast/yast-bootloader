@@ -164,7 +164,7 @@ describe Yast::BootStorage do
         ::Bootloader::BootloaderFactory.current.stage1
                                        .add_device("/dev/disk/by-uuid/FROZEN-H3LL")
 
-        expect{subject.gpt_boot_disk?}.to raise_error(Bootloader::BrokenConfiguration)
+        expect { subject.gpt_boot_disk? }.to raise_error(Bootloader::BrokenConfiguration)
       end
     end
   end
