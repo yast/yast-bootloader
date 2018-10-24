@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Tue Oct 23 14:54:29 UTC 2018 - jreidinger@suse.com
 
-- Do not crash if unknown device is found after cloning of device
+- Do not crash if an unknown device is found in a cloned configuration
   (bsc#1111236)
 - 4.0.40
 
