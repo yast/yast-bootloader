@@ -77,7 +77,10 @@ module Yast
     def gpt_boot_disks
       require "bootloader/bootloader_factory"
       current_bl = ::Bootloader::BootloaderFactory.current
-      targets = current_bl.stage1.devices.map { |dev_name| staging.find_by_any_name(dev_name) }
+      targets = current_bl.stage1.devices.map do |dev_name|
+        staging.find_by_any_name(dev_name) or
+          raise ::Bootloader::BrokenConfiguration, "Unknown device #{dev_name}"
+      end
       boot_disks = targets.each_with_object([]) { |t, r| r.concat(stage1_disks_for(t)) }
 
       result = boot_disks.select { |disk| disk.gpt? }
