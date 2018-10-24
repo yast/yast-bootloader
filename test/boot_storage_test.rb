@@ -106,4 +106,14 @@ describe Yast::BootStorage do
       expect(subject.gpt_boot_disk?).to eq false
     end
   end
+
+  describe ".gpt_disk" do
+    it "raise Broken Configuration if any of device is not found" do
+      allow(subject.staging).to receive(:find_by_any_name).and_return(nil)
+
+      expect { subject.gpt_disks(["/dev/non-existing"]) }.to(
+        raise_error(::Bootloader::BrokenConfiguration)
+      )
+    end
+  end
 end
