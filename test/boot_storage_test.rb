@@ -156,7 +156,7 @@ describe Yast::BootStorage do
         expect(subject.gpt_boot_disk?).to eq false
       end
 
-      it "raises BrokenConfiguration if in stage1 is unknown device" do
+      it "raises BrokenConfiguration if there is an unknown device in stage1" do
         allow(subject.staging).to receive(:find_by_any_name).and_return(nil)
 
         devicegraph_stub("trivial.yaml")
