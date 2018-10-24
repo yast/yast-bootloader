@@ -71,8 +71,7 @@ module Yast
     # @param devices[Array<String>] devices to inspect, can be disk, partition or its udev links
     # @return [Array<String>] gpt disks only
     def gpt_disks(devices)
-      targets = devices.map { |dev_name| staging.find_by_any_name(dev_name) }
-      targets = current_bl.stage1.devices.map do |dev_name|
+      targets = devices.map do |dev_name|
         staging.find_by_any_name(dev_name) or
           raise ::Bootloader::BrokenConfiguration, "Unknown device #{dev_name}"
       end
