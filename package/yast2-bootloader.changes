@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Oct 23 14:54:29 UTC 2018 - jreidinger@suse.com
+
+- Do not crash if an unknown device is found in a cloned configuration
+  (bsc#1111236)
+- 4.1.11
+
+-------------------------------------------------------------------
 Tue Oct 16 13:56:04 CEST 2018 - schubi@suse.de
 
 -  Fixed path to license file. . Build error in bsc#1089829.
