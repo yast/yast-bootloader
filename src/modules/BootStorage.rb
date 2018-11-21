@@ -66,7 +66,7 @@ module Yast
       current_bl = ::Bootloader::BootloaderFactory.current
 
       # efi require gpt disk, so it is always one
-      return true if current_bl.name == "grub2efi"
+      return true if current_bl.name == "grub2-efi"
       # if bootloader do not know its location, then we do not care
       return false unless current_bl.respond_to?(:stage1)
 
