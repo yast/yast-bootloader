@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 21 10:42:09 UTC 2018 - snwint@suse.com
+
+- fix grub2 efi widget to make pmbr checkbox visible (bsc#1114932)
+- 3.2.27.2
+
+-------------------------------------------------------------------
 Fri Apr 13 11:26:20 UTC 2018 - jreidinger@suse.com
 
 - fix translating multipath udev names when activating partition
