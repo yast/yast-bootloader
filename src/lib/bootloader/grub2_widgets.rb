@@ -909,7 +909,7 @@ module Bootloader
     end
 
     def secure_boot_widget?
-      (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name == "grub2-efi"
+      (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64) && grub2.name == "grub2-efi"
     end
 
     def trusted_boot_widget?

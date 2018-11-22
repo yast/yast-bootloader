@@ -61,8 +61,8 @@ module Bootloader
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove
 
-      # non-x86_64 systems don't support secure boot yet (bsc#978157)
-      @secure_boot = Yast::Arch.x86_64 ? true : false
+      # non-x86_64 systems don't support secure boot yet (bsc#978157) except arm (fate#326540)
+      @secure_boot = (Yast::Arch.x86_64 || Yast::Arch.aarch64) ? true : false
       grub_default.generic_set("GRUB_USE_LINUXEFI", Yast::Arch.aarch64 ? "false" : "true")
     end
 

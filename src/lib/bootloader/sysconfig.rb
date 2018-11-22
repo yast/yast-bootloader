@@ -30,8 +30,8 @@ module Bootloader
     def self.from_system
       bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
-      # but only on architectures that support it (bnc#984895)
-      secure_boot = if Yast::Arch.x86_64 || Yast::Arch.i386
+      # but only on architectures that support it (bnc#984895),(fate#326540)
+      secure_boot = if Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64
         Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
       else
         false
