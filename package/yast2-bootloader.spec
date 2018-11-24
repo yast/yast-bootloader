@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        4.1.11
+Version:        4.1.12
 Release:        0
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
@@ -101,6 +101,7 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_schemadir}/autoyast/rnc
 %{yast_schemadir}/autoyast/rnc/bootloader.rnc
 %{yast_libdir}/bootloader
+%{_datadir}/icons/*
 
 %dir %{yast_docdir}
 %license COPYING
