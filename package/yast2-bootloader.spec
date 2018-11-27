@@ -101,7 +101,7 @@ rake install DESTDIR="%{buildroot}"
 %dir %{yast_schemadir}/autoyast/rnc
 %{yast_schemadir}/autoyast/rnc/bootloader.rnc
 %{yast_libdir}/bootloader
-%{_datadir}/icons/*
+%{yast_icondir}
 
 %dir %{yast_docdir}
 %license COPYING
