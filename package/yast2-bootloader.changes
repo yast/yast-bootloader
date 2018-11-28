@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Sat Nov 24 00:39:54 UTC 2018 - Stasiek Michalski <hellcp@mailbox.org>
+
+- Provide icon with module (boo#1109310)
+- 4.1.12
+
+-------------------------------------------------------------------
 Tue Oct 23 14:54:29 UTC 2018 - jreidinger@suse.com
 
 - Do not crash if an unknown device is found in a cloned configuration

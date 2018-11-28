@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient id="b" x1="4" x2="60" y1="19" y2="19" gradientTransform="matrix(3.9932 0 0 4 .027382 -147)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#9a9996" offset="0"/>
+<stop stop-color="#9a9996" offset=".10113"/>
+<stop stop-color="#c0bfbc" offset=".17405"/>
+<stop stop-color="#c0bfbc" offset=".39765"/>
+<stop stop-color="#9a9996" offset="1"/>
+</linearGradient>
+<linearGradient id="a" x1="130" x2="130" y1="-191" y2="29" gradientUnits="userSpaceOnUse">
+<stop stop-color="#f6f5f4" offset="0"/>
+<stop stop-color="#deddda" offset="1"/>
+</linearGradient>
+</defs>
+<g transform="matrix(.5 0 0 .5 0 103.5)">
+<ellipse cx="127.81" cy="-71" rx="111.81" ry="112" fill="url(#b)"/>
+<ellipse cx="128.19" cy="-79" rx="111.81" ry="112" fill="url(#a)"/>
+<path d="m103.85-155.3a79.863 80 0 0 0 -55.904 76.297 79.863 80 0 0 0 79.863 80 79.863 80 0 0 0 79.863 -80 79.863 80 0 0 0 -55.904 -76.218v16.938a63.89 64 0 0 1 39.932 59.282 63.89 64 0 0 1 -63.89 64 63.89 64 0 0 1 -63.89 -64 63.89 64 0 0 1 39.932 -59.297v-17z" fill="#e01b24"/>
+<rect x="119.82" y="-159" width="15.973" height="64" ry="8" fill="#e01b24"/>
+</g>
+</svg>
