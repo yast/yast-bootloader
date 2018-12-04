@@ -89,7 +89,8 @@ module Bootloader
     def copy_br(device, target_path, bs: 512)
       Yast::SCR.Execute(
         BASH_PATH,
-        "/bin/dd if=#{device.shellescape} of=#{target_path.shellescape} bs=#{bs.to_s.shellescape} count=1 2>&1"
+        "/bin/dd if=#{device.shellescape} of=#{target_path.shellescape} " \
+          "bs=#{bs.to_s.shellescape} count=1 2>&1"
       )
     end
 

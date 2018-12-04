@@ -125,10 +125,10 @@ module Bootloader
     end
 
     def encrypt(password)
-      Yast.import "String"
-
-      quoted_password = Yast::String.Quote(password)
-      result = Yast::Execute.locally("/usr/bin/grub2-mkpasswd-pbkdf2", env: { "LANG" => "C"}, stdin: "#{password}\n#{password}\n", stdout: :capture)
+      result = Yast::Execute.locally("/usr/bin/grub2-mkpasswd-pbkdf2",
+        env:    { "LANG" => "C" },
+        stdin:  "#{password}\n#{password}\n",
+        stdout: :capture)
 
       pwd_line = result.split("\n").grep(/password is/).first
       if !pwd_line
