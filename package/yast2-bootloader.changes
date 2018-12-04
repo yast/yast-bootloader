@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Tue Dec  4 15:14:47 UTC 2018 - jreidinger@suse.com
+
+- always use absolute path to binaries (bsc#1118291)
+- escape properly shell arguments (bsc#1118291)
+- do not show grub2 password in list of processes when encrypting
+  (bsc#1118291)
+- 4.1.13
+
+-------------------------------------------------------------------
 Sat Nov 24 00:39:54 UTC 2018 - Stasiek Michalski <hellcp@mailbox.org>
 
 - Provide icon with module (boo#1109310)

@@ -1,5 +1,6 @@
 require "yast"
 require "date"
+require "shellwords"
 
 module Bootloader
   # Responsibility of class is to manage backup of MBR, respective PBR of disk,
@@ -35,7 +36,7 @@ module Bootloader
     # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
     # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
     def write
-      Yast::SCR.Execute(BASH_PATH, "mkdir -p #{MAIN_BACKUP_DIR}")
+      Yast::SCR.Execute(BASH_PATH, "/usr/sbin/mkdir -p #{MAIN_BACKUP_DIR.shellescape}")
 
       if exists?
         rotate
@@ -88,7 +89,8 @@ module Bootloader
     def copy_br(device, target_path, bs: 512)
       Yast::SCR.Execute(
         BASH_PATH,
-        "/bin/dd if=#{device} of=#{target_path} bs=#{bs} count=1 2>&1"
+        "/bin/dd if=#{device.shellescape} of=#{target_path.shellescape} " \
+          "bs=#{bs.to_s.shellescape} count=1 2>&1"
       )
     end
 
@@ -114,7 +116,7 @@ module Bootloader
       Yast::SCR.Execute(
         BASH_PATH,
         format("/bin/mv %{path} %{path}-%{date}",
-          path: device_file_path, date: change_date)
+          path: device_file_path.shellescape, date: change_date.shellescape)
       )
     end
   end
