@@ -1,4 +1,5 @@
 require "yast"
+require "shellwords"
 
 Yast.import "Stage"
 
@@ -120,21 +121,16 @@ module Bootloader
       return unless used_on_target?
 
       # operate on target as we have to remove password during installation from target grub2
-      Yast::SCR.Execute(Yast::Path.new(".target.bash"), "rm '#{PWD_ENCRYPTION_FILE}'")
+      Yast::SCR.Execute(Yast::Path.new(".target.bash"), "rm '#{PWD_ENCRYPTION_FILE.shellescape}'")
     end
 
     def encrypt(password)
       Yast.import "String"
 
       quoted_password = Yast::String.Quote(password)
-      result = Yast::WFM.Execute(YAST_BASH_PATH,
-        "echo '#{quoted_password}\n#{quoted_password}\n' | LANG=C grub2-mkpasswd-pbkdf2")
+      result = Yast::Execute.locally("/usr/bin/grub2-mkpasswd-pbkdf2", env: { "LANG" => "C"}, stdin: "test\ntest\n", stdout: :capture)
 
-      if result["exit"] != 0
-        raise "Failed to create encrypted password for grub2. Command output: #{result["stderr"]}"
-      end
-
-      pwd_line = result["stdout"].split("\n").grep(/password is/).first
+      pwd_line = result.split("\n").grep(/password is/).first
       if !pwd_line
         raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result["stdout"]}"
       end

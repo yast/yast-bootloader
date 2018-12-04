@@ -125,7 +125,7 @@ module Yast
 
     # Check if EFI is needed
     def efi?
-      cmd = "modprobe efivars 2>/dev/null"
+      cmd = "/usr/sbin/modprobe efivars 2>/dev/null"
       SCR.Execute(path(".target.bash_output"), cmd)
       FileUtils.Exists("/sys/firmware/efi/systab")
     end
