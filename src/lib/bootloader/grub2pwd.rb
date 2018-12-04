@@ -132,12 +132,12 @@ module Bootloader
 
       pwd_line = result.split("\n").grep(/password is/).first
       if !pwd_line
-        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result["stdout"]}"
+        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result}"
       end
 
       ret = pwd_line[/^.*password is\s*(\S+)/, 1]
       if !ret
-        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result["stdout"]}"
+        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result}"
       end
 
       ret
