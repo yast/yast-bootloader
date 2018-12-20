@@ -21,6 +21,7 @@ module Bootloader
       Yast.import "Mode"
       Yast.import "BootSupportCheck"
       Yast.import "Product"
+      Yast.import "Popup"
       Yast.import "PackagesProposal"
     end
 
@@ -76,6 +77,18 @@ module Bootloader
     end
 
     def ask_user(param)
+      if Yast::Mode.update
+        current_bl = ::Bootloader::BootloaderFactory.current
+
+        # we upgrading grub2, so no change there
+        if grub2_update?(current_bl)
+          ::Yast::Popup.Warning(
+            # TRANSLATORS: popup text when user click on link and we forbid to continue
+            _("Changing the bootloader configuration during an upgrade is not supported.")
+          )
+          return { "workflow_sequence" => :cancel }
+        end
+      end
       chosen_id = param["chosen_id"]
       result = :next
       log.info "ask user called with #{chosen_id}"
