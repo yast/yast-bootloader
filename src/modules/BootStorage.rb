@@ -189,6 +189,8 @@ module Yast
     #   or a Y2Storage::Disk (for an upgrade)
     # @return [Array<Y2Storage::Device>] devices suitable for stage1
     def stage1_disks_for(device)
+      raise ::Bootloader::BrokenConfiguration, "Unknown device #{device}" if device.nil?
+
       # Usually we want just the ancestors, but in the upgrade case
       # we may start with just 1 of multipath wires and have to
       # traverse descendants to find the Y2Storage::Multipath to use.
