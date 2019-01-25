@@ -869,24 +869,6 @@ module Bootloader
     end
 
     def contents
-      widgets = []
-
-      widgets << LoaderLocationWidget.new if loader_location_widget?
-
-      if generic_mbr_widget?
-        widgets << ActivateWidget.new
-        widgets << GenericMBRWidget.new
-      end
-
-      widgets << SecureBootWidget.new if secure_boot_widget?
-
-      widgets << TrustedBootWidget.new if trusted_boot_widget?
-
-      widgets << PMBRWidget.new if pmbr_widget?
-
-      widgets << DeviceMapWidget.new if device_map_button?
-
-      widgets = widgets.map { |w| indented_widget(w) }
       VBox(
         Left(LoaderTypeWidget.new),
         *widgets,
@@ -896,8 +878,23 @@ module Bootloader
 
   private
 
-    def indented_widget(widget)
-      MarginBox(1, 0.5, Left(widget))
+    def widgets
+      w = []
+      w << LoaderLocationWidget.new if loader_location_widget?
+
+      if generic_mbr_widget?
+        w << ActivateWidget.new
+        w << GenericMBRWidget.new
+      end
+
+      w << SecureBootWidget.new if secure_boot_widget?
+      w << TrustedBootWidget.new if trusted_boot_widget?
+      w << PMBRWidget.new if pmbr_widget?
+      w << DeviceMapWidget.new if device_map_button?
+
+      w.map do |widget|
+        MarginBox(1, 0.5, Left(widget))
+      end
     end
 
     def loader_location_widget?
