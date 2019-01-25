@@ -888,7 +888,7 @@ module Bootloader
 
       widgets = widgets.map { |w| indented_widget(w) }
       VBox(
-        LoaderTypeWidget.new,
+        Left(LoaderTypeWidget.new),
         *widgets,
         VStretch()
       )
