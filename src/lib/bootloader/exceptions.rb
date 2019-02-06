@@ -26,6 +26,27 @@ module Bootloader
     end
   end
 
+  # Specialized exception for invalid by-path device names
+  # (bsc#1122008, bsc#1116305)
+  class BrokenByPathDeviceName < RuntimeError
+    include Yast::I18n
+    attr_reader :dev_name
+
+    def initialize(dev_name)
+      @dev_name = dev_name
+      textdomain "bootloader"
+
+      # TRANSLATORS: %s is the device name
+      super _("Error reading the bootloader configuration files:\n" \
+        "Invalid device name %s\n" \
+        "\n" \
+        "This by-path device name may have changed after a reboot\n" \
+        "if the hardware or kernel parameters changed.\n" \
+        "\n" \
+        "Please use YaST2 bootloader to fix this.\n") % dev_name
+    end
+  end
+
   # Represent unsupported value in given option. Used mainly when value contain something that
   # bootloader does not understand yet.
   class UnsupportedOption < RuntimeError
