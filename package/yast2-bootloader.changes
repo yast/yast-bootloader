@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Feb  6 14:02:48 UTC 2019 - Stefan Hundhammer <shundhammer@suse.com>
+
+- Improved error message for broken by-path device names (bsc#1122008)
+- 4.1.15
+
+-------------------------------------------------------------------
 Fri Jan 25 10:13:29 UTC 2019 - dgonzalez@suse.com
 
 - Fit the "Boot Code Options" tab to full width even when there only
