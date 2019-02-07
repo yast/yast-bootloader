@@ -54,12 +54,23 @@ describe Yast::BootStorage do
   end
 
   describe ".stage1_devices_for_name" do
-    it "raises BrokenConfiguration exception if gets unknown name" do
-      # mock staging graph as graph does not return proper value when run as non-root
+    before do
       allow(subject.staging).to receive(:find_by_any_name).and_return(nil)
+    end
+
+    it "raises a BrokenConfiguration exception if gets an unknown name" do
+      # mock staging graph as graph does not return proper value when run as non-root
 
       expect { subject.stage1_devices_for_name("/dev/non-existing") }.to(
         raise_error(::Bootloader::BrokenConfiguration)
+      )
+    end
+
+    it "raises a BrokenByPathDeviceName exception if gets an unknown by-path device name" do
+      # mock staging graph as graph does not return proper value when run as non-root
+
+      expect { subject.stage1_devices_for_name("/dev/disk/by-path/non-existing") }.to(
+        raise_error(::Bootloader::BrokenByPathDeviceName)
       )
     end
   end

@@ -72,8 +72,7 @@ module Yast
     # @return [Array<String>] gpt disks only
     def gpt_disks(devices)
       targets = devices.map do |dev_name|
-        staging.find_by_any_name(dev_name) or
-          raise ::Bootloader::BrokenConfiguration, "Unknown device #{dev_name}"
+        staging.find_by_any_name(dev_name) or handle_unknown_device(dev_name)
       end
       boot_disks = targets.each_with_object([]) { |t, r| r.concat(stage1_disks_for(t)) }
 
@@ -140,7 +139,7 @@ module Yast
     # @return [Array<Y2Storage::Device>] list of suitable devices
     def stage1_devices_for_name(dev_name)
       device = staging.find_by_any_name(dev_name)
-      raise ::Bootloader::BrokenConfiguration, "unknown device #{dev_name}" unless device
+      handle_unknown_device(dev_name) unless device
 
       if device.is?(:partition) || device.is?(:filesystem)
         stage1_partitions_for(device)
@@ -274,6 +273,25 @@ module Yast
         to_process.concat(candidate.parents)
       end
       results
+    end
+
+    # Handle an "unknown device" error: Raise an appropriate exception.
+    # @param dev_name [String]
+    def handle_unknown_device(dev_name)
+      # rubocop:disable Style/GuardClause
+      #
+      # I flatly refuse to make my code LESS readable because of a third-rate
+      # check tool. This is the CLASSIC use case for if...else, even if this
+      # mindless rubocop thinks otherwise.
+      #
+      # 2019-02-06 shundhammer
+
+      if dev_name =~ %r{/by-path/} # bsc#1122008, bsc#1116305
+        raise ::Bootloader::BrokenByPathDeviceName, dev_name
+      else
+        raise ::Bootloader::BrokenConfiguration, "Unknown device #{dev_name}"
+      end
+      # rubocop:enable Style/GuardClause
     end
   end
 
