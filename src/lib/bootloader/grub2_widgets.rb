@@ -703,7 +703,6 @@ module Bootloader
       textdomain "bootloader"
 
       VBox(
-        VSpacing(1),
         Frame(
           _("Boot Loader Location"),
           HBox(
@@ -870,8 +869,16 @@ module Bootloader
 
     def contents
       VBox(
-        Left(LoaderTypeWidget.new),
+        VSpacing(1),
+        HBox(
+          HSpacing(1),
+          Left(LoaderTypeWidget.new)
+        ),
+        VSpacing(1),
         *widgets,
+        VSpacing(1),
+        pmbr_widget,
+        device_map_button,
         VStretch()
       )
     end
@@ -889,12 +896,26 @@ module Bootloader
 
       w << SecureBootWidget.new if secure_boot_widget?
       w << TrustedBootWidget.new if trusted_boot_widget?
-      w << PMBRWidget.new if pmbr_widget?
-      w << DeviceMapWidget.new if device_map_button?
 
       w.map do |widget|
-        MarginBox(1, 0.5, Left(widget))
+        MarginBox(horizontal_margin, 0, Left(widget))
       end
+    end
+
+    def pmbr_widget
+      return Empty() unless pmbr_widget?
+
+      MarginBox(1, 0, Left(PMBRWidget.new))
+    end
+
+    def device_map_button
+      return Empty() unless device_map_button?
+
+      MarginBox(1, 0, Left(DeviceMapWidget.new))
+    end
+
+    def horizontal_margin
+      @horizontal_margin ||= Yast::UI.TextMode ? 1 : 1.5
     end
 
     def loader_location_widget?
