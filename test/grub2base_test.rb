@@ -28,6 +28,14 @@ describe Bootloader::Grub2Base do
       subject.read
     end
 
+    it "use empty file as default if grub.cfg is missing" do
+      grub_cfg = double(::CFA::Grub2::GrubCfg)
+      allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(grub_cfg)
+      allow(grub_cfg).to receive(:load).and_raise(Errno::ENOENT)
+
+      expect { subject.read }.to_not raise_error
+    end
+
     it "reads trusted boot configuration from sysconfig" do
       mocked_sysconfig = ::Bootloader::Sysconfig.new(trusted_boot: true)
       allow(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
