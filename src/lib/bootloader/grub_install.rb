@@ -2,14 +2,26 @@ require "yast"
 require "yast2/execute"
 
 Yast.import "Arch"
+Yast.import "Report"
 
 module Bootloader
   # Wraps grub install script for easier usage.
   class GrubInstall
+    include Yast::Logger
+    include Yast::I18n
+
     def initialize(efi: false)
       @efi = efi
+      textdomain "bootloader"
     end
 
+    # Runs grub2 install command.
+    #
+    # @param devices[Array<String>] list to which grub2 should be installed.
+    #   Ignored when grub2 does not need device.
+    # @param secure_boot [Boolean] if secure boot variant should be used
+    # @param trusted_boot [Boolean] if trusted boot variant should be used
+    # @return [Array<String>] list for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false)
       raise "cannot have secure boot without efi" if secure_boot && !efi
 
@@ -17,14 +29,46 @@ module Bootloader
 
       if no_device_install?
         Yast::Execute.on_target(cmd)
+        []
       else
-        devices.each { |d| Yast::Execute.on_target(cmd + [d]) }
+        return [] if devices.empty?
+        last_failure = nil
+        res = devices.select do |device|
+          begin
+            Yast::Execute.on_target!(cmd + [device])
+            false
+          rescue Cheetah::ExecutionFailed => e
+            log.warn "Failed to install grub to device #{device}. #{e.inspect}"
+            last_failure = e
+            true
+          end
+        end
+
+        # Failed to install to all devices
+        if res.size == devices.size
+          report_failure(last_failure)
+        end
+
+        res
       end
     end
 
   private
 
     attr_reader :efi
+
+    def report_failure(exception)
+      Yast::Report.Error(
+        _(
+          "Installing GRUB2 to device failed.\n" \
+          "Command `%{command}`.\n" \
+          "Error output: %{stderr}"
+        ) % {
+          command:  exception.commands.inspect,
+          stderr:   exception.stderr
+        }
+      )
+    end
 
     # creates basic command for grub2 install without specifying any stage1
     # locations
