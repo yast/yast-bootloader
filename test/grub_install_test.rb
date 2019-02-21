@@ -146,7 +146,7 @@ describe Bootloader::GrubInstall do
       it "opens a report if grub2-install failed for all devices" do
         stub_arch("x86_64")
 
-        allow(Yast::Execute).to receive(:on_target!) do |arg|
+        allow(Yast::Execute).to receive(:on_target!) do |_arg|
           raise Cheetah::ExecutionFailed.new([], nil, nil, nil)
         end
 

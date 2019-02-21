@@ -45,9 +45,7 @@ module Bootloader
         end
 
         # Failed to install to all devices
-        if res.size == devices.size
-          report_failure(last_failure)
-        end
+        report_failure(last_failure) if res.size == devices.size
 
         res
       end
@@ -64,8 +62,8 @@ module Bootloader
           "Command `%{command}`.\n" \
           "Error output: %{stderr}"
         ) % {
-          command:  exception.commands.inspect,
-          stderr:   exception.stderr
+          command: exception.commands.inspect,
+          stderr:  exception.stderr
         }
       )
     end
