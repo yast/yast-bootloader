@@ -27,8 +27,13 @@ describe Bootloader::GrubInstall do
       params << "--no-nvram" << "--removable" if removable
       params << device if device
 
-      expect(Yast::Execute).to receive(:on_target)
-        .with(params)
+      if device
+        expect(Yast::Execute).to receive(:on_target!)
+          .with(params)
+      else
+        expect(Yast::Execute).to receive(:on_target)
+          .with(params)
+      end
     end
 
     context "initialized with efi: true" do
@@ -120,7 +125,6 @@ describe Bootloader::GrubInstall do
 
       it "runs for each device passed in devices" do
         stub_arch("x86_64")
-        stub_efivars
         expect_grub2_install("i386-pc", device: "/dev/sda")
         expect_grub2_install("i386-pc", device: "/dev/sdb")
         expect_grub2_install("i386-pc", device: "/dev/sdc")
@@ -128,9 +132,31 @@ describe Bootloader::GrubInstall do
         subject.execute(devices: ["/dev/sda", "/dev/sdb", "/dev/sdc"])
       end
 
+      it "returns each device for which grub2-install failed" do
+        stub_arch("x86_64")
+        expect_grub2_install("i386-pc", device: "/dev/sdb")
+
+        allow(Yast::Execute).to receive(:on_target!) do |arg|
+          raise Cheetah::ExecutionFailed.new([], nil, nil, nil) if (arg & ["/dev/sda", "/dev/sdc"]).any?
+        end
+
+        expect(subject.execute(devices: ["/dev/sda", "/dev/sdb", "/dev/sdc"])).to contain_exactly("/dev/sda", "/dev/sdc")
+      end
+
+      it "opens a report if grub2-install failed for all devices" do
+        stub_arch("x86_64")
+
+        allow(Yast::Execute).to receive(:on_target!) do |_arg|
+          raise Cheetah::ExecutionFailed.new([], nil, nil, nil)
+        end
+
+        expect(Yast::Report).to receive(:Error)
+
+        subject.execute(devices: ["/dev/sda", "/dev/sdb", "/dev/sdc"])
+      end
+
       it "runs with target i386-pc on i386" do
         stub_arch("i386")
-        stub_efivars
         expect_grub2_install("i386-pc", device: "/dev/sda")
 
         subject.execute(devices: ["/dev/sda"])
@@ -138,7 +164,6 @@ describe Bootloader::GrubInstall do
 
       it "runs with target i386-pc on x86_64" do
         stub_arch("x86_64")
-        stub_efivars
         expect_grub2_install("i386-pc", device: "/dev/sda")
 
         subject.execute(devices: ["/dev/sda"])
@@ -146,7 +171,6 @@ describe Bootloader::GrubInstall do
 
       it "runs with target powerpc-ieee1275 on ppc64" do
         stub_arch("ppc64")
-        stub_efivars
         expect_grub2_install("powerpc-ieee1275", device: "/dev/sda")
 
         subject.execute(devices: ["/dev/sda"])
@@ -154,7 +178,6 @@ describe Bootloader::GrubInstall do
 
       it "runs with target s390x-emu on s390" do
         stub_arch("s390_64")
-        stub_efivars
 
         expect_grub2_install("s390x-emu")
 
@@ -164,7 +187,7 @@ describe Bootloader::GrubInstall do
       it "pass directory argument when trusted boot is requested" do
         stub_arch("x86_64")
 
-        expect(Yast::Execute).to receive(:on_target) do |arg|
+        expect(Yast::Execute).to receive(:on_target!) do |arg|
           expect(arg).to include("--directory=/usr/lib/trustedgrub2/i386-pc")
         end
 

@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Thu Feb 21 16:27:37 UTC 2019 - jreidinger@suse.com
+
+- Relax check for bios_boot when logical device over more disks is
+  used to check that at least one disk can be bootable.
+  (bsc#1125792)
+- Also relax installation of grub2. When at least one location
+  success then do not complain, just log it.
+- 4.1.18
+
+-------------------------------------------------------------------
 Thu Feb 14 07:56:05 UTC 2019 - jreidinger@suse.com
 
 - Do not crash if generated grub.cfg is missing (bsc#1124064)

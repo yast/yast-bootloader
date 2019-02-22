@@ -58,7 +58,6 @@ module Bootloader
       super
 
       device_map.write if Yast::Arch.x86_64 || Yast::Arch.i386
-      stage1.write
 
       # TODO: own class handling PBMR
       # set it only for gpt disk bsc#1008092
@@ -66,7 +65,9 @@ module Bootloader
 
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
-        @grub_install.execute(devices: stage1.devices, trusted_boot: trusted_boot)
+        failed = @grub_install.execute(devices: stage1.devices, trusted_boot: trusted_boot)
+        failed.each { |f| stage1.remove_device(f) }
+        stage1.write
       end
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)

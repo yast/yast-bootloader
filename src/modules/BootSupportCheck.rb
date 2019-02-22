@@ -105,7 +105,10 @@ module Yast
       gpt_disks = BootStorage.stage1_disks_for(boot_fs).select(&:gpt?)
       return true if gpt_disks.empty?
       return true if boot_fs.type != ::Y2Storage::Filesystems::Type::BTRFS
-      return true if gpt_disks.all? { |disk| disk.partitions.any? { |p| p.id.is?(:bios_boot) } }
+      # more relax check, at least one disk is enough. Let propose more advanced stuff like boot
+      # duplicite md raid1 with bios_boot on all disks to storage and user. Check there only when
+      # we are sure it is problem (bsc#1125792)
+      return true if gpt_disks.any? { |disk| disk.partitions.any? { |p| p.id.is?(:bios_boot) } }
 
       Builtins.y2error("Used together boot from MBR, gpt, btrfs and without bios_grub partition.")
       # TRANSLATORS: description of technical problem. Do not translate technical terms unless native language have well known translation.
