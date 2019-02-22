@@ -17,11 +17,11 @@ module Bootloader
 
     # Runs grub2 install command.
     #
-    # @param devices[Array<String>] list to which grub2 should be installed.
+    # @param devices[Array<String>] list of devices where grub2 should be installed.
     #   Ignored when grub2 does not need device.
     # @param secure_boot [Boolean] if secure boot variant should be used
     # @param trusted_boot [Boolean] if trusted boot variant should be used
-    # @return [Array<String>] list for which install failed
+    # @return [Array<String>] list of devices for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false)
       raise "cannot have secure boot without efi" if secure_boot && !efi
 
@@ -32,6 +32,7 @@ module Bootloader
         []
       else
         return [] if devices.empty?
+
         last_failure = nil
         res = devices.select do |device|
           begin
