@@ -204,12 +204,9 @@ module Bootloader
 
         default_serialize = default_params.serialize
         # handle specially noresume as it should lead to remove all other resume
-        if other.public_send(method).parameter("noresume")
-          default_serialize.gsub!(/resume=\S+/, "")
-        end
+        default_serialize.gsub!(/resume=\S+/, "") if other_params.parameter("noresume")
 
         new_kernel_params = default_serialize + " " + other_params.serialize
-
 
         default_params.replace(new_kernel_params)
       end
