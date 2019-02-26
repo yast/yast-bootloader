@@ -198,11 +198,20 @@ module Bootloader
       log.info "before merge other #{other.inspect}"
 
       KERNEL_FLAVORS_METHODS.each do |method|
-        next if other.public_send(method).empty?
+        other_params = other.public_send(method)
+        default_params = default.public_send(method)
+        next if other_params.empty?
 
-        new_kernel_params = default.public_send(method).serialize +
-          " " + other.public_send(method).serialize
-        default.public_send(method).replace(new_kernel_params)
+        default_serialize = default_params.serialize
+        # handle specially noresume as it should lead to remove all other resume
+        if other.public_send(method).parameter("noresume")
+          default_serialize.gsub!(/resume=\S+/, "")
+        end
+
+        new_kernel_params = default_serialize + " " + other_params.serialize
+
+
+        default_params.replace(new_kernel_params)
       end
 
       merge_attributes(default, other)
