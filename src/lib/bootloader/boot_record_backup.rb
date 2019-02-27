@@ -36,7 +36,7 @@ module Bootloader
     # Backup is stored in /var/lib/YaST2/backup_boot_sectors, in logs
     # directory and if it is MBR of primary disk, then also in /boot/backup_mbr
     def write
-      Yast::SCR.Execute(BASH_PATH, "/usr/sbin/mkdir -p #{MAIN_BACKUP_DIR.shellescape}")
+      Yast::SCR.Execute(BASH_PATH, "/usr/bin/mkdir -p #{MAIN_BACKUP_DIR.shellescape}")
 
       if exists?
         rotate
