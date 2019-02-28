@@ -674,7 +674,7 @@ module Bootloader
     def help
       _(
         "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
-        " If sections are not generated yet ( e.g. during installation) \n"
+        " If sections are not generated yet ( e.g. during installation) \n" \
         "then box is empty and default is picked by grub2 itself."
       )
     end
