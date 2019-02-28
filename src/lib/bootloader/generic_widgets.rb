@@ -73,9 +73,10 @@ module Bootloader
 
     def help
       _(
-        "<p><b>Boot Loader Type</b><br>\n" \
-          "To select whether to install a boot loader and which bootloader to install,\n" \
-          "use <b>Boot Loader</b>.</p>"
+        "<p><b>Boot Loader</b>\n" \
+          "specifies which bootloader to install. Can be also specified <tt>None</tt> " \
+          "which mean that bootloader configuration is not managed by YaST2 and also " \
+          "kernel post install script does not update bootloader configuration."
       )
     end
   end

@@ -57,8 +57,8 @@ module Bootloader
     end
 
     def help
-      _("<p><b>Timeout in Seconds</b><br>\n" \
-        "Specifies the time the bootloader will wait until the default kernel is loaded.</p>\n")
+      _("<p><b>Timeout in Seconds</b>\n" \
+        "specifies the time the bootloader will wait until the default kernel is loaded.</p>\n")
     end
 
     def init
@@ -94,8 +94,8 @@ module Bootloader
 
     def help
       _(
-        "<p><b>Set active Flag in Partition Table for Boot Partition</b><br>\n" \
-          "To activate the partition which contains the boot loader." \
+        "<p><b>Set active Flag in Partition Table for Boot Partition</b>\n" \
+          "specify if the partition which contains the boot loader will have active flag." \
           " The generic MBR code will then\n" \
           "boot the active partition. Older BIOSes require one partition to be active even\n" \
           "if the boot loader is installed in the MBR.</p>"
@@ -272,7 +272,7 @@ module Bootloader
     end
 
     def help
-      _("Tick to enable UEFI Secure Boot\n")
+      _("<p><b>Enable Secure Boot Support</b> if checked enable UEFI Secure Boot.</p>")
     end
 
     def init
@@ -299,14 +299,16 @@ module Bootloader
     def help
       # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
       res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
-          "instead of regular GRUB2.</p>\n" \
-          "<p>It means measuring the integrity of the boot process,\n" \
+          "instead of regular GRUB2." \
+          "It means measuring the integrity of the boot process,\n" \
           "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
-          "chip).</p>\n")
+          "chip).\n")
       if grub2.name == "grub2"
-        res += _("<p>First you need to make sure Trusted Boot is enabled in the BIOS\n" \
-          "setup (the setting may be named Security Chip, for example).</p>\n")
+        res += _(" First you need to make sure Trusted Boot is enabled in the BIOS\n" \
+          "setup (the setting may be named Security Chip, for example).\n")
       end
+
+      res += "<p>"
 
       res
     end
@@ -435,16 +437,16 @@ module Bootloader
 
     def help
       _(
-        "<p><b>Protect Boot Loader with Password</b><br>\n" \
-          "At boot time, modifying or even booting any entry will require the" \
+        "<p><b>Protect Boot Loader with Password</b>\n" \
+          "at boot time, modifying or even booting any entry will require the" \
           " password. If <b>Protect Entry Modification Only</b> is checked then " \
           "booting any entry is not restricted but modifying entries requires " \
           "the password (which is the way GRUB 1 behaved). As side-effect of " \
           "this option, rd.shell=0 is added to kernel parameters, to prevent " \
-          "an unauthorized access to the initrd shell.<br>" \
+          "an unauthorized access to the initrd shell. " \
           "YaST will only accept the password if you repeat it in " \
           "<b>Retype Password</b>. The password applies to the GRUB2 user 'root' " \
-          "which is distinct from the Linux 'root'. YaST currently does not support" \
+          "which is distinct from the Linux 'root'. YaST currently does not support " \
           "other GRUB2 users. If you need them, use a separate GRUB2 script.</p>"
       )
     end
@@ -475,11 +477,11 @@ module Bootloader
     def help
       # Translators: do not translate the quoted parts like "unit"
       _(
-        "<p>When a graphical console is used it allows to use various " \
+        "<p><b>Use graphical console</b> when checked it allows to use various " \
         "display resolutions. The <tt>auto</tt> option tries to find " \
         "the best one when booting starts.</p>\n" \
-        "<p>When a serial console is used the boot output " \
-        "will be printed to a serial device like <tt>ttyS0</tt>. " \
+        "<p><b>Use serial console</b> when checked it redirect the boot output " \
+        "a serial device like <tt>ttyS0</tt>. " \
         "At least the <tt>--unit</tt> option has to be specified, " \
         "and the complete syntax is <tt>%s</tt>. " \
         "Other parts are optional and if not set, a default is used. " \
@@ -671,12 +673,9 @@ module Bootloader
 
     def help
       _(
-        "<p> By pressing <b>Set as Default</b> you mark the selected section as\n" \
-        "the default. When booting, the boot loader will provide a boot menu and\n" \
-        "wait for the user to select a kernel or OS to boot. If no\n" \
-        "key is pressed before the timeout, the default kernel or OS will\n" \
-        "boot. The order of the sections in the boot loader menu can be changed\n" \
-        "using the <b>Up</b> and <b>Down</b> buttons.</p>\n"
+        "<p><b>Default Boot Section</b> selects boot section to be booted as default.\n" \
+        " If YaST2 does not know yet naming of sections, it will be empty and default \n" \
+        "is let on grub2 itself.</p>" \
       )
     end
 
@@ -819,8 +818,8 @@ module Bootloader
       textdomain "bootloader"
 
       _(
-        "<p><big><b>Disks Order</b></big><br>\n" \
-          "To specify the order of the disks according to the order in BIOS, use\n" \
+        "<p><b>Edit Disk Boot Order</b>\n" \
+          "allows to specify the order of the disks according to the order in BIOS, use\n" \
           "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
           "To add a disk, push <b>Add</b>.\n" \
           "To remove a disk, push <b>Remove</b>.</p>"
