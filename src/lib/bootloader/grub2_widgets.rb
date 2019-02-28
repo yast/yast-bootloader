@@ -95,7 +95,7 @@ module Bootloader
     def help
       _(
         "<p><b>Set active Flag in Partition Table for Boot Partition</b>\n" \
-          "specify if the partition which contains the boot loader will have active flag." \
+          "specify whether the partition containing the boot loader will have active flag." \
           " The generic MBR code will then\n" \
           "boot the active partition. Older BIOSes require one partition to be active even\n" \
           "if the boot loader is installed in the MBR.</p>"
@@ -272,7 +272,7 @@ module Bootloader
     end
 
     def help
-      _("<p><b>Enable Secure Boot Support</b> if checked enable UEFI Secure Boot.</p>")
+      _("<p><b>Enable Secure Boot Support</b> if checked enables UEFI Secure Boot support.</p>")
     end
 
     def init
@@ -305,10 +305,10 @@ module Bootloader
           "chip).\n")
       if grub2.name == "grub2"
         res += _(" First you need to make sure Trusted Boot is enabled in the BIOS\n" \
-          "setup (the setting may be named Security Chip, for example).\n")
+          "setup (the setting may be named \"Security Chip\", for example).\n")
       end
 
-      res += "<p>"
+      res += "</p>"
 
       res
     end
@@ -480,8 +480,8 @@ module Bootloader
         "<p><b>Use graphical console</b> when checked it allows to use various " \
         "display resolutions. The <tt>auto</tt> option tries to find " \
         "the best one when booting starts.</p>\n" \
-        "<p><b>Use serial console</b> when checked it redirect the boot output " \
-        "a serial device like <tt>ttyS0</tt>. " \
+        "<p><b>Use serial console</b> when checked it redirects the boot output " \
+        "to a serial device like <tt>ttyS0</tt>. " \
         "At least the <tt>--unit</tt> option has to be specified, " \
         "and the complete syntax is <tt>%s</tt>. " \
         "Other parts are optional and if not set, a default is used. " \
@@ -673,7 +673,7 @@ module Bootloader
 
     def help
       _(
-        "<p><b>Default Boot Section</b> selects boot section to be booted as default.\n" \
+        "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
         " If YaST2 does not know yet naming of sections, it will be empty and default \n" \
         "is let on grub2 itself.</p>" \
       )

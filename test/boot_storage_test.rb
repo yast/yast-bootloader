@@ -29,7 +29,7 @@ describe Yast::BootStorage do
       )
     end
 
-    it "returns only mounted swaps if it is available" do
+    it "returns only mounted swaps if any is available" do
       devicegraph_stub("multi_swap.yaml")
       expect(subject.available_swap_partitions).to eq(
         "/dev/sdb2" => 1_026_048
