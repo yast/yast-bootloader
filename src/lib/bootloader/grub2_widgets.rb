@@ -58,7 +58,7 @@ module Bootloader
 
     def help
       _("<p><b>Timeout in Seconds</b>\n" \
-        "specifies the time the bootloader will wait until the default kernel is loaded.</p>\n")
+        "specifies the time the boot loader will wait until the default kernel is loaded.</p>\n")
     end
 
     def init
@@ -94,8 +94,8 @@ module Bootloader
 
     def help
       _(
-        "<p><b>Set active Flag in Partition Table for Boot Partition</b>\n" \
-          "specify whether the partition containing the boot loader will have active flag." \
+        "<p><b>Set Active Flag in Partition Table for Boot Partition</b>\n" \
+          "specifies whether the partition containing the boot loader will have the \"active\" flag." \
           " The generic MBR code will then\n" \
           "boot the active partition. Older BIOSes require one partition to be active even\n" \
           "if the boot loader is installed in the MBR.</p>"
@@ -299,12 +299,12 @@ module Bootloader
     def help
       # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
       res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
-          "instead of regular GRUB2." \
+          "instead of regular GRUB2.\n" \
           "It means measuring the integrity of the boot process,\n" \
           "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
           "chip).\n")
       if grub2.name == "grub2"
-        res += _(" First you need to make sure Trusted Boot is enabled in the BIOS\n" \
+        res += _("First you need to make sure Trusted Boot is enabled in the BIOS\n" \
           "setup (the setting may be named \"Security Chip\", for example).\n")
       end
 
@@ -675,7 +675,7 @@ module Bootloader
       _(
         "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
         " If sections are not generated yet ( e.g. during installation) \n" \
-        "then box is empty and default is picked by grub2 itself."
+        "then the box is empty and the default is picked by grub2 itself.</p>\n"
       )
     end
 
@@ -819,7 +819,7 @@ module Bootloader
 
       _(
         "<p><b>Edit Disk Boot Order</b>\n" \
-          "allows to specify the order of the disks according to the order in BIOS, use\n" \
+          "allows to specify the order of the disks according to the order in BIOS. Use\n" \
           "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
           "To add a disk, push <b>Add</b>.\n" \
           "To remove a disk, push <b>Remove</b>.</p>"
