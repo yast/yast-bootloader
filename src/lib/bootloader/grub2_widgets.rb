@@ -674,8 +674,8 @@ module Bootloader
     def help
       _(
         "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
-        " If YaST2 does not know yet naming of sections, it will be empty and default \n" \
-        "is let on grub2 itself.</p>" \
+        " If sections are not generated yet ( e.g. during installation) \n"
+        "then box is empty and default is picked by grub2 itself."
       )
     end
 
