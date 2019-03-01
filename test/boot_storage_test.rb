@@ -28,6 +28,13 @@ describe Yast::BootStorage do
         "/dev/mapper/cr_swap" => 2_095_104
       )
     end
+
+    it "returns only mounted swaps if any is available" do
+      devicegraph_stub("multi_swap.yaml")
+      expect(subject.available_swap_partitions).to eq(
+        "/dev/sdb2" => 1_026_048
+      )
+    end
   end
 
   describe ".encrypted_boot?" do

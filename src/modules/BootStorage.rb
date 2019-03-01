@@ -107,9 +107,19 @@ module Yast
     def available_swap_partitions
       ret = {}
 
-      staging.filesystems.select { |f| f.type.is?(:swap) }.each do |swap|
-        blk_device = swap.blk_devices[0]
-        ret[blk_device.name] = blk_device.size.to_i / 1024
+      mounted = Y2Storage::MountPoint.find_by_path(staging, Y2Storage::MountPoint::SWAP_PATH.to_s)
+      if mounted.empty?
+        log.info "No mounted swap found, using fallback."
+        staging.filesystems.select { |f| f.type.is?(:swap) }.each do |swap|
+          blk_device = swap.blk_devices[0]
+          ret[blk_device.name] = blk_device.size.to_i / 1024
+        end
+      else
+        log.info "Mounted swap found: #{mounted.inspect}"
+        mounted.each do |mp|
+          blk_device = mp.filesystem.blk_devices[0]
+          ret[blk_device.name] = blk_device.size.to_i / 1024
+        end
       end
 
       log.info "Available swap partitions: #{ret}"

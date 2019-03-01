@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri Mar  1 06:16:50 UTC 2019 - jreidinger@suse.com
+
+- remove resume if user wants noresume (bsc#1079537)
+- use for resume the biggest mounted swap (bsc#1071354)
+- make help text formatting consistent and improve some help texts
+- 4.1.20
+
+-------------------------------------------------------------------
 Wed Feb 27 10:07:40 UTC 2019 - mvidner@suse.com
 
 - Use the correct path for /usr/bin/mkdir (bsc#1127138).
