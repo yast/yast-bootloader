@@ -31,7 +31,7 @@ Metrics/ClassLength:
 
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
-  Max: 200
+  Max: 220
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 

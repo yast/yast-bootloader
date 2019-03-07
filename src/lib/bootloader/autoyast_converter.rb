@@ -37,6 +37,7 @@ module Bootloader
         # always nil pmbr as autoyast does not support it yet,
         # so use nil to always use proposed value (bsc#1081967)
         bootloader.pmbr_action = nil
+        bootloader.smt = data["global"]["smt"] == "true" unless data["global"]["smt"].nil?
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
@@ -56,6 +57,7 @@ module Bootloader
         global = res["global"]
         export_grub2(global, config) if config.name == "grub2"
         export_default(global, config.grub_default)
+        res["global"]["smt"] = config.smt ? "true" : "false"
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
         # your day in L3 )
@@ -77,6 +79,14 @@ module Bootloader
       end
 
       def import_default(data, default)
+        # import first kernel params as smt can later modify it
+        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
+          val = data["global"][key]
+          next unless val
+
+          default.public_send(method).replace(val)
+        end
+
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = data["global"][key]
           next unless val
@@ -96,13 +106,6 @@ module Bootloader
           next unless val
 
           default.public_send(:"#{method}=", val.split.map { |v| v.to_sym })
-        end
-
-        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
-          val = data["global"][key]
-          next unless val
-
-          default.public_send(method).replace(val)
         end
 
         import_timeout(data, default)
@@ -235,6 +238,11 @@ module Bootloader
           res[key] = val.enabled? ? "true" : "false" if val.defined?
         end
 
+        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
+          val = default.public_send(method)
+          res[key] = val.serialize unless val.empty?
+        end
+
         DEFAULT_STRING_MAPPING.each do |key, method|
           val = default.public_send(method)
           res[key] = val.to_s if val
@@ -243,11 +251,6 @@ module Bootloader
         DEFAULT_ARRAY_MAPPING.each do |key, method|
           val = default.public_send(method)
           res[key] = val.join(" ") if val
-        end
-
-        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
-          val = default.public_send(method)
-          res[key] = val.serialize unless val.empty?
         end
 
         export_timeout(res, default)

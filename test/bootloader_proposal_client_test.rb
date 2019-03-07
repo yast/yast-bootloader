@@ -84,16 +84,6 @@ describe Bootloader::ProposalClient do
 
         subject.ask_user({})
       end
-
-      it "shows unsupported popup when upgrading from grub2 (bsc#1070233)" do
-        allow(Yast::Mode).to receive(:update).and_return(true)
-
-        expect(subject).to receive("old_bootloader").and_return("grub2")
-
-        expect(Yast::Bootloader).to_not receive(:Export)
-        expect(Yast2::Popup).to receive(:show)
-        subject.ask_user({})
-      end
     end
   end
 
@@ -178,17 +168,6 @@ describe Bootloader::ProposalClient do
       expect(subject).to receive("old_bootloader").and_return("none").twice
 
       subject.make_proposal({})
-    end
-
-    it "propose no change if old bootloader is grub2" do
-      allow(Yast::Mode).to receive(:update).and_return(true)
-
-      expect(subject).to receive("old_bootloader").and_return("grub2")
-
-      expect(Yast::Bootloader).to_not receive(:Propose)
-      expect(Yast::Bootloader).to_not receive(:Read)
-
-      expect(subject.make_proposal({})).to eq("raw_proposal" => ["do not change"])
     end
 
     it "always resets if storage changed" do

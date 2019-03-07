@@ -121,7 +121,8 @@ describe Bootloader::AutoyastConverter do
         "os_prober"    => "true",
         "hiddenmenu"   => "true",
         "timeout"      => 10,
-        "trusted_grub" => "true"
+        "trusted_grub" => "true",
+        "smt"          => "true"
       }
 
       expect(subject.export(bootloader)["global"]).to eq expected_export
