@@ -117,7 +117,7 @@ describe Bootloader::Grub2Base do
         end
       end
 
-      context "when Product explicitelly disable os prober" do
+      context "when Product explicitly disable os prober" do
         before do
           allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).and_return(true)
         end

@@ -54,6 +54,7 @@ module Yast
       if Arch.i386 || Arch.x86_64 || Arch.aarch64 || Arch.ppc
         ret = kernel_cmdline
         ret << " resume=#{resume}" unless resume.empty?
+        ret << propose_smt if Arch.x86_64
         ret << " #{features}" unless features.empty?
         ret << " quiet"
         return ret
@@ -83,8 +84,28 @@ module Yast
       Arch.i386 || Arch.x86_64 || Arch.s390
     end
 
+    SMT_DEFAULT = true
+    def smt_settings
+      linuxrc_value = Yast::Linuxrc.value_for("disablesmt")
+      product_value = ProductFeatures.GetBooleanFeatureWithFallback("globals", "smt", SMT_DEFAULT)
+      log.info "smt settings: linuxrc #{linuxrc_value.inspect} product #{product_value.inspect}"
+      # linuxrc cmdline
+      return linuxrc_value == "0" if !linuxrc_value.nil?
+
+      # product features
+      product_value
+    end
+
     publish :function => :DefaultKernelParams, :type => "string (string)"
     publish :function => :ResumeAvailable, :type => "boolean ()"
+
+  private
+
+    DISABLE_SMT = " nosmt".freeze
+
+    def propose_smt
+      smt_settings ? "" : DISABLE_SMT
+    end
   end
 
   BootArch = BootArchClass.new

@@ -54,6 +54,7 @@ module Bootloader
       @grub_default = ::CFA::Grub2::Default.new
       @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
+      @smt = nil # nil means not set explicitly, otherwise boolean
     end
 
     # general functions
@@ -71,6 +72,26 @@ module Bootloader
 
       devices.each do |dev|
         Yast::Execute.locally("/usr/sbin/parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
+      end
+    end
+
+    def smt
+      !grub_default.kernel_params.parameter("nosmt")
+    end
+
+    def explicit_smt
+      @smt
+    end
+
+    def smt=(value)
+      log.info "setting smt to #{value}"
+      @smt = value
+
+      if value
+        matcher = CFA::Matcher.new(key: "nosmt")
+        grub_default.kernel_params.remove_parameter(matcher)
+      elsif !grub_default.kernel_params.parameter("nosmt")
+        grub_default.kernel_params.add_parameter("nosmt", true)
       end
     end
 
@@ -192,13 +213,13 @@ module Bootloader
 
     def merge_grub_default(other)
       default = grub_default
-      other = other.grub_default
+      other_default = other.grub_default
 
       log.info "before merge default #{default.inspect}"
-      log.info "before merge other #{other.inspect}"
+      log.info "before merge other #{other_default.inspect}"
 
       KERNEL_FLAVORS_METHODS.each do |method|
-        other_params = other.public_send(method)
+        other_params = other_default.public_send(method)
         default_params = default.public_send(method)
         next if other_params.empty?
 
@@ -211,7 +232,11 @@ module Bootloader
         default_params.replace(new_kernel_params)
       end
 
-      merge_attributes(default, other)
+      merge_attributes(default, other_default)
+
+      # explicitly set smt
+      self.smt = other.explicit_smt unless other.explicit_smt.nil?
+      log.info "smt after merge #{smt}"
 
       log.info "after merge default #{default.inspect}"
     end

@@ -71,6 +71,7 @@ bl_global =
     boot_extended? &
     boot_mbr? &
     stage1_dev? &
+    smt? &
     element vgamode { text }?
   }
 
@@ -85,6 +86,7 @@ boot_root = element boot_root { "true" | "false" }
 boot_boot = element boot_boot { "true" | "false" }
 boot_extended = element boot_extended { "true" | "false" }
 boot_mbr = element boot_mbr { "true" | "false" }
+smt = element smt { "true" | "false" }
 
 sections =
   element sections {

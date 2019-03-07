@@ -112,6 +112,34 @@ module Bootloader
     end
   end
 
+  # Represents decision if smt is enabled
+  class Smt < CWM::CheckBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+    def label
+      _("Disable Simultaneous &Multithreading")
+    end
+
+    def help
+      _(
+        "<p><b>Disable Simultaneous Multithreading</b><br>\n" \
+          "To disable sharing physical cores by more virtual ones."
+      )
+    end
+
+    def init
+      self.value = !grub2.smt
+    end
+
+    def store
+      grub2.smt = !value
+    end
+  end
+
   # Represents decision if generic MBR have to be installed on disk
   class GenericMBRWidget < CWM::CheckBox
     include Grub2Widget
@@ -212,7 +240,7 @@ module Bootloader
     end
 
     def init
-      self.value = grub_default.kernel_params.serialize
+      self.value = grub_default.kernel_params.serialize.gsub(/nosmt/, "")
     end
 
     def store
@@ -844,9 +872,11 @@ module Bootloader
 
     def contents
       console_widget = Yast::Arch.s390 ? CWM::Empty.new("console") : ConsoleWidget.new
+      smt_widget = Yast::Arch.x86_64 ? MarginBox(1, 0.5, Smt.new) : CWM::Empty.new("smt")
       VBox(
         VSpacing(1),
         MarginBox(1, 0.5, KernelAppendWidget.new),
+        Left(smt_widget),
         MarginBox(1, 0.5, console_widget),
         VStretch()
       )
