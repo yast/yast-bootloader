@@ -52,7 +52,6 @@ bl_global =
     element failsafe_disabled { "true" | "false" }? &
     element hiddenmenu      { "true" | "false" }? &
     element os_prober       { "true" | "false" }? &
-    element smt             { "true" | "false" }? &
     element suse_btrfs      { "true" | "false" }? &
     element xen_append        { text }? &
     element xen_kernel_append { text }? &
