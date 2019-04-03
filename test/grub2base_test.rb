@@ -324,7 +324,7 @@ describe Bootloader::Grub2Base do
       end
     end
 
-    context "xen hyperviser kernel parameters proposal" do
+    context "xen hypervisor kernel parameters proposal" do
       it "do nothing if there is no framebuffer" do
         allow(Dir).to receive(:[]).and_return([])
 
@@ -360,20 +360,35 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.distributor).to eq ""
     end
 
-    it "proposes serial console from its usage on kernel command line on non-s390" do
-      allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-      kernel_params = "console=ttyS1,4800n8"
-      allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
-
-      subject.propose
-
-      expect(subject.grub_default.serial_console).to eq "serial --unit=1 --speed=4800 --parity=no --word=8"
-    end
-
     it "proposes to disable trusted boot" do
       subject.propose
 
       expect(subject.trusted_boot).to eq false
+    end
+
+    context "with a serial console on the kernel command line on non-s390" do
+      before do
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        kernel_params = "console=ttyS2,4800n8"
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
+      end
+
+      it "proposes a serial console for grub" do
+        subject.propose
+        expect(subject.grub_default.serial_console).to eq "serial --unit=2 --speed=4800 --parity=no --word=8"
+      end
+
+      it "proposes a serial console for the kernel" do
+        subject.propose
+        expect(subject.grub_default.kernel_params.serialize).to include "console=ttyS2,4800n8"
+      end
+
+      it "proposes a serial console for XEN" do
+        subject.propose
+        # Notice that this is always com1, even if the host uses ttyS2!
+        expect(subject.grub_default.xen_hypervisor_params.serialize).to eq "console=com1 com1=4800"
+        expect(subject.grub_default.xen_kernel_params.serialize).to eq "console=hvc0"
+      end
     end
   end
 
