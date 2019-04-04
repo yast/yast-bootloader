@@ -28,6 +28,7 @@ Yast.import "Stage"
 
 module Bootloader
   # Common base for GRUB2 specialized classes
+  # rubocop:disable Metrics/ClassLength
   class Grub2Base < BootloaderBase
     include Yast::Logger
     include Yast::I18n
@@ -45,6 +46,10 @@ module Bootloader
 
     # @return [Boolean]
     attr_accessor :trusted_boot
+
+    # @!attribute console
+    #   @return [::Bootloader::SerialConsole] serial console or nil if none
+    attr_reader :console
 
     def initialize
       super
@@ -160,9 +165,9 @@ module Bootloader
       self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
     end
 
-    def enable_serial_console(console)
-      console = SerialConsole.load_from_console_args(console)
-      raise ::Bootloader::InvalidSerialConsoleArguments unless console
+    def enable_serial_console(console_arg_string)
+      @console = SerialConsole.load_from_console_args(console_arg_string)
+      raise ::Bootloader::InvalidSerialConsoleArguments unless @console
 
       grub_default.serial_console = console.console_args
 
@@ -172,8 +177,13 @@ module Bootloader
     end
 
     def disable_serial_console
+      @console = nil
       grub_default.kernel_params.remove_parameter(serial_console_matcher)
       grub_default.serial_console = ""
+    end
+
+    def serial_console?
+      !console.nil?
     end
 
   private
@@ -307,13 +317,22 @@ module Bootloader
     end
 
     def propose_serial
-      console = SerialConsole.load_from_kernel_args(grub_default.kernel_params)
-      return unless console
+      @console = SerialConsole.load_from_kernel_args(grub_default.kernel_params)
+      return unless @console
 
       grub_default.serial_console = console.console_args
+      propose_xen_serial
+    end
+
+    def propose_xen_serial
+      return unless serial_console?
+
+      grub_default.xen_kernel_params.replace(console.xen_kernel_args)
+      grub_default.xen_hypervisor_params.replace(console.xen_hypervisor_args)
     end
 
     def propose_xen_hypervisor
+      return if serial_console?
       return if Dir["/dev/fb*"].empty?
 
       matcher = CFA::Matcher.new(key: "vga")
@@ -338,4 +357,5 @@ module Bootloader
       grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

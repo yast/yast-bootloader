@@ -97,12 +97,27 @@ module Bootloader
       "#{serial_console}#{@unit},#{@speed}#{@parity[0]}#{@word}"
     end
 
-    # generates serial command for grub2
+    # generates serial command for grub2 GRUB_SERIAL_COMMAND
     def console_args
       res = "serial --unit=#{@unit} --speed=#{@speed} --parity=#{@parity}"
       res << " --word=#{@word}" unless @word.empty?
 
       res
+    end
+
+    # generates serial console parameters for grub2
+    # GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT
+    def xen_kernel_args
+      # This is always hvc0 (for HyperVisor Console).
+      "console=hvc0"
+    end
+
+    # generates serial console parameters for grub2
+    # GRUB_CMDLINE_XEN_DEFAULT
+    def xen_hypervisor_args
+      # Notice that this is always com1, even if the host uses another serial tty.
+      # See also https://wiki.xenproject.org/wiki/Xen_Serial_Console
+      "console=com1 com1=#{@speed}"
     end
   end
 end

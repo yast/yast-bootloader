@@ -114,4 +114,18 @@ describe ::Bootloader::SerialConsole do
       expect(obj.console_args).to eq "serial --unit=2 --speed=9600 --parity=no"
     end
   end
+
+  describe "#xen_kernel_args" do
+    it "returns the hypervisor console for XEN kernels" do
+      obj = described_class.new(2, 9600, "no", "8")
+      expect(obj.xen_kernel_args).to eq "console=hvc0"
+    end
+  end
+
+  describe "#xen_hypervisor_args" do
+    it "returns the correct console speed parameters" do
+      obj = described_class.new(2, 9600, "no", "8")
+      expect(obj.xen_hypervisor_args).to eq "console=com1 com1=9600"
+    end
+  end
 end
