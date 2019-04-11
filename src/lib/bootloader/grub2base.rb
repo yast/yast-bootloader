@@ -54,7 +54,7 @@ module Bootloader
       @grub_default = ::CFA::Grub2::Default.new
       @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
-      @smt = nil # nil means not set explicitly, otherwise boolean
+      @cpu_speculation = nil # nil means not set explicitly, otherwise boolean
     end
 
     # general functions
@@ -75,23 +75,36 @@ module Bootloader
       end
     end
 
-    def smt
-      !grub_default.kernel_params.parameter("nosmt")
+    CPU_MITIGATIONS_MAPPING = {
+      off:    "off",
+      auto:   "auto",
+      nosmt:  "auto,nosmt",
+      manual: nil
+    }.freeze
+
+    def cpu_mitigations
+      value = grub_default.kernel_params.parameter("mitigations")
+      reverse_mapping = CPU_MITIGATIONS_MAPPING.invert
+      raise "Unknown mitigations value #{value.inspect}" if reverse_mapping.key?(value)
+
+      reverse_mapping[value]
     end
 
-    def explicit_smt
-      @smt
+    def explicit_cpu_mitigations
+      @cpu_mitigations
     end
 
-    def smt=(value)
-      log.info "setting smt to #{value}"
-      @smt = value
+    def cpu_mitigations=(value)
+      log.info "setting mitigations to #{value}"
+      @cpu_mitigations = value
+      matcher = CFA::Matcher.new(key: "mitigations")
 
-      if value
-        matcher = CFA::Matcher.new(key: "nosmt")
+      if value == :manual
         grub_default.kernel_params.remove_parameter(matcher)
-      elsif !grub_default.kernel_params.parameter("nosmt")
-        grub_default.kernel_params.add_parameter("nosmt", true)
+      else
+        text = CPU_MITIGATIONS_MAPPING[value] or raise "Invalid value #{value.inspect}"
+        placer = CFA::ReplacePlacer.new(matcher)
+        grub_default.kernel_params.add_parameter("mitigations", text, placer)
       end
     end
 
@@ -234,9 +247,11 @@ module Bootloader
 
       merge_attributes(default, other_default)
 
-      # explicitly set smt
-      self.smt = other.explicit_smt unless other.explicit_smt.nil?
-      log.info "smt after merge #{smt}"
+      # explicitly set mitigations
+      if !other.explicit_cpu_mitigations.nil?
+        self.cpu_mitigations = other.explicit_cpu_mitigations
+      end
+      log.info "mitigations after merge #{cpu_mitigations}"
 
       log.info "after merge default #{default.inspect}"
     end

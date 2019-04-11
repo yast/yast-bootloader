@@ -37,7 +37,8 @@ module Yast
     # from installation to running kernel on s390 (bsc#1086665)
     S390_WHITELIST = [
       /net\.ifnames=\S*/,
-      /fips=\S*/
+      /fips=\S*/,
+      /mitigations=\S*/
     ].freeze
 
     # Get parameters for the default kernel
@@ -54,8 +55,8 @@ module Yast
       if Arch.i386 || Arch.x86_64 || Arch.aarch64 || Arch.ppc
         ret = kernel_cmdline
         ret << " resume=#{resume}" unless resume.empty?
-        ret << propose_smt if Arch.x86_64
         ret << " #{features}" unless features.empty?
+        ret << propose_cpu_mitigations
         ret << " quiet"
         return ret
       elsif Arch.s390
@@ -70,11 +71,12 @@ module Yast
           parameters << " #{Regexp.last_match(0)}" if kernel_cmdline =~ pattern
         end
 
+        parameters << propose_cpu_mitigations
         parameters << " resume=#{resume}" unless resume.empty?
         return parameters
       else
         log.warn "Default kernel parameters not defined"
-        return kernel_cmdline
+        return kernel_cmdline + propose_cpu_mitigations
       end
     end
 
@@ -84,28 +86,26 @@ module Yast
       Arch.i386 || Arch.x86_64 || Arch.s390
     end
 
-    SMT_DEFAULT = true
-    def smt_settings
-      linuxrc_value = Yast::Linuxrc.value_for("disablesmt")
-      product_value = ProductFeatures.GetBooleanFeatureWithFallback("globals", "smt", SMT_DEFAULT)
-      log.info "smt settings: linuxrc #{linuxrc_value.inspect} product #{product_value.inspect}"
-      # linuxrc cmdline
-      return linuxrc_value == "0" if !linuxrc_value.nil?
+    DEFAULT_CPU_MITIGATIONS = :auto
+    def propose_cpu_mitigations
+      linuxrc_value = Yast::Linuxrc.value_for("mitigations")
+      log.info "linuxrc mitigations #{linuxrc_value.inspect}"
+      return "" if linuxrc_value.nil? # linuxrc already has mitigations
+      product_value = ProductFeatures.GetStringFeatureWithFallback("globals",
+        "cpu_mitigations", DEFAULT_CPU_MITIGATIONS)
+      log.info "cpu mitigations in product: #{product_value.inspect}"
 
-      # product features
-      product_value
+      # lazy load grub2 base which defines cpu mitigation mapping
+      # TODO: own class for cpu mitigations
+      require "bootloader/grub2base"
+      text = ::Bootloader::Grub2Base::CPU_MITIGATIONS_MAPPING[value] or
+        raise "Invalid value #{value.inspect}"
+      # no value for manual mitigations
+      text.nil? ? "" : "mitigations=#{text}"
     end
 
     publish :function => :DefaultKernelParams, :type => "string (string)"
     publish :function => :ResumeAvailable, :type => "boolean ()"
-
-  private
-
-    DISABLE_SMT = " nosmt".freeze
-
-    def propose_smt
-      smt_settings ? "" : DISABLE_SMT
-    end
   end
 
   BootArch = BootArchClass.new

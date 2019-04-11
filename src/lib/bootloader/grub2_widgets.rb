@@ -113,7 +113,7 @@ module Bootloader
   end
 
   # Represents decision if smt is enabled
-  class Smt < CWM::CheckBox
+  class CpuMitigations < CWM::ComboBox
     include Grub2Widget
 
     def initialize
@@ -121,22 +121,38 @@ module Bootloader
     end
 
     def label
-      _("Disable Simultaneous &Multithreading")
+      _("CPU Mitigations")
+    end
+
+    def items
+      [
+        [:nosmt, _("Auto + No SMT")],
+        [:auto, _("Keep SMT")],
+        [:off, _("Off")],
+        [:manual, _("Manually")]
+      ]
     end
 
     def help
+      # TODO: adapt
       _(
-        "<p><b>Disable Simultaneous Multithreading</b><br>\n" \
-          "To disable sharing physical cores by more virtual ones."
+        "<p><b>CPU Speculation</b><br>\n" \
+          "Controls CPU speculative execution. <i>Secure</i> is the most secure option " \
+          "that enable all mitigations for known security issues for speculative execution " \
+          "including complete disable of SMT. <i>Keep SMT</i> enables all mitigations for " \
+          "known security issues for speculative execution, but keep SMT enabled, even if " \
+          "it is vulnerable. <i>Performance</i> disables all mitigations to use speculative " \
+          "execution for the best performance. <i>Manually</i> lets user to specify mitigations " \
+          "himself on kernel command line."
       )
     end
 
     def init
-      self.value = !grub2.smt
+      self.value = grub2.cpu_mitigations
     end
 
     def store
-      grub2.smt = !value
+      grub2.cpu_mitigations = value
     end
   end
 
@@ -872,11 +888,10 @@ module Bootloader
 
     def contents
       console_widget = Yast::Arch.s390 ? CWM::Empty.new("console") : ConsoleWidget.new
-      smt_widget = Yast::Arch.x86_64 ? MarginBox(1, 0.5, Smt.new) : CWM::Empty.new("smt")
       VBox(
         VSpacing(1),
         MarginBox(1, 0.5, KernelAppendWidget.new),
-        Left(smt_widget),
+        MarginBox(1, 0.5, Left(CpuMitigations.new)),
         MarginBox(1, 0.5, console_widget),
         VStretch()
       )
