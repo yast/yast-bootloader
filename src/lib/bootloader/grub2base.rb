@@ -28,6 +28,7 @@ Yast.import "Stage"
 
 module Bootloader
   # Common base for GRUB2 specialized classes
+  # rubocop:disable Metrics/ClassLength
   class Grub2Base < BootloaderBase
     include Yast::Logger
     include Yast::I18n
@@ -54,7 +55,7 @@ module Bootloader
       @grub_default = ::CFA::Grub2::Default.new
       @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
-      @smt = nil # nil means not set explicitly, otherwise boolean
+      @explicit_cpu_speculation = false
     end
 
     # general functions
@@ -75,23 +76,37 @@ module Bootloader
       end
     end
 
-    def smt
-      !grub_default.kernel_params.parameter("nosmt")
+    CPU_MITIGATIONS_MAPPING = {
+      off:    "off",
+      auto:   "auto",
+      nosmt:  "auto,nosmt",
+      manual: nil
+    }.freeze
+
+    def cpu_mitigations
+      value = grub_default.kernel_params.parameter("mitigations")
+      value = nil if value == false
+      reverse_mapping = CPU_MITIGATIONS_MAPPING.invert
+      raise "Unknown mitigations value #{value.inspect}" if !reverse_mapping.key?(value)
+
+      reverse_mapping[value]
     end
 
-    def explicit_smt
-      @smt
+    def explicit_cpu_mitigations
+      @explicit_cpu_mitigations ? cpu_mitigations : nil
     end
 
-    def smt=(value)
-      log.info "setting smt to #{value}"
-      @smt = value
+    def cpu_mitigations=(value)
+      log.info "setting mitigations to #{value}"
+      @explicit_cpu_mitigations = true
+      matcher = CFA::Matcher.new(key: "mitigations")
 
-      if value
-        matcher = CFA::Matcher.new(key: "nosmt")
+      if value == :manual
         grub_default.kernel_params.remove_parameter(matcher)
-      elsif !grub_default.kernel_params.parameter("nosmt")
-        grub_default.kernel_params.add_parameter("nosmt", true)
+      else
+        text = CPU_MITIGATIONS_MAPPING[value] or raise "Invalid value #{value.inspect}"
+        placer = CFA::ReplacePlacer.new(matcher)
+        grub_default.kernel_params.add_parameter("mitigations", text, placer)
       end
     end
 
@@ -219,26 +234,32 @@ module Bootloader
       log.info "before merge other #{other_default.inspect}"
 
       KERNEL_FLAVORS_METHODS.each do |method|
-        other_params = other_default.public_send(method)
-        default_params = default.public_send(method)
-        next if other_params.empty?
-
-        default_serialize = default_params.serialize
-        # handle specially noresume as it should lead to remove all other resume
-        default_serialize.gsub!(/resume=\S+/, "") if other_params.parameter("noresume")
-
-        new_kernel_params = default_serialize + " " + other_params.serialize
-
-        default_params.replace(new_kernel_params)
+        merge_kernel_params(method, other_default)
       end
 
       merge_attributes(default, other_default)
 
-      # explicitly set smt
-      self.smt = other.explicit_smt unless other.explicit_smt.nil?
-      log.info "smt after merge #{smt}"
+      # explicitly set mitigations
+      if !other.explicit_cpu_mitigations.nil?
+        self.cpu_mitigations = other.explicit_cpu_mitigations
+      end
+      log.info "mitigations after merge #{cpu_mitigations}"
 
       log.info "after merge default #{default.inspect}"
+    end
+
+    def merge_kernel_params(method, other_default)
+      other_params = other_default.public_send(method)
+      default_params = grub_default.public_send(method)
+      return if other_params.empty?
+
+      default_serialize = default_params.serialize
+      # handle specially noresume as it should lead to remove all other resume
+      default_serialize.gsub!(/resume=\S+/, "") if other_params.parameter("noresume")
+
+      new_kernel_params = default_serialize + " " + other_params.serialize
+
+      default_params.replace(new_kernel_params)
     end
 
     def merge_attributes(default, other)
@@ -338,4 +359,5 @@ module Bootloader
       grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

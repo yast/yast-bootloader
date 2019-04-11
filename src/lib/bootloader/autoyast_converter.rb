@@ -37,7 +37,8 @@ module Bootloader
         # always nil pmbr as autoyast does not support it yet,
         # so use nil to always use proposed value (bsc#1081967)
         bootloader.pmbr_action = nil
-        bootloader.smt = data["global"]["smt"] == "true" unless data["global"]["smt"].nil?
+        cpu_mitigations = data["global"]["cpu_mitigations"]
+        bootloader.cpu_mitigations = cpu_mitigations unless cpu_mitigations.nil?
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
@@ -57,7 +58,7 @@ module Bootloader
         global = res["global"]
         export_grub2(global, config) if config.name == "grub2"
         export_default(global, config.grub_default)
-        res["global"]["smt"] = config.smt ? "true" : "false"
+        res["global"]["cpu_mitigations"] = config.cpu_mitigations.to_s
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
         # your day in L3 )
@@ -79,7 +80,7 @@ module Bootloader
       end
 
       def import_default(data, default)
-        # import first kernel params as smt can later modify it
+        # import first kernel params as cpu_mitigations can later modify it
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
           val = data["global"][key]
           next unless val
