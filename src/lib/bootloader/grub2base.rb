@@ -59,7 +59,7 @@ module Bootloader
       @grub_default = ::CFA::Grub2::Default.new
       @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
-      @cpu_speculation = nil # nil means not set explicitly, otherwise boolean
+      @explicit_cpu_speculation = false
     end
 
     # general functions
@@ -89,19 +89,20 @@ module Bootloader
 
     def cpu_mitigations
       value = grub_default.kernel_params.parameter("mitigations")
+      value = nil if value == false
       reverse_mapping = CPU_MITIGATIONS_MAPPING.invert
-      raise "Unknown mitigations value #{value.inspect}" if reverse_mapping.key?(value)
+      raise "Unknown mitigations value #{value.inspect}" if !reverse_mapping.key?(value)
 
       reverse_mapping[value]
     end
 
     def explicit_cpu_mitigations
-      @cpu_mitigations
+      @explicit_cpu_mitigations ? cpu_mitigations : nil
     end
 
     def cpu_mitigations=(value)
       log.info "setting mitigations to #{value}"
-      @cpu_mitigations = value
+      @explicit_cpu_mitigations = true
       matcher = CFA::Matcher.new(key: "mitigations")
 
       if value == :manual
@@ -242,17 +243,7 @@ module Bootloader
       log.info "before merge other #{other_default.inspect}"
 
       KERNEL_FLAVORS_METHODS.each do |method|
-        other_params = other_default.public_send(method)
-        default_params = default.public_send(method)
-        next if other_params.empty?
-
-        default_serialize = default_params.serialize
-        # handle specially noresume as it should lead to remove all other resume
-        default_serialize.gsub!(/resume=\S+/, "") if other_params.parameter("noresume")
-
-        new_kernel_params = default_serialize + " " + other_params.serialize
-
-        default_params.replace(new_kernel_params)
+        merge_kernel_params(method, other_default)
       end
 
       merge_attributes(default, other_default)
@@ -264,6 +255,20 @@ module Bootloader
       log.info "mitigations after merge #{cpu_mitigations}"
 
       log.info "after merge default #{default.inspect}"
+    end
+
+    def merge_kernel_params(method, other_default)
+      other_params = other_default.public_send(method)
+      default_params = grub_default.public_send(method)
+      return if other_params.empty?
+
+      default_serialize = default_params.serialize
+      # handle specially noresume as it should lead to remove all other resume
+      default_serialize.gsub!(/resume=\S+/, "") if other_params.parameter("noresume")
+
+      new_kernel_params = default_serialize + " " + other_params.serialize
+
+      default_params.replace(new_kernel_params)
     end
 
     def merge_attributes(default, other)
