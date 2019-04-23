@@ -19,6 +19,8 @@
 #
 require "yast"
 
+require "bootloader/cpu_mitigations"
+
 module Yast
   class BootArchClass < Module
     include Yast::Logger
@@ -86,22 +88,20 @@ module Yast
       Arch.i386 || Arch.x86_64 || Arch.s390
     end
 
-    DEFAULT_CPU_MITIGATIONS = :auto
     def propose_cpu_mitigations
       linuxrc_value = Yast::Linuxrc.value_for("mitigations")
       log.info "linuxrc mitigations #{linuxrc_value.inspect}"
       return "" unless linuxrc_value.nil? # linuxrc already has mitigations
       product_value = ProductFeatures.GetStringFeature("globals", "cpu_mitigations")
       log.info "cpu mitigations in product: #{product_value.inspect}"
-      product_value = DEFAULT_CPU_MITIGATIONS if product_value.empty?
 
-      # lazy load grub2 base which defines cpu mitigation mapping
-      # TODO: own class for cpu mitigations
-      require "bootloader/grub2base"
-      text = ::Bootloader::Grub2Base::CPU_MITIGATIONS_MAPPING[product_value] or
-        raise "Invalid value #{product_value.inspect}"
+      if product_value.empty?
+        mitigations = ::Bootloader::CpuMitigations::DEFAULT
+      else
+        mitigations = ::Bootloader::CpuMitigations.from_string(product_value)
+      end
       # no value for manual mitigations
-      text.nil? ? "" : " mitigations=#{text}"
+      mitigations.kernel_value ? " mitigations=#{mitigations.kernel_value}" : ""
     end
 
     publish :function => :DefaultKernelParams, :type => "string (string)"

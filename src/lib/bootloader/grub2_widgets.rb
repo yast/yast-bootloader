@@ -3,6 +3,7 @@ require "yast"
 require "bootloader/generic_widgets"
 require "bootloader/device_map_dialog"
 require "bootloader/serial_console"
+require "bootloader/cpu_mitigations"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -113,7 +114,7 @@ module Bootloader
   end
 
   # Represents decision if smt is enabled
-  class CpuMitigations < CWM::ComboBox
+  class CpuMitigationsWidget < CWM::ComboBox
     include Grub2Widget
 
     def initialize
@@ -125,34 +126,42 @@ module Bootloader
     end
 
     def items
-      [
-        [:nosmt, _("Auto + No SMT")],
-        [:auto, _("Auto")],
-        [:off, _("Off")],
-        [:manual, _("Manually")]
-      ]
+      ::Bootloader::CpuMitigations::ALL.map do |m|
+        [m.value, m.to_human_string]
+      end
     end
 
     def help
       # TODO: adapt
       _(
-        "<p><b>CPU Speculation</b><br>\n" \
-          "Controls CPU speculative execution. <i>Secure</i> is the most secure option " \
-          "that enable all mitigations for known security issues for speculative execution " \
-          "including complete disable of SMT. <i>Keep SMT</i> enables all mitigations for " \
-          "known security issues for speculative execution, but keep SMT enabled, even if " \
-          "it is vulnerable. <i>Performance</i> disables all mitigations to use speculative " \
-          "execution for the best performance. <i>Manually</i> lets user to specify mitigations " \
-          "himself on kernel command line."
+        "<p><b>CPU Mitigations</b><br>\n" \
+          "The option selects which default settings should be used for CPU " \
+          "side channels mitigations. A highlevel description is on our Technical Information " \
+          "Document TID xxxxx. Following options are available:<ul>" \
+          "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. " \
+          "This setting can impact performance to some degree, depending on CPU model and " \
+          "workload. It provides all security mitigations, but it does not protect against " \
+          "cross-CPU thread attacks.</li>" \
+          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \"Auto\", " \
+          "and also disables Simultaneous Multithreading to avoid side channel attacks across " \
+          "multiple CPU threads. This setting can further impact performance, depending on your " \
+          "workload. This setting provides the full set of available security mitigations.</li>" \
+          "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance " \
+          "impact, but side channel attacks against your CPU are possible, depending on CPU " \
+          "model.</li>" \
+          "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves " \
+          "this to be the kernel default. The administrator can add other mitigations options " \
+          "in the <i>kernel command line</i> widget." \
+          "All CPU mitigation specific options can be set manually.</li></ul></p>"
       )
     end
 
     def init
-      self.value = grub2.cpu_mitigations
+      self.value = grub2.cpu_mitigations.value
     end
 
     def store
-      grub2.cpu_mitigations = value
+      grub2.cpu_mitigations = ::Bootloader::CpuMitigations.new(value)
     end
   end
 
@@ -891,7 +900,7 @@ module Bootloader
       VBox(
         VSpacing(1),
         MarginBox(1, 0.5, KernelAppendWidget.new),
-        MarginBox(1, 0.5, Left(CpuMitigations.new)),
+        MarginBox(1, 0.5, Left(CpuMitigationsWidget.new)),
         MarginBox(1, 0.5, console_widget),
         VStretch()
       )

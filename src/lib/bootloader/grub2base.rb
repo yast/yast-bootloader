@@ -76,20 +76,8 @@ module Bootloader
       end
     end
 
-    CPU_MITIGATIONS_MAPPING = {
-      off:    "off",
-      auto:   "auto",
-      nosmt:  "auto,nosmt",
-      manual: nil
-    }.freeze
-
     def cpu_mitigations
-      value = grub_default.kernel_params.parameter("mitigations")
-      value = nil if value == false
-      reverse_mapping = CPU_MITIGATIONS_MAPPING.invert
-      raise "Unknown mitigations value #{value.inspect}" if !reverse_mapping.key?(value)
-
-      reverse_mapping[value]
+      CpuMitigations.from_kernel_params(grub_default.kernel_params)
     end
 
     def explicit_cpu_mitigations
@@ -99,15 +87,7 @@ module Bootloader
     def cpu_mitigations=(value)
       log.info "setting mitigations to #{value}"
       @explicit_cpu_mitigations = true
-      matcher = CFA::Matcher.new(key: "mitigations")
-
-      if value == :manual
-        grub_default.kernel_params.remove_parameter(matcher)
-      else
-        text = CPU_MITIGATIONS_MAPPING[value] or raise "Invalid value #{value.inspect}"
-        placer = CFA::ReplacePlacer.new(matcher)
-        grub_default.kernel_params.add_parameter("mitigations", text, placer)
-      end
+      value.modify_kernel_params(grub_default.kernel_params)
     end
 
     def read
@@ -239,9 +219,9 @@ module Bootloader
 
       merge_attributes(default, other_default)
 
-      # explicitly set mitigations
-      if !other.explicit_cpu_mitigations.nil?
-        self.cpu_mitigations = other.explicit_cpu_mitigations
+      # explicitly set mitigations means overwrite of our
+      if other.explicit_cpu_mitigations
+        self.cpu_mitigations = other.cpu_mitigations
       end
       log.info "mitigations after merge #{cpu_mitigations}"
 

@@ -1,6 +1,7 @@
 require "yast"
 
 require "bootloader/bootloader_factory"
+require "bootloader/cpu_mitigations"
 
 Yast.import "BootStorage"
 Yast.import "Arch"
@@ -38,7 +39,7 @@ module Bootloader
         # so use nil to always use proposed value (bsc#1081967)
         bootloader.pmbr_action = nil
         cpu_mitigations = data["global"]["cpu_mitigations"]
-        bootloader.cpu_mitigations = cpu_mitigations unless cpu_mitigations.nil?
+        bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations) unless cpu_mitigations.nil?
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
@@ -58,7 +59,7 @@ module Bootloader
         global = res["global"]
         export_grub2(global, config) if config.name == "grub2"
         export_default(global, config.grub_default)
-        res["global"]["cpu_mitigations"] = config.cpu_mitigations.to_s
+        res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
         # your day in L3 )
