@@ -8,9 +8,9 @@ module Bootloader
     include Yast::I18n
     extend Yast::I18n
     KERNEL_MAPPING = {
-      off:    "off",
-      auto:   "auto",
       nosmt:  "auto,nosmt",
+      auto:   "auto",
+      off:    "off",
       manual: nil
     }.freeze
 
