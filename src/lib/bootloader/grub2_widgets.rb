@@ -911,10 +911,6 @@ module Bootloader
   class BootCodeTab < CWM::Tab
     include Grub2Widget
 
-    def initialize
-      self.initial = true
-    end
-
     def label
       textdomain "bootloader"
 
