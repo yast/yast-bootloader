@@ -63,9 +63,8 @@ module Bootloader
         kernel_params.remove_parameter(matcher)
       else
         placer = CFA::ReplacePlacer.new(matcher)
-        kernel_params.add_parameter("mitigations", text, placer)
+        kernel_params.add_parameter("mitigations", kernel_value, placer)
       end
-
     end
   end
 end
