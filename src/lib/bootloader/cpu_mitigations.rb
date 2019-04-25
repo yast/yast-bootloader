@@ -4,6 +4,7 @@ require "cfa/matcher"
 require "cfa/placer"
 
 module Bootloader
+  # Specialized class to handle cpu mittigation settings.
   class CpuMitigations
     include Yast::I18n
     extend Yast::I18n
@@ -15,12 +16,11 @@ module Bootloader
     }.freeze
 
     HUMAN_MAPPING = {
-        nosmt: N_("Auto + No SMT"),
-        auto: N_("Auto"),
-        off: N_("Off"),
-        manual: N_("Manually")
-    }
-
+      nosmt:  N_("Auto + No SMT"),
+      auto:   N_("Auto"),
+      off:    N_("Off"),
+      manual: N_("Manually")
+    }.freeze
 
     attr_reader :value
 

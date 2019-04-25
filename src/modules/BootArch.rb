@@ -95,10 +95,10 @@ module Yast
       product_value = ProductFeatures.GetStringFeature("globals", "cpu_mitigations")
       log.info "cpu mitigations in product: #{product_value.inspect}"
 
-      if product_value.empty?
-        mitigations = ::Bootloader::CpuMitigations::DEFAULT
+      mitigations = if product_value.empty?
+        ::Bootloader::CpuMitigations::DEFAULT
       else
-        mitigations = ::Bootloader::CpuMitigations.from_string(product_value)
+        ::Bootloader::CpuMitigations.from_string(product_value)
       end
       # no value for manual mitigations
       mitigations.kernel_value ? " mitigations=#{mitigations.kernel_value}" : ""

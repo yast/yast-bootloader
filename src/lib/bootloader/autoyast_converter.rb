@@ -39,7 +39,7 @@ module Bootloader
         # so use nil to always use proposed value (bsc#1081967)
         bootloader.pmbr_action = nil
         cpu_mitigations = data["global"]["cpu_mitigations"]
-        bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations) unless cpu_mitigations.nil?
+        bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations) if cpu_mitigations
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]

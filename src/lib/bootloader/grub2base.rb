@@ -28,7 +28,6 @@ Yast.import "Stage"
 
 module Bootloader
   # Common base for GRUB2 specialized classes
-  # rubocop:disable Metrics/ClassLength
   class Grub2Base < BootloaderBase
     include Yast::Logger
     include Yast::I18n
