@@ -6,6 +6,7 @@ require "cfa/placer"
 module Bootloader
   # Specialized class to handle cpu mittigation settings.
   class CpuMitigations
+    include Yast::Logger
     include Yast::I18n
     extend Yast::I18n
     KERNEL_MAPPING = {
@@ -35,7 +36,9 @@ module Bootloader
     DEFAULT = CpuMitigations.new(:auto)
 
     def self.from_kernel_params(kernel_params)
+      log.info "kernel params #{kernel_params.inspect}"
       param = kernel_params.parameter("mitigations")
+      log.info "mitigation param #{param.inspect}"
       param = nil if param == false
       reverse_mapping = KERNEL_MAPPING.invert
       raise "Unknown mitigations value #{param.inspect}" if !reverse_mapping.key?(param)
@@ -60,11 +63,11 @@ module Bootloader
     def modify_kernel_params(kernel_params)
       matcher = CFA::Matcher.new(key: "mitigations")
 
-      if value == :manual
-        kernel_params.remove_parameter(matcher)
-      else
-        placer = CFA::ReplacePlacer.new(matcher)
-        kernel_params.add_parameter("mitigations", kernel_value, placer)
+      kernel_params.remove_parameter(matcher)
+      if value != :manual
+        # TODO: fix cfa_grub2 with replace placer
+        kernel_params.add_parameter("mitigations", kernel_value)
+        log.info "replacing old config with #{kernel_value}: #{kernel_params.inspect}"
       end
     end
   end

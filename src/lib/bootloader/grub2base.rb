@@ -220,6 +220,7 @@ module Bootloader
 
       # explicitly set mitigations means overwrite of our
       if other.explicit_cpu_mitigations
+        log.info "merging cpu_mitigations"
         self.cpu_mitigations = other.cpu_mitigations
       end
       log.info "mitigations after merge #{cpu_mitigations}"
@@ -235,6 +236,8 @@ module Bootloader
       default_serialize = default_params.serialize
       # handle specially noresume as it should lead to remove all other resume
       default_serialize.gsub!(/resume=\S+/, "") if other_params.parameter("noresume")
+      # prevent double cpu_mitigations params
+      default_serialize.gsub!(/mitigations=\S+/, "") if other_params.parameter("mitigations")
 
       new_kernel_params = default_serialize + " " + other_params.serialize
 

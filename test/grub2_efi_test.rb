@@ -5,7 +5,7 @@ require "bootloader/grub2efi"
 describe Bootloader::Grub2EFI do
   subject do
     sub = described_class.new
-    allow(sub).to receive(:cpu_mitigations).and_return(:manual)
+    allow(sub).to receive(:cpu_mitigations).and_return(::Bootloader::CpuMitigations.new(:manual))
     sub
   end
 
