@@ -265,7 +265,7 @@ module Bootloader
     end
 
     def init
-      self.value = grub_default.kernel_params.serialize.gsub(/nosmt/, "")
+      self.value = grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
     end
 
     def store
