@@ -30,6 +30,7 @@ module Bootloader
       @value = value
     end
 
+    # Note: order of ALL is used also in UI as order of combobox.
     ALL = KERNEL_MAPPING.keys.map { |k| CpuMitigations.new(k) }
     DEFAULT = CpuMitigations.new(:auto)
 

@@ -137,7 +137,7 @@ module Bootloader
         "<p><b>CPU Mitigations</b><br>\n" \
           "The option selects which default settings should be used for CPU " \
           "side channels mitigations. A highlevel description is on our Technical Information " \
-          "Document TID xxxxx. Following options are available:<ul>" \
+          "Document TID 7023836. Following options are available:<ul>" \
           "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. " \
           "This setting can impact performance to some degree, depending on CPU model and " \
           "workload. It provides all security mitigations, but it does not protect against " \
