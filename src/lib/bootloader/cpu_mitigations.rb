@@ -44,7 +44,7 @@ module Bootloader
     end
 
     def self.from_string(string)
-      raise "Unknown mitigations value #{string.inspect}" if KERNEL_MAPPING.key?(string.to_sym)
+      raise "Unknown mitigations value #{string.inspect}" unless KERNEL_MAPPING.key?(string.to_sym)
 
       new(string.to_sym)
     end
