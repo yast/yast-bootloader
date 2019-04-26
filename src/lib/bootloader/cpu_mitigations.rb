@@ -4,7 +4,7 @@ require "cfa/matcher"
 require "cfa/placer"
 
 module Bootloader
-  # Specialized class to handle cpu mittigation settings.
+  # Specialized class to handle CPU mitigation settings.
   class CpuMitigations
     include Yast::Logger
     include Yast::I18n

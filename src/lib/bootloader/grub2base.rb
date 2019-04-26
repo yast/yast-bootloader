@@ -54,7 +54,7 @@ module Bootloader
       @grub_default = ::CFA::Grub2::Default.new
       @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
-      @explicit_cpu_speculation = false
+      @explicit_cpu_mitigations = false
     end
 
     # general functions
