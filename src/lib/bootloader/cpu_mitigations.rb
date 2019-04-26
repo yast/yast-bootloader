@@ -5,6 +5,7 @@ require "cfa/placer"
 
 module Bootloader
   # Specialized class to handle CPU mitigation settings.
+  # @see https://www.suse.com/support/kb/doc/?id=7023836
   class CpuMitigations
     include Yast::Logger
     include Yast::I18n

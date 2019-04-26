@@ -132,7 +132,6 @@ module Bootloader
     end
 
     def help
-      # TODO: adapt
       _(
         "<p><b>CPU Mitigations</b><br>\n" \
           "The option selects which default settings should be used for CPU " \
