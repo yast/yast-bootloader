@@ -86,7 +86,7 @@ boot_root = element boot_root { "true" | "false" }
 boot_boot = element boot_boot { "true" | "false" }
 boot_extended = element boot_extended { "true" | "false" }
 boot_mbr = element boot_mbr { "true" | "false" }
-cpu_mitigations = element cpu_mitigations { "nosmt", "auto", "off", "manual" }
+cpu_mitigations = element cpu_mitigations { "nosmt" | "auto" | "off" | "manual" }
 
 sections =
   element sections {
