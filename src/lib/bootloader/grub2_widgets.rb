@@ -3,6 +3,7 @@ require "yast"
 require "bootloader/generic_widgets"
 require "bootloader/device_map_dialog"
 require "bootloader/serial_console"
+require "bootloader/cpu_mitigations"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -113,7 +114,7 @@ module Bootloader
   end
 
   # Represents decision if smt is enabled
-  class Smt < CWM::CheckBox
+  class CpuMitigationsWidget < CWM::ComboBox
     include Grub2Widget
 
     def initialize
@@ -121,22 +122,46 @@ module Bootloader
     end
 
     def label
-      _("Disable Simultaneous &Multithreading")
+      _("CPU Mitigations")
+    end
+
+    def items
+      ::Bootloader::CpuMitigations::ALL.map do |m|
+        [m.value, m.to_human_string]
+      end
     end
 
     def help
       _(
-        "<p><b>Disable Simultaneous Multithreading</b><br>\n" \
-          "To disable sharing physical cores by more virtual ones."
+        "<p><b>CPU Mitigations</b><br>\n" \
+          "The option selects which default settings should be used for CPU \n" \
+          "side channels mitigations. A highlevel description is on our Technical Information \n" \
+          "Document TID 7023836. Following options are available:<ul>\n" \
+          "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. \n" \
+          "This setting can impact performance to some degree, depending on CPU model and \n" \
+          "workload. It provides all security mitigations, but it does not protect against \n" \
+          "cross-CPU thread attacks.</li>\n" \
+          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \n" \
+          "\"Auto\", and also disables Simultaneous Multithreading to avoid \n" \
+          "side channel attacks across multiple CPU threads. This setting can \n" \
+          "further impact performance, depending on your \n" \
+          "workload. This setting provides the full set of available security mitigations.</li>\n" \
+          "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
+          "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
+          "model.</li>\n" \
+          "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves \n" \
+          "this to be the kernel default. The administrator can add other mitigations options \n" \
+          "in the <i>kernel command line</i> widget.\n" \
+          "All CPU mitigation specific options can be set manually.</li></ul></p>"
       )
     end
 
     def init
-      self.value = !grub2.smt
+      self.value = grub2.cpu_mitigations.value
     end
 
     def store
-      grub2.smt = !value
+      grub2.cpu_mitigations = ::Bootloader::CpuMitigations.new(value)
     end
   end
 
@@ -240,7 +265,7 @@ module Bootloader
     end
 
     def init
-      self.value = grub_default.kernel_params.serialize.gsub(/nosmt/, "")
+      self.value = grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
     end
 
     def store
@@ -872,11 +897,10 @@ module Bootloader
 
     def contents
       console_widget = Yast::Arch.s390 ? CWM::Empty.new("console") : ConsoleWidget.new
-      smt_widget = Yast::Arch.x86_64 ? MarginBox(1, 0.5, Smt.new) : CWM::Empty.new("smt")
       VBox(
         VSpacing(1),
         MarginBox(1, 0.5, KernelAppendWidget.new),
-        Left(smt_widget),
+        MarginBox(1, 0.5, Left(CpuMitigationsWidget.new)),
         MarginBox(1, 0.5, console_widget),
         VStretch()
       )
@@ -886,10 +910,6 @@ module Bootloader
   # Represent tab with options related to stage1 location and bootloader type
   class BootCodeTab < CWM::Tab
     include Grub2Widget
-
-    def initialize
-      self.initial = true
-    end
 
     def label
       textdomain "bootloader"

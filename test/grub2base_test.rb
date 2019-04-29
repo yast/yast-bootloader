@@ -3,6 +3,11 @@ require_relative "test_helper"
 require "bootloader/grub2base"
 
 describe Bootloader::Grub2Base do
+  before do
+    allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+      .and_return("")
+  end
+
   describe "#read" do
     before do
       allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault", loaded?: false, load: nil, save: nil))
