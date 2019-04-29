@@ -141,9 +141,10 @@ module Bootloader
           "This setting can impact performance to some degree, depending on CPU model and \n" \
           "workload. It provides all security mitigations, but it does not protect against \n" \
           "cross-CPU thread attacks.</li>\n" \
-          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \"Auto\", \n" \
-          "and also disables Simultaneous Multithreading to avoid side channel attacks across \n" \
-          "multiple CPU threads. This setting can further impact performance, depending on your \n" \
+          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \n" \
+          "\"Auto\", and also disables Simultaneous Multithreading to avoid \n" \
+          "side channel attacks across multiple CPU threads. This setting can \n" \
+          "further impact performance, depending on your \n" \
           "workload. This setting provides the full set of available security mitigations.</li>\n" \
           "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
           "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
