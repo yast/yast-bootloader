@@ -134,23 +134,23 @@ module Bootloader
     def help
       _(
         "<p><b>CPU Mitigations</b><br>\n" \
-          "The option selects which default settings should be used for CPU " \
-          "side channels mitigations. A highlevel description is on our Technical Information " \
-          "Document TID 7023836. Following options are available:<ul>" \
-          "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. " \
-          "This setting can impact performance to some degree, depending on CPU model and " \
-          "workload. It provides all security mitigations, but it does not protect against " \
-          "cross-CPU thread attacks.</li>" \
-          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \"Auto\", " \
-          "and also disables Simultaneous Multithreading to avoid side channel attacks across " \
-          "multiple CPU threads. This setting can further impact performance, depending on your " \
-          "workload. This setting provides the full set of available security mitigations.</li>" \
-          "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance " \
-          "impact, but side channel attacks against your CPU are possible, depending on CPU " \
-          "model.</li>" \
-          "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves " \
-          "this to be the kernel default. The administrator can add other mitigations options " \
-          "in the <i>kernel command line</i> widget." \
+          "The option selects which default settings should be used for CPU \n" \
+          "side channels mitigations. A highlevel description is on our Technical Information \n" \
+          "Document TID 7023836. Following options are available:<ul>\n" \
+          "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. \n" \
+          "This setting can impact performance to some degree, depending on CPU model and \n" \
+          "workload. It provides all security mitigations, but it does not protect against \n" \
+          "cross-CPU thread attacks.</li>\n" \
+          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \"Auto\", \n" \
+          "and also disables Simultaneous Multithreading to avoid side channel attacks across \n" \
+          "multiple CPU threads. This setting can further impact performance, depending on your \n" \
+          "workload. This setting provides the full set of available security mitigations.</li>\n" \
+          "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
+          "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
+          "model.</li>\n" \
+          "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves \n" \
+          "this to be the kernel default. The administrator can add other mitigations options \n" \
+          "in the <i>kernel command line</i> widget.\n" \
           "All CPU mitigation specific options can be set manually.</li></ul></p>"
       )
     end
