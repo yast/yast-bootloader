@@ -5,6 +5,11 @@ Yast.import "BootArch"
 describe Yast::BootArch do
   subject { Yast::BootArch }
 
+  before do
+    allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+      .and_return("")
+  end
+
   def stub_arch(arch)
     Yast.import "Arch"
 
@@ -50,7 +55,8 @@ describe Yast::BootArch do
       end
 
       it "adds additional parameters from Product file" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS0")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("globals", "additional_kernel_parameters").and_return("console=ttyS0")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
@@ -74,7 +80,8 @@ describe Yast::BootArch do
       end
 
       it "adds additional parameters from Product file" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS0")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("globals", "additional_kernel_parameters").and_return("console=ttyS0")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
@@ -122,9 +129,12 @@ describe Yast::BootArch do
       it "returns parameters from current command line" do
         allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
         # just to test that it do not add product features
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS1")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("globals", "additional_kernel_parameters").and_return("console=ttyS1")
 
-        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 resume=/dev/sda2 console=ttyS1 quiet"
+        expect(subject.DefaultKernelParams("/dev/sda2")).to eq(
+          "console=ttyS0 resume=/dev/sda2 console=ttyS1 mitigations=auto quiet"
+        )
       end
 
       it "adds \"quiet\" parameter" do

@@ -17,6 +17,11 @@ module Bootloader
     include Yast::I18n
     include Yast::UIShortcuts
 
+    # param initial_tab [:boot_code|:kernel|:bootloader] initial tab when dialog open
+    def initialize(initial_tab: :boot_code)
+      @initial_tab = initial_tab
+    end
+
     def run
       guarded_run
     rescue ::Bootloader::BrokenConfiguration, ::Bootloader::UnsupportedOption => e
@@ -63,13 +68,6 @@ module Bootloader
       end
       # F#300779: end
 
-      if BootloaderFactory.current.is_a?(NoneBootloader)
-        contents = VBox(LoaderTypeWidget.new)
-      else
-        tabs = CWM::Tabs.new(BootCodeTab.new, KernelTab.new, BootloaderTab.new)
-        contents = VBox(tabs)
-      end
-
       Yast::CWM.show(
         contents,
         caption:        _("Boot Loader Settings"),
@@ -78,6 +76,23 @@ module Bootloader
         next_button:    Yast::Label.OKButton,
         skip_store_for: [:redraw]
       )
+    end
+
+    def contents
+      return VBox(LoaderTypeWidget.new) if BootloaderFactory.current.is_a?(NoneBootloader)
+
+      boot_code_tab = BootCodeTab.new
+      kernel_tab = KernelTab.new
+      bootloader_tab = BootloaderTab.new
+      case @initial_tab
+      when :boot_code then boot_code_tab.initial = true
+      when :kernel then kernel_tab.initial = true
+      when :bootloader then bootloader_tab.initial = true
+      else
+        raise "unknown initial tab #{@initial_tab.inspect}"
+      end
+
+      VBox(CWM::Tabs.new(boot_code_tab, kernel_tab, bootloader_tab))
     end
   end
 end
