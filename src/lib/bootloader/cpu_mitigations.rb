@@ -42,7 +42,11 @@ module Bootloader
       log.info "mitigation param #{param.inspect}"
       param = nil if param == false
       reverse_mapping = KERNEL_MAPPING.invert
-      raise "Unknown mitigations value #{param.inspect}" if !reverse_mapping.key?(param)
+
+      if !reverse_mapping.key?(param)
+        raise "Unknown mitigations value #{param.inspect} in the kernel command line, " \
+          "supported values are: #{KERNEL_MAPPING.values.compact.map(&:inspect).join(", ")}."
+      end
 
       new(reverse_mapping[param])
     end
