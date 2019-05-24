@@ -47,13 +47,14 @@ describe Bootloader::Grub2Base do
 
   describe "write" do
     before do
-      allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault", loaded?: false, load: nil, save: nil))
+      allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault",
+        loaded?: false, load: nil, save: nil, kernel_params: double(serialize: "", replace: "")))
       allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(double("GrubCfg", load: nil))
       allow(Bootloader::Sections).to receive(:new).and_return(double("Sections", write: nil))
     end
 
     it "stores grub default config" do
-      grub_default = double(::CFA::Grub2::Default, loaded?: false)
+      grub_default = double(::CFA::Grub2::Default, loaded?: false, kernel_params: double(serialize: "", replace: ""))
       expect(::CFA::Grub2::Default).to receive(:new).and_return(grub_default)
 
       expect(grub_default).to receive(:save)

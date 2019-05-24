@@ -95,6 +95,15 @@ module Bootloader
     end
 
     def write
+      # retranslate swap to ensure even lately created uuid works (bsc#1134895)
+      params = grub_default.kernel_params.serialize
+      new_params = params.gsub(/(\A|\s)resume=(\S+)/) do
+        resume = UdevMapping.to_mountby_device(Regexp.last_match[2])
+        log.info "retranslating #{Regexp.last_match[2]} to #{resume}"
+        "#{Regexp.last_match[1]}resume=#{resume}"
+      end
+      grub_default.kernel_params.replace(new_params)
+
       super
 
       log.info "writing /etc/default/grub #{grub_default.inspect}"
