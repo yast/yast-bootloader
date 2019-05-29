@@ -114,7 +114,8 @@ module Bootloader
       propose_encrypted
 
       if grub_default.kernel_params.empty?
-        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
+        # Set kernel parameters without "resume" parameter. (JIRA#SLE-6926)
+        kernel_line = Yast::BootArch.DefaultKernelParams(resume = "")
         grub_default.kernel_params.replace(kernel_line)
       end
       grub_default.gfxmode ||= "auto"
@@ -286,19 +287,6 @@ module Bootloader
       matcher = CFA::Matcher.new(key: "vga")
       placer = CFA::ReplacePlacer.new(matcher)
       grub_default.xen_hypervisor_params.add_parameter("vga", "gfx-1024x768x16", placer)
-    end
-
-    def propose_resume
-      swap_parts = Yast::BootStorage.available_swap_partitions
-      largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
-
-      resume = Yast::BootArch.ResumeAvailable ? largest_swap_part : ""
-      # try to use label or udev id for device name... FATE #302219
-      if resume != "" && !resume.nil?
-        resume = UdevMapping.to_mountby_device(resume)
-      end
-
-      resume
     end
 
     def propose_encrypted
