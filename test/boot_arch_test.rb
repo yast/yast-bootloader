@@ -24,10 +24,10 @@ describe Yast::BootArch do
       expect(subject.ResumeAvailable).to eq true
     end
 
-    it "returns true if it is on s390 architecture" do
+    it "returns false if it is on s390 architecture" do
       stub_arch("s390_64")
-
-      expect(subject.ResumeAvailable).to eq true
+      # see Jira#SLE-6926
+      expect(subject.ResumeAvailable).to eq false
     end
 
     it "it returns false otherwise" do

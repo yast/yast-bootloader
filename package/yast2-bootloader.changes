@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 29 12:32:09 CEST 2019 - schubi@suse.de
+
+- Proposal for s390: Set kernel parameters without "resume"
+  parameter (JIRA#SLE-6926).
+- 3.4.0
+
+-------------------------------------------------------------------
 Wed Nov 21 10:57:22 UTC 2018 - snwint@suse.com
 
 - fix grub2 efi widget to make pmbr checkbox visible (bsc#1114932)
