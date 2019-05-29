@@ -80,7 +80,7 @@ module Yast
     # Is Suspend to Disk available?
     # @return true if STD is available
     def ResumeAvailable
-      # Do not support for s390. (JIRA#SLE-6926)
+      # Do not support s390. (JIRA#SLE-6926)
       Arch.i386 || Arch.x86_64
     end
 
