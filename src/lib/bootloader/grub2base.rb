@@ -115,7 +115,7 @@ module Bootloader
 
       if grub_default.kernel_params.empty?
         # Set kernel parameters without "resume" parameter. (JIRA#SLE-6926)
-        kernel_line = Yast::BootArch.DefaultKernelParams(resume = "")
+        kernel_line = Yast::BootArch.DefaultKernelParams("")
         grub_default.kernel_params.replace(kernel_line)
       end
       grub_default.gfxmode ||= "auto"
