@@ -300,7 +300,7 @@ describe Bootloader::Grub2Base do
           expect(subject.grub_default.kernel_params.serialize).to include("product_aurora=shot")
         end
 
-        it "adds the biggest available swap partition as resume device" do
+        it "adds no swap partition as resume device" do
           allow(Yast::BootStorage).to receive(:available_swap_partitions)
             .and_return(
               "/dev/dasda2" => 512,
@@ -308,8 +308,8 @@ describe Bootloader::Grub2Base do
             )
 
           subject.propose
-
-          expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/dasdb2")
+          # see Jira#SLE-6926
+          expect(subject.grub_default.kernel_params.serialize).to_not include("resume")
         end
       end
 
