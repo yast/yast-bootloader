@@ -219,7 +219,7 @@ describe Bootloader::Grub2Base do
           expect(subject.grub_default.kernel_params.serialize).to include(kernel_params)
         end
 
-        it "adds no swap partition as resume device" do
+        it "adds the biggest available partition as resume device" do
           allow(Yast::BootStorage).to receive(:available_swap_partitions)
             .and_return(
               "/dev/sda2" => 512,
@@ -227,8 +227,7 @@ describe Bootloader::Grub2Base do
             )
 
           subject.propose
-
-          expect(subject.grub_default.kernel_params.serialize).to_not include("resume")
+          expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/sdb2")
         end
 
         it "adds additional kernel parameters for given product" do
