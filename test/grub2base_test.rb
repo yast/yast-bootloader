@@ -305,7 +305,7 @@ describe Bootloader::Grub2Base do
             )
 
           subject.propose
-
+          # see Jira#SLE-6926
           expect(subject.grub_default.kernel_params.serialize).to_not include("resume")
         end
       end
