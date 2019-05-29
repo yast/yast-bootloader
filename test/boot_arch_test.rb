@@ -26,7 +26,7 @@ describe Yast::BootArch do
 
     it "returns false if it is on s390 architecture" do
       stub_arch("s390_64")
-
+      # see Jira#SLE-6926
       expect(subject.ResumeAvailable).to eq false
     end
 
