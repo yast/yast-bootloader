@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May 31 12:26:38 UTC 2019 - Stasiek Michalski <hellcp@mailbox.org>
+
+- Add metainfo (fate#319035)
+- Revamp spec
+- Replace GenericName with Comment
+- 4.2.2
+
+-------------------------------------------------------------------
 Fri Apr 26 12:27:34 UTC 2019 - jreidinger <jreidinger@suse.com>
 
 - renamed "smt" to "cpu_mitigations", improved naming and help
