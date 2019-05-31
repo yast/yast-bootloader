@@ -12,18 +12,20 @@
 # license that conforms to the Open Source Definition (Version 1.9)
 # published by the Open Source Initiative.
 
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
+# Please submit bugfixes or comments via https://bugs.opensuse.org/
 #
 
 
 Name:           yast2-bootloader
 Version:        4.2.1
 Release:        0
+Summary:        YaST2 - Bootloader Configuration
+License:        GPL-2.0-or-later
+Group:          System/YaST
+Url:            https://github.com/yast/yast-bootloader
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Source0:        %{name}-%{version}.tar.bz2
 
-Url:            http://github.com/yast/yast-bootloader
 BuildRequires:  yast2 >= 3.1.176
 BuildRequires:  yast2-devtools >= 3.1.10
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
@@ -34,6 +36,7 @@ BuildRequires:  augeas-lenses
 BuildRequires:  rubygem(%rb_default_ruby_abi:cfa_grub2) >= 1.0.1
 BuildRequires:  rubygem(%rb_default_ruby_abi:rspec)
 BuildRequires:  rubygem(%rb_default_ruby_abi:yast-rake)
+
 PreReq:         /bin/sed %fillup_prereq
 # Base classes for inst clients
 Requires:       parted
@@ -49,7 +52,6 @@ Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 1.0.1
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also
 # lenses are needed here
 Requires:       augeas-lenses
-
 Requires:       yast2-ruby-bindings >= 1.0.0
 
 # only recommend syslinux, as it is not needed when generic mbr is not used (bsc#1004229)
@@ -57,55 +59,36 @@ Requires:       yast2-ruby-bindings >= 1.0.0
 Recommends:     syslinux
 %endif
 
-Summary:        YaST2 - Bootloader Configuration
-License:        GPL-2.0-or-later
-Group:          System/YaST
-
 %description
 This package contains the YaST2 component for bootloader configuration.
 
 %prep
-%setup -n %{name}-%{version}
+%setup -q
 
 %check
-rake test:unit
+%yast_check
 
 %build
 
 %install
-rake install DESTDIR="%{buildroot}"
+%yast_install
+%yast_metainfo
 
 %post
 %{fillup_only -n bootloader}
 
 %files
-%defattr(-,root,root)
-
-# menu items
-
-%dir %{yast_desktopdir}
-%{yast_desktopdir}/bootloader.desktop
-
-%dir %{yast_moduledir}
-%{yast_moduledir}/*
-%dir %{yast_clientdir}
-%{yast_clientdir}/bootloader*.rb
-%{yast_clientdir}/inst_*.rb
-%dir %{yast_ybindir}
-%{yast_ybindir}/*
-%dir %{yast_scrconfdir}
-%{yast_scrconfdir}/*.scr
-%{yast_fillupdir}/*
-%dir %{yast_schemadir}
-%dir %{yast_schemadir}/autoyast
-%dir %{yast_schemadir}/autoyast/rnc
-%{yast_schemadir}/autoyast/rnc/bootloader.rnc
-%{yast_libdir}/bootloader
+%{yast_desktopdir}
+%{yast_metainfodir}
+%{yast_moduledir}
+%{yast_clientdir}
+%{yast_ybindir}
+%{yast_scrconfdir}
+%{yast_fillupdir}
+%{yast_schemadir}
+%{yast_libdir}
 %{yast_icondir}
-
-%dir %{yast_docdir}
+%doc %{yast_docdir}
 %license COPYING
-%doc %{yast_docdir}/README.md
-%doc %{yast_docdir}/CONTRIBUTING.md
 
 %changelog
