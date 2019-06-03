@@ -27,7 +27,7 @@ Url:            https://github.com/yast/yast-bootloader
 Source0:        %{name}-%{version}.tar.bz2
 
 BuildRequires:  yast2 >= 3.1.176
-BuildRequires:  yast2-devtools >= 3.1.10
+BuildRequires:  yast2-devtools >= 4.2.2
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
 # Y2Storage::Mountable#mount_path
 BuildRequires:  yast2-storage-ng >= 4.0.90
