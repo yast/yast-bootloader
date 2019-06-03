@@ -20,6 +20,7 @@ X-SuSE-YaST-Keywords=bootloader,GRUB,system,EFI
 Icon=yast-bootloader
 Exec=xdg-su -c "/sbin/yast2 bootloader"
 
-Name=Boot Loader
-GenericName=Configure the boot loader
+Name=YaST Boot Loader
+GenericName=Boot Loader
+Comment=Configure the boot loader
 StartupNotify=true

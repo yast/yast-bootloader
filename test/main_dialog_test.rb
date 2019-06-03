@@ -27,7 +27,7 @@ describe Bootloader::MainDialog do
     end
 
     it "sets window title and icon according to desktop file in running system" do
-      expect(Yast::Wizard).to receive(:SetDesktopTitleAndIcon).with("bootloader")
+      expect(Yast::Wizard).to receive(:SetDesktopTitleAndIcon).with("org.opensuse.yast.Bootloader")
 
       subject.run_auto
     end
@@ -77,7 +77,7 @@ describe Bootloader::MainDialog do
     end
 
     it "sets window title and icon according to desktop file in running system" do
-      expect(Yast::Wizard).to receive(:SetDesktopTitleAndIcon).with("bootloader")
+      expect(Yast::Wizard).to receive(:SetDesktopTitleAndIcon).with("org.opensuse.yast.Bootloader")
 
       subject.run_auto
     end
