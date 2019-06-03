@@ -85,7 +85,8 @@ module Yast
     # Is Suspend to Disk available?
     # @return true if STD is available
     def ResumeAvailable
-      Arch.i386 || Arch.x86_64 || Arch.s390
+      # Do not support s390. (JIRA#SLE-6926)
+      Arch.i386 || Arch.x86_64
     end
 
     def propose_cpu_mitigations
