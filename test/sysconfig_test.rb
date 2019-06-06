@@ -37,18 +37,18 @@ describe Bootloader::Sysconfig do
       end
     end
 
-    context "on other architectures" do
+    context "aarch64" do
       before do
         allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
       end
 
-      it "defaults secure_boot to false if not set" do
+      it "defaults secure_boot to true if not set" do
         allow(Yast::SCR).to receive(:Read).with(
           Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT")
         ).and_return(nil)
 
         sysconfig = Bootloader::Sysconfig.from_system
-        expect(sysconfig.secure_boot).to be false
+        expect(sysconfig.secure_boot).to be true
       end
     end
   end

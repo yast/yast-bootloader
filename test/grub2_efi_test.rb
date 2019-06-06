@@ -90,11 +90,11 @@ describe Bootloader::Grub2EFI do
       expect(subject.secure_boot).to eq true
     end
 
-    it "proposes to not use secure boot for aarch64" do
+    it "proposes to use secure boot for aarch64" do
       allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
       subject.propose
 
-      expect(subject.secure_boot).to eq false
+      expect(subject.secure_boot).to eq true
     end
   end
 
