@@ -1,3 +1,4 @@
+# typed: false
 require_relative "test_helper.rb"
 
 require "bootloader/serial_console"

@@ -1,3 +1,4 @@
+# typed: true
 require "cfa/base_model"
 require "cfa/augeas_parser"
 

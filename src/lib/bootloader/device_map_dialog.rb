@@ -1,3 +1,4 @@
+# typed: false
 require "yast"
 require "y2storage"
 

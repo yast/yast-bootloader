@@ -1,3 +1,4 @@
+# typed: false
 ENV["Y2DIR"] = File.expand_path("../../src", __FILE__)
 
 # localization agnostic tests

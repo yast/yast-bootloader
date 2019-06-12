@@ -1,3 +1,4 @@
+# typed: ignore
 # encoding: utf-8
 
 # File:

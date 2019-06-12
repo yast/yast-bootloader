@@ -1,3 +1,4 @@
+# typed: false
 require "yast"
 
 require "bootloader/boot_record_backup"

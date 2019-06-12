@@ -1,0 +1,17 @@
+GEM
+  specs:
+    cfa (0.7.0)
+      ruby-augeas
+    cfa_grub2 (0.6.5)
+      cfa (~> 0.5)
+    ruby-augeas (0.5.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  cfa
+  cfa_grub2
+
+BUNDLED WITH
+   1.16.3

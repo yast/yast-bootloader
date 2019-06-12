@@ -1,3 +1,4 @@
+# typed: false
 require "bootloader/kexec"
 require "bootloader/bootloader_factory"
 require "installation/finish_client"

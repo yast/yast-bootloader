@@ -1,3 +1,4 @@
+# typed: false
 require "yast"
 
 require "installation/auto_client"

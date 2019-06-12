@@ -1,3 +1,4 @@
+# typed: false
 require "yast"
 
 require "bootloader/config_dialog"

@@ -1,3 +1,4 @@
+# typed: false
 require "installation/proposal_client"
 require "bootloader/exceptions"
 require "bootloader/main_dialog"
