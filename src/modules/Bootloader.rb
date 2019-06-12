@@ -269,16 +269,6 @@ module Yast
       true
     end
 
-    # return default section label
-    # @return [String] default section label
-    def getDefaultSection
-      ReadOrProposeIfNeeded()
-
-      bootloader = ::Bootloader::BootloaderFactory.current
-      return "" unless bootloader.respond_to?(:sections)
-      bootloader.sections.default
-    end
-
     FLAVOR_KERNEL_LINE_MAP = {
       :common    => "append",
       :xen_guest => "xen_append",
@@ -471,7 +461,6 @@ module Yast
     publish :function => :Read, :type => "boolean ()"
     publish :function => :Reset, :type => "void ()"
     publish :function => :Write, :type => "boolean ()"
-    publish :function => :getDefaultSection, :type => "string ()"
     publish :function => :getLoaderType, :type => "string ()"
     publish :variable => :proposed_cfg_changed, :type => "boolean"
     publish :function => :blRead, :type => "boolean (boolean, boolean)"
