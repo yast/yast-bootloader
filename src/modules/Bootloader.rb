@@ -274,7 +274,7 @@ module Yast
     def getDefaultSection
       ReadOrProposeIfNeeded()
 
-      bootloader = Bootloader::BootloaderFactory.current
+      bootloader = ::Bootloader::BootloaderFactory.current
       return "" unless bootloader.respond_to?(:sections)
       bootloader.sections.default
     end
