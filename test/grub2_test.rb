@@ -3,6 +3,12 @@ require_relative "test_helper"
 require "bootloader/grub2"
 
 describe Bootloader::Grub2 do
+  subject do
+    sub = described_class.new
+    allow(sub).to receive(:cpu_mitigations).and_return(::Bootloader::CpuMitigations.new(:manual))
+    sub
+  end
+
   before do
     allow(::CFA::Grub2::Default).to receive(:new).and_return(double("GrubDefault").as_null_object)
     allow(::CFA::Grub2::GrubCfg).to receive(:new).and_return(double("GrubCfg").as_null_object)

@@ -63,9 +63,7 @@ module Bootloader
         bl.propose
       end
 
-      bl = ::Bootloader::BootloaderFactory.current
-      log.info "propose to install #{bl.packages}"
-      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
+      update_required_packages
 
       construct_proposal_map
     rescue ::Bootloader::NoRoot
@@ -77,18 +75,6 @@ module Bootloader
     end
 
     def ask_user(param)
-      if Yast::Mode.update
-        current_bl = ::Bootloader::BootloaderFactory.current
-
-        # we upgrading grub2, so no change there
-        if grub2_update?(current_bl)
-          ::Yast::Popup.Warning(
-            # TRANSLATORS: popup text when user click on link and we forbid to continue
-            _("Changing the bootloader configuration during an upgrade is not supported.")
-          )
-          return { "workflow_sequence" => :cancel }
-        end
-      end
       chosen_id = param["chosen_id"]
       result = :next
       log.info "ask user called with #{chosen_id}"
@@ -162,7 +148,7 @@ module Bootloader
 
       if grub2_update?(current_bl)
         log.info "update of grub2, do not repropose"
-        return false
+        Yast::Bootloader.ReadOrProposeIfNeeded
       elsif old_bootloader == "none"
         log.info "Bootloader not configured, do not repropose"
         # blRead just exits for none bootloader
@@ -179,11 +165,6 @@ module Bootloader
         proposed.propose
         ::Bootloader::BootloaderFactory.current = proposed
       end
-
-      current_bl = ::Bootloader::BootloaderFactory.current
-
-      log.info "propose to install #{current_bl.packages}"
-      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, current_bl.packages)
 
       true
     end
@@ -253,6 +234,14 @@ module Bootloader
       value ? stage1.add_udev_device(device) : stage1.remove_device(device)
 
       Yast::Bootloader.proposed_cfg_changed = true
+    end
+
+    def update_required_packages
+      bl = ::Bootloader::BootloaderFactory.current
+      bootloader_resolvables = Yast::PackagesProposal.GetResolvables("yast2-bootloader", :package)
+      log.info "proposed packages to install #{bl.packages}"
+      Yast::PackagesProposal.RemoveResolvables("yast2-bootloader", :package, bootloader_resolvables)
+      Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
     end
   end
 end

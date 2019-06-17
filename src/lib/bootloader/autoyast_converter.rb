@@ -1,6 +1,7 @@
 require "yast"
 
 require "bootloader/bootloader_factory"
+require "bootloader/cpu_mitigations"
 
 Yast.import "BootStorage"
 Yast.import "Arch"
@@ -37,6 +38,8 @@ module Bootloader
         # always nil pmbr as autoyast does not support it yet,
         # so use nil to always use proposed value (bsc#1081967)
         bootloader.pmbr_action = nil
+        cpu_mitigations = data["global"]["cpu_mitigations"]
+        bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations) if cpu_mitigations
         # TODO: import Initrd
 
         log.warn "autoyast profile contain sections which won't be processed" if data["sections"]
@@ -57,6 +60,7 @@ module Bootloader
         export_grub2(global, config) if config.name == "grub2"
         export_stage1(global, config.stage1) if config.respond_to?(:stage1)
         export_default(global, config.grub_default)
+        res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
         # your day in L3 )
@@ -78,6 +82,14 @@ module Bootloader
       end
 
       def import_default(data, default)
+        # import first kernel params as cpu_mitigations can later modify it
+        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
+          val = data["global"][key]
+          next unless val
+
+          default.public_send(method).replace(val)
+        end
+
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = data["global"][key]
           next unless val
@@ -90,13 +102,6 @@ module Bootloader
           next unless val
 
           default.public_send(:"#{method}=", SYMBOL_PARAM.include?(key) ? val.to_sym : val)
-        end
-
-        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
-          val = data["global"][key]
-          next unless val
-
-          default.public_send(method).replace(val)
         end
 
         import_timeout(data, default)
