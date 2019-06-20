@@ -19,6 +19,8 @@
 #
 require "yast"
 
+require "bootloader/cpu_mitigations"
+
 module Yast
   class BootArchClass < Module
     include Yast::Logger
@@ -37,7 +39,8 @@ module Yast
     # from installation to running kernel on s390 (bsc#1086665)
     S390_WHITELIST = [
       /net\.ifnames=\S*/,
-      /fips=\S*/
+      /fips=\S*/,
+      /mitigations=\S*/
     ].freeze
 
     # Get parameters for the default kernel
@@ -55,6 +58,7 @@ module Yast
         ret << " resume=#{resume}" unless resume.empty?
         ret << " #{features}" unless features.empty?
         ret.gsub!(/(?:\A|\s)splash=\S*/, "")
+        ret << propose_cpu_mitigations
         ret << " splash=silent quiet showopts"
         return ret
       elsif Arch.s390
@@ -69,11 +73,12 @@ module Yast
           parameters << " #{Regexp.last_match(0)}" if kernel_cmdline =~ pattern
         end
 
+        parameters << propose_cpu_mitigations
         parameters << " resume=#{resume}" unless resume.empty?
         return parameters
       else
         log.warn "Default kernel parameters not defined"
-        return kernel_cmdline
+        return kernel_cmdline + propose_cpu_mitigations
       end
     end
 
@@ -82,6 +87,22 @@ module Yast
     def ResumeAvailable
       # Do not support s390. (JIRA#SLE-6926)
       Arch.i386 || Arch.x86_64
+    end
+
+    def propose_cpu_mitigations
+      linuxrc_value = Yast::Linuxrc.value_for("mitigations")
+      log.info "linuxrc mitigations #{linuxrc_value.inspect}"
+      return "" unless linuxrc_value.nil? # linuxrc already has mitigations
+      product_value = ProductFeatures.GetStringFeature("globals", "cpu_mitigations")
+      log.info "cpu mitigations in product: #{product_value.inspect}"
+
+      mitigations = if product_value.empty?
+        ::Bootloader::CpuMitigations::DEFAULT
+      else
+        ::Bootloader::CpuMitigations.from_string(product_value)
+      end
+      # no value for manual mitigations
+      mitigations.kernel_value ? " mitigations=#{mitigations.kernel_value}" : ""
     end
 
     publish :function => :DefaultKernelParams, :type => "string (string)"
