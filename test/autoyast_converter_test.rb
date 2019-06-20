@@ -120,7 +120,7 @@ describe Bootloader::AutoyastConverter do
         "activate"        => "true",
         "generic_mbr"     => "false",
         "trusted_grub"    => "true",
-        "cpu_mitigations" => "manual",
+        "cpu_mitigations" => "manual"
       }
 
       expect(subject.export(bootloader)["global"]).to eq expected_export
