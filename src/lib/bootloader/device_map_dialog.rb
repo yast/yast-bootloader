@@ -228,9 +228,9 @@ module Bootloader
       up_down_enablement(pos > 0, pos < (disks.size - 1))
     end
 
-    def up_down_enablement(up, down)
-      Yast::UI.ChangeWidget(Id(:up), :Enabled, up)
-      Yast::UI.ChangeWidget(Id(:down), :Enabled, down)
+    def up_down_enablement(up_enabled, down_enabled)
+      Yast::UI.ChangeWidget(Id(:up), :Enabled, up_enabled)
+      Yast::UI.ChangeWidget(Id(:down), :Enabled, down_enabled)
     end
   end
 end

@@ -86,7 +86,7 @@ module Bootloader
       raise "Invalid merge argument #{other.name} for #{name}" if name != other.name
 
       @read ||= other.read?
-      @proposed ||= other.proposed?
+      @proposed ||= other.proposed? # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
   private

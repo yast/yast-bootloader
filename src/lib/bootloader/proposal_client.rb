@@ -277,7 +277,10 @@ module Bootloader
       if !Yast::BootSupportCheck.SystemSupported
         ret["warning_level"] = :error
         ret["warning"] = Yast::BootSupportCheck.StringProblems
+        return
       end
+
+      nil
     end
 
     def single_click_action(option, value)

@@ -71,11 +71,11 @@ module Bootloader
       matcher = CFA::Matcher.new(key: "mitigations")
 
       kernel_params.remove_parameter(matcher)
-      if value != :manual
-        # TODO: fix cfa_grub2 with replace placer
-        kernel_params.add_parameter("mitigations", kernel_value)
-        log.info "replacing old config with #{kernel_value}: #{kernel_params.inspect}"
-      end
+      return if value == :manual
+
+      # TODO: fix cfa_grub2 with replace placer
+      kernel_params.add_parameter("mitigations", kernel_value)
+      log.info "replacing old config with #{kernel_value}: #{kernel_params.inspect}"
     end
   end
 end

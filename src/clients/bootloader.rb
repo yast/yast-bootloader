@@ -44,7 +44,7 @@ module Yast
     def GuiHandler
       ret = ::Bootloader::MainDialog.new.run
 
-      return false if ret == :abort || ret == :back || ret == :nil
+      return false if [:abort, :back, :nil].include?(ret)
 
       true
     end

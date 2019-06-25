@@ -60,7 +60,7 @@ module Bootloader
 
       # Copy only 440 bytes for Vista booting problem bnc #396444
       # and also to not destroy partition table
-      copy_br(device_file_path, device, bs: 440) == 0
+      copy_br(device_file_path, device, block_size: 440) == 0
     end
 
   private
@@ -88,11 +88,11 @@ module Bootloader
       time.strftime("%Y-%m-%d-%H-%M-%S")
     end
 
-    def copy_br(device, target_path, bs: 512)
+    def copy_br(device, target_path, block_size: 512)
       Yast::SCR.Execute(
         BASH_PATH,
         "/bin/dd if=#{device.shellescape} of=#{target_path.shellescape} " \
-          "bs=#{bs.to_s.shellescape} count=1 2>&1"
+          "bs=#{block_size.to_s.shellescape} count=1 2>&1"
       )
     end
 

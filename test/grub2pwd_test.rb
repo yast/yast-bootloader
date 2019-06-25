@@ -208,12 +208,12 @@ describe Bootloader::GRUB2Pwd do
 
   describe "#password=" do
     it "sets encrypted version of given password" do
-      success_stdout = <<EOF
+      success_stdout = <<OUTPUT
       Enter password:
 
       Reenter password:
       PBKDF2 hash of your password is #{ENCRYPTED_PASSWORD}
-EOF
+OUTPUT
 
       expect(Yast::Execute).to receive(:locally)
         .with(/grub2-mkpasswd/, anything)
