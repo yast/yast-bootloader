@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      bootloader.ycp
@@ -45,6 +45,7 @@ module Yast
       ret = ::Bootloader::MainDialog.new.run
 
       return false if ret == :abort || ret == :back || ret == :nil
+
       true
     end
   end

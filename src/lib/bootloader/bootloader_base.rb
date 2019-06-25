@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "bootloader/sysconfig"
 
@@ -34,8 +36,7 @@ module Bootloader
     end
 
     # writes configuration to target disk
-    def write
-    end
+    def write; end
 
     # reads configuration from target disk
     def read

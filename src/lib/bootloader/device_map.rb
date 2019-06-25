@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 require "bootloader/udev_mapping"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "forwardable"
 
 require "yast"
@@ -64,11 +66,11 @@ module Bootloader
       when "i386", "x86_64"
         res = [:mbr]
         res << :boot if can_use_boot?
-        return res
+        res
       else
         log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
 
-        return []
+        []
       end
     end
 
@@ -118,10 +120,10 @@ module Bootloader
       known_devices = boot_disk_names + boot_partition_names
       log.info "known devices #{known_devices.inspect}"
 
-      devices.select do |dev|
+      devices.reject do |dev|
         kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
         log.info "stage1 devices for #{dev} is #{kernel_dev.inspect}"
-        !known_devices.include?(kernel_dev)
+        known_devices.include?(kernel_dev)
       end
     end
 

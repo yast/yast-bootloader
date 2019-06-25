@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      modules/BootSupportCheck.ycp
@@ -146,6 +146,7 @@ module Yast
 
       # do not activate for ppc and GPT see bsc#983194
       return true if Arch.ppc64 && disks.all?(&:gpt?)
+
       all_activate = disks.all? do |disk|
         if disk.partition_table
           legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?

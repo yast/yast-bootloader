@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
@@ -19,7 +21,7 @@ module Bootloader
     ].freeze
 
     # Keyword used in autoyast for default bootloader used for given system.
-    DEFAULT_KEYWORD = "default".freeze
+    DEFAULT_KEYWORD = "default"
 
     class << self
       attr_writer :current
@@ -52,7 +54,7 @@ module Bootloader
 
         system_bl = begin
                       system.name
-                    rescue
+                    rescue StandardError
                       nil
                     end # rescue exception if system one is not support
         ret = system_bl ? [system.name] : [] # use current as first

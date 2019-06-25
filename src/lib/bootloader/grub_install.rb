@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "yast2/execute"
 
@@ -35,14 +37,14 @@ module Bootloader
 
         last_failure = nil
         res = devices.select do |device|
-          begin
-            Yast::Execute.on_target!(cmd + [device])
-            false
-          rescue Cheetah::ExecutionFailed => e
-            log.warn "Failed to install grub to device #{device}. #{e.inspect}"
-            last_failure = e
-            true
-          end
+
+          Yast::Execute.on_target!(cmd + [device])
+          false
+        rescue Cheetah::ExecutionFailed => e
+          log.warn "Failed to install grub to device #{device}. #{e.inspect}"
+          last_failure = e
+          true
+
         end
 
         # Failed to install to all devices
@@ -58,14 +60,11 @@ module Bootloader
 
     def report_failure(exception)
       Yast::Report.Error(
-        _(
-          "Installing GRUB2 to device failed.\n" \
-          "Command `%{command}`.\n" \
-          "Error output: %{stderr}"
-        ) % {
-          command: exception.commands.inspect,
-          stderr:  exception.stderr
-        }
+        format(_(
+                 "Installing GRUB2 to device failed.\n" \
+                 "Command `%{command}`.\n" \
+                 "Error output: %{stderr}"
+               ), command: exception.commands.inspect, stderr: exception.stderr)
       )
     end
 

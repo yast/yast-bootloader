@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "y2storage"
 
@@ -39,6 +41,7 @@ module Bootloader
     def create_dialog
       res = Yast::UI.OpenDialog dialog_content
       return false unless res
+
       refresh_buttons
 
       true
@@ -86,7 +89,7 @@ module Bootloader
         pos += 1
       when :delete
         disks.delete_at(pos)
-        pos = pos == disks.size ? pos - 1 : pos
+        pos = (pos == disks.size) ? pos - 1 : pos
       when :add
         disks_to_add = if Yast::Mode.config || Yast::Mode.auto
           add_device_popup_ay_mode
@@ -181,7 +184,7 @@ module Bootloader
       new_dev = Yast::UI.QueryWidget(Id(:devname), :Value)
       Yast::UI.CloseDialog
 
-      pushed == :ok ? [new_dev] : []
+      (pushed == :ok) ? [new_dev] : []
     end
 
     def add_devices_popup
@@ -201,7 +204,7 @@ module Bootloader
       new_devs = Yast::UI.QueryWidget(Id(:devnames), :SelectedItems)
       Yast::UI.CloseDialog
 
-      pushed == :ok ? new_devs : []
+      (pushed == :ok) ? new_devs : []
     end
 
     def selected_disk_index

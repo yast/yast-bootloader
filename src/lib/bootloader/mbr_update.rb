@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 require "bootloader/boot_record_backup"
@@ -48,11 +50,12 @@ module Bootloader
     def gpt?(disk)
       mbr_storage_object = devicegraph.disk_devices.find { |d| d.name == disk }
       raise "Cannot find in storage mbr disk #{disk}" unless mbr_storage_object
+
       mbr_storage_object.gpt?
     end
 
-    GPT_MBR = "/usr/share/syslinux/gptmbr.bin".freeze
-    DOS_MBR = "/usr/share/syslinux/mbr.bin".freeze
+    GPT_MBR = "/usr/share/syslinux/gptmbr.bin"
+    DOS_MBR = "/usr/share/syslinux/mbr.bin"
     def generic_mbr_file_for(disk)
       disk.gpt? ? GPT_MBR : DOS_MBR
     end
@@ -94,7 +97,7 @@ module Bootloader
 
       partitions = out.lines.select do |line|
         values = line.split(":")
-        values[6] && values[6].match(/(?:\s|\A)#{flag}/)
+        values[6]&.match(/(?:\s|\A)#{flag}/)
       end
       partitions.map! { |line| line.split(":").first }
 
@@ -114,9 +117,7 @@ module Bootloader
       partitions_to_activate.each do |partition|
         num = partition.number
         disk = partition.partitionable
-        if num.nil? || disk.nil?
-          raise "INTERNAL ERROR: Data for partition to activate is invalid."
-        end
+        raise "INTERNAL ERROR: Data for partition to activate is invalid." if num.nil? || disk.nil?
 
         next unless can_activate_partition?(disk, partition)
 

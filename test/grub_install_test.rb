@@ -1,4 +1,5 @@
 #! /usr/bin/env rspec --format doc
+# frozen_string_literal: true
 
 require_relative "./test_helper"
 
@@ -11,12 +12,12 @@ describe Bootloader::GrubInstall do
     end
 
     def stub_efivars(removable: false)
-      if removable
-        efivardirs = []
+      efivardirs = if removable
+        []
       else
-        efivardirs = ["Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c",
-                      "BootCurrent-8be4df61-93ca-11d2-aa0d-00e098032b8c",
-                      "BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c"]
+        ["Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c",
+         "BootCurrent-8be4df61-93ca-11d2-aa0d-00e098032b8c",
+         "BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c"]
       end
 
       allow(Dir).to receive(:glob).and_return(efivardirs)

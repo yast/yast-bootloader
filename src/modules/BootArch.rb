@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      modules/BootArch.ycp
@@ -93,6 +93,7 @@ module Yast
       linuxrc_value = Yast::Linuxrc.value_for("mitigations")
       log.info "linuxrc mitigations #{linuxrc_value.inspect}"
       return "" unless linuxrc_value.nil? # linuxrc already has mitigations
+
       product_value = ProductFeatures.GetStringFeature("globals", "cpu_mitigations")
       log.info "cpu mitigations in product: #{product_value.inspect}"
 

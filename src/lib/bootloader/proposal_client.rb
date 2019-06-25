@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "installation/proposal_client"
 require "bootloader/exceptions"
 require "bootloader/main_dialog"
@@ -44,7 +46,7 @@ module Bootloader
        "has been booted using <i>%{new_boot}</i>.<br><br>" \
        "This scenario is not supported, the upgraded system may not boot " \
        "or the upgrade process can fail later."
-        ),
+               ),
           old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
       end
     end
@@ -97,7 +99,7 @@ module Bootloader
       # enable boot from MBR
       case chosen_id
       when *PROPOSAL_LINKS
-        value = chosen_id =~ /enable/ ? true : false
+        value = (chosen_id =~ /enable/) ? true : false
         option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
         single_click_action(option, value)
       else
@@ -181,7 +183,7 @@ module Bootloader
       false
     end
 
-    BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader".freeze
+    BOOT_SYSCONFIG_PATH = "/etc/sysconfig/bootloader"
     # read bootloader from /mnt as SCR is not yet switched in proposal
     # phase of update (bnc#874646)
     def old_bootloader
@@ -280,7 +282,7 @@ module Bootloader
 
     def single_click_action(option, value)
       stage1 = ::Bootloader::BootloaderFactory.current.stage1
-      devices = option.to_sym == :mbr ? stage1.boot_disk_names : stage1.boot_partition_names
+      devices = (option.to_sym == :mbr) ? stage1.boot_disk_names : stage1.boot_partition_names
       log.info "single_click_action #{option} #{value.inspect} #{devices}"
 
       devices.each do |device|

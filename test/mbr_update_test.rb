@@ -1,4 +1,5 @@
 #! /usr/bin/env rspec --format doc
+# frozen_string_literal: true
 
 require_relative "./test_helper"
 
@@ -80,6 +81,7 @@ describe Bootloader::MBRUpdate do
       it "rewrites mbr_disk with generic code" do
         expect(Yast::Execute).to receive(:locally) do |*args|
           return nil unless args.first =~ /dd/
+
           expect(args).to be_include("of=/dev/sda")
         end
         subject.run(stage1(generic_mbr: true))
@@ -94,6 +96,7 @@ describe Bootloader::MBRUpdate do
         expect(Yast::Execute).to receive(:locally).at_least(:twice) do |*args|
           next nil unless args.first =~ /dd/
           next nil unless args.include?("of=/dev/sdb")
+
           expect(args).to be_include("of=/dev/sda")
         end
         subject.run(stage1(generic_mbr: true))
@@ -109,6 +112,7 @@ describe Bootloader::MBRUpdate do
       it "install gpt generic code if disk is gpt" do
         expect(Yast::Execute).to receive(:locally) do |*args|
           return nil unless args.first =~ /dd/
+
           expect(args.any? { |a| a =~ /if=.*gptmbr.bin/ }).to eq true
         end
 

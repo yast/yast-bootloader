@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 require "installation/auto_client"

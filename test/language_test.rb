@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "test_helper"
 
 require "bootloader/language"
@@ -6,7 +8,7 @@ require "cfa/memory_file"
 describe Bootloader::Language do
   describe "rc_lang" do
     it "returns value from parsed tree" do
-      path = File.expand_path("../data/language", __FILE__)
+      path = File.expand_path("data/language", __dir__)
       file = CFA::MemoryFile.new(File.read(path))
 
       language = described_class.new(file_handler: file)

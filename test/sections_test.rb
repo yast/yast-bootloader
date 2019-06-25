@@ -1,5 +1,5 @@
 #! /usr/bin/env rspec --format doc
-# encoding: utf-8
+# frozen_string_literal: true
 
 require_relative "./test_helper"
 
@@ -59,7 +59,7 @@ describe Bootloader::Sections do
     end
 
     it "handles localized grub.cfg" do
-      data_path = File.expand_path("../data/grub.cfg", __FILE__)
+      data_path = File.expand_path("data/grub.cfg", __dir__)
       file = CFA::MemoryFile.new(File.read(data_path))
       grub_cfg = CFA::Grub2::GrubCfg.new(file_handler: file)
       grub_cfg.load

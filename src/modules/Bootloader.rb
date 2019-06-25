@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      modules/Bootloader.rb
@@ -176,6 +176,7 @@ module Yast
     # Reset bootloader settings
     def Reset
       return if Mode.autoinst
+
       log.info "Resetting configuration"
 
       ::Bootloader::BootloaderFactory.clear_cache
@@ -275,6 +276,7 @@ module Yast
 
       bootloader = Bootloader::BootloaderFactory.current
       return "" unless bootloader.respond_to?(:sections)
+
       bootloader.sections.default
     end
 
@@ -314,6 +316,7 @@ module Yast
       current_bl = ::Bootloader::BootloaderFactory.current
       # currently only grub2 bootloader supported
       return :missing unless current_bl.respond_to?(:grub_default)
+
       grub_default = current_bl.grub_default
       params = case flavor
       when :common then grub_default.kernel_params
@@ -356,6 +359,7 @@ module Yast
       current_bl = ::Bootloader::BootloaderFactory.current
       # currently only grub2 bootloader supported
       return :missing unless current_bl.respond_to?(:grub_default)
+
       grub_default = current_bl.grub_default
 
       values = args.pop

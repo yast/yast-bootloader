@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 Yast.import "Arch"
@@ -13,8 +15,8 @@ module Bootloader
       "e" => "even"
     }.freeze
     SPEED_DEFAULT = 9600
-    PARITY_DEFAULT = "no".freeze
-    WORD_DEFAULT = "".freeze
+    PARITY_DEFAULT = "no"
+    WORD_DEFAULT = ""
 
     # REGEXP that separate usefull parts of kernel parameter for serial console
     # matching groups are:
@@ -30,7 +32,7 @@ module Bootloader
     #    "ttyS0,9600n8"
     # @example also partial specification works
     #    "ttyAMA1"
-    KERNEL_PARAM_REGEXP = /(ttyS|ttyAMA)([[:digit:]]*),?([[:digit:]]*)([noe]*)([[:digit:]]*)/
+    KERNEL_PARAM_REGEXP = /(ttyS|ttyAMA)([[:digit:]]*),?([[:digit:]]*)([noe]*)([[:digit:]]*)/.freeze
 
     # Loads serial console configuration from parameters passed to kernel
     # @param [ConfigFiles::Grub2::Default::KernelParams] kernel_params to read

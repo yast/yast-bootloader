@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "bootloader/kexec"
 require "bootloader/bootloader_factory"
 require "installation/finish_client"
@@ -38,9 +40,7 @@ module Bootloader
 
       bl_current = ::Bootloader::BootloaderFactory.current
       # we do nothing in upgrade unless we have to change bootloader
-      if Yast::Mode.update && !bl_current.read? && !bl_current.proposed?
-        return true
-      end
+      return true if Yast::Mode.update && !bl_current.read? && !bl_current.proposed?
 
       # we do not manage bootloader, so relax :)
       return true if bl_current.name == "none"
