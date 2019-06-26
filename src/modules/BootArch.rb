@@ -67,7 +67,7 @@ module Yast
         else
           "hvc_iucv=8 TERM=dumb"
         end
-        parameters = "#{features} #{termparm}"
+        parameters = +"#{features} #{termparm}"
         # pick selected params from installation command line
         S390_WHITELIST.each do |pattern|
           parameters << " #{Regexp.last_match(0)}" if kernel_cmdline =~ pattern

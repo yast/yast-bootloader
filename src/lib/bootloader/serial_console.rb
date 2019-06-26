@@ -102,7 +102,7 @@ module Bootloader
     # generates serial command for grub2 GRUB_SERIAL_COMMAND
     def console_args
       res = "serial --unit=#{@unit} --speed=#{@speed} --parity=#{@parity}"
-      res << " --word=#{@word}" unless @word.empty?
+      res += " --word=#{@word}" unless @word.empty?
 
       res
     end

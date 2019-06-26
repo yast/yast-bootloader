@@ -108,7 +108,7 @@ module Bootloader
         "export superusers\n"
 
       if @unrestricted
-        file_content << "set unrestricted_menu=\"y\"\n" \
+        file_content += "set unrestricted_menu=\"y\"\n" \
           "export unrestricted_menu\n"
       end
 
