@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "yast2/execute"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 require "bootloader/generic_widgets"
@@ -16,8 +18,6 @@ Yast.import "Mode"
 module Bootloader
   # Adds to generic widget grub2 specific helpers
   module Grub2Widget
-  protected
-
     def grub_default
       BootloaderFactory.current.grub_default
     end
@@ -377,6 +377,7 @@ module Bootloader
 
     def validate
       return true if Yast::Mode.config || !value || grub2.name == "grub2-efi"
+
       tpm_files = Dir.glob("/sys/**/pcrs")
       if !tpm_files.empty?
         # check for file size does not work, since FS reports it 4096
@@ -398,7 +399,7 @@ module Bootloader
       textdomain "bootloader"
     end
 
-    MASKED_PASSWORD = "**********".freeze
+    MASKED_PASSWORD = "**********"
 
     def contents
       HBox(
@@ -429,6 +430,7 @@ module Bootloader
 
     def validate
       return true unless Yast::UI.QueryWidget(Id(:use_pas), :Value)
+
       if Yast::UI.QueryWidget(Id(:pw1), :Value) == ""
         Yast::Report.Error(_("The password must not be empty."))
         Yast::UI.SetFocus(Id(:pw1))
@@ -437,9 +439,10 @@ module Bootloader
       if Yast::UI.QueryWidget(Id(:pw1), :Value) == Yast::UI.QueryWidget(Id(:pw2), :Value)
         return true
       end
+
       Yast::Report.Error(_(
                            "'Password' and 'Retype password'\ndo not match. Retype the password."
-      ))
+                         ))
       Yast::UI.SetFocus(Id(:pw1))
       false
     end
@@ -447,7 +450,7 @@ module Bootloader
     def init
       enabled = password.used?
       # read state on disk only if not already set by user (bnc#900026)
-      value = enabled && password.password? ? MASKED_PASSWORD : ""
+      value = (enabled && password.password?) ? MASKED_PASSWORD : ""
 
       Yast::UI.ChangeWidget(Id(:use_pas), :Value, enabled)
       Yast::UI.ChangeWidget(Id(:pw1), :Enabled, enabled)
@@ -778,9 +781,7 @@ module Bootloader
     end
 
     def init
-      if locations.include?(:boot)
-        Yast::UI.ChangeWidget(Id(:boot), :Value, stage1.boot_partition?)
-      end
+      Yast::UI.ChangeWidget(Id(:boot), :Value, stage1.boot_partition?) if locations.include?(:boot)
       Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?) if locations.include?(:mbr)
 
       init_custom_devices(stage1.custom_devices)
@@ -982,9 +983,12 @@ module Bootloader
 
     def trusted_boot_widget?
       return false if !(Yast::Arch.x86_64 || Yast::Arch.i386)
+
       return true if grub2.name == "grub2"
+
       # for details about grub2 efi trusted boot support see FATE#315831
       return File.exist?("/dev/tpm0") if grub2.name == "grub2-efi"
+
       false
     end
 

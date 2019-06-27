@@ -1,4 +1,5 @@
 #! /usr/bin/env rspec --format doc
+# frozen_string_literal: true
 
 require_relative "./test_helper"
 
@@ -17,14 +18,14 @@ describe Bootloader::GRUB2Pwd do
       .and_return(exists)
   end
 
-  ENCRYPTED_PASSWORD = "grub.pbkdf2.sha512.10000.774E325959D6D7BCFB7384A0245674D83D0D540A89C02FEA81E35489F8DE7ADFD93988190AD9857A0FFF363825DDF97C8F4E658D8CC49FC4A22C053B08AB3EFE.6FB19FF26FD03D85C40A33D8BA7C04E72EDE3DD5D7080C177553A4FED370F71C579AF0B15B3B93ECECEA355469A4B6D0560BFB53ED35DDA0B80F5363BFBD54E4".freeze
+  ENCRYPTED_PASSWORD = "grub.pbkdf2.sha512.10000.774E325959D6D7BCFB7384A0245674D83D0D540A89C02FEA81E35489F8DE7ADFD93988190AD9857A0FFF363825DDF97C8F4E658D8CC49FC4A22C053B08AB3EFE.6FB19FF26FD03D85C40A33D8BA7C04E72EDE3DD5D7080C177553A4FED370F71C579AF0B15B3B93ECECEA355469A4B6D0560BFB53ED35DDA0B80F5363BFBD54E4"
 
   FILE_CONTENT_RESTRICTED = "#! /bin/sh\n" \
     "exec tail -n +3 $0\n" \
     "# File created by YaST and next YaST run probably overwrite it\n" \
     "set superusers=\"root\"\n" \
     "password_pbkdf2 root #{ENCRYPTED_PASSWORD}\n" \
-    "export superusers\n".freeze
+    "export superusers\n"
 
   FILE_CONTENT_UNRESTRICTED = FILE_CONTENT_RESTRICTED +
     "set unrestricted_menu=\"y\"\n" \
@@ -32,7 +33,7 @@ describe Bootloader::GRUB2Pwd do
 
   FILE_CONTENT_WRONG = "#! /bin/sh\n" \
     "exec tail -n +3 $0\n" \
-    "# File created by YaST and next YaST run probably overwrite it\n".freeze \
+    "# File created by YaST and next YaST run probably overwrite it\n" \
 
 
   describe ".new" do
@@ -207,12 +208,12 @@ describe Bootloader::GRUB2Pwd do
 
   describe "#password=" do
     it "sets encrypted version of given password" do
-      success_stdout = <<EOF
+      success_stdout = <<OUTPUT
       Enter password:
 
       Reenter password:
       PBKDF2 hash of your password is #{ENCRYPTED_PASSWORD}
-EOF
+OUTPUT
 
       expect(Yast::Execute).to receive(:locally)
         .with(/grub2-mkpasswd/, anything)

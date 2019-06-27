@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "shellwords"
 
@@ -54,7 +56,7 @@ module Bootloader
   private
 
     YAST_BASH_PATH = Yast::Path.new(".local.bash_output")
-    PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password".freeze
+    PWD_ENCRYPTION_FILE = "/etc/grub.d/42_password"
 
     def propose
       @used = false
@@ -106,7 +108,7 @@ module Bootloader
         "export superusers\n"
 
       if @unrestricted
-        file_content << "set unrestricted_menu=\"y\"\n" \
+        file_content += "set unrestricted_menu=\"y\"\n" \
           "export unrestricted_menu\n"
       end
 
@@ -136,9 +138,7 @@ module Bootloader
       end
 
       ret = pwd_line[/^.*password is\s*(\S+)/, 1]
-      if !ret
-        raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result}"
-      end
+      raise "grub2-mkpasswd output do not contain encrypted password. Output: #{result}" if !ret
 
       ret
     end

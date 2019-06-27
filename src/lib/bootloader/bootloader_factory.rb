@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
@@ -19,7 +21,7 @@ module Bootloader
     ].freeze
 
     # Keyword used in autoyast for default bootloader used for given system.
-    DEFAULT_KEYWORD = "default".freeze
+    DEFAULT_KEYWORD = "default"
 
     class << self
       attr_writer :current
@@ -50,11 +52,12 @@ module Bootloader
           return BootloaderFactory::SUPPORTED_BOOTLOADERS + [DEFAULT_KEYWORD]
         end
 
-        system_bl = begin
-                      system.name
-                    rescue
-                      nil
-                    end # rescue exception if system one is not support
+        begin
+          system_bl = system.name
+        # rescue exception if system one is not support
+        rescue StandardError
+          system_bl = nil
+        end
         ret = system_bl ? [system.name] : [] # use current as first
         ret << "grub2" unless Yast::Arch.aarch64 # grub2 everywhere except aarch64
         ret << "grub2-efi" if Yast::Arch.x86_64 || Yast::Arch.aarch64

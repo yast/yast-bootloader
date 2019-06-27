@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      bootloader.ycp
@@ -44,7 +44,8 @@ module Yast
     def GuiHandler
       ret = ::Bootloader::MainDialog.new.run
 
-      return false if ret == :abort || ret == :back || ret == :nil
+      return false if [:abort, :back, :nil].include?(ret)
+
       true
     end
   end

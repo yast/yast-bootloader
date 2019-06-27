@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast/rake"
 
 Yast::Tasks.configuration do |conf|

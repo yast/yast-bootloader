@@ -1,4 +1,5 @@
-# encoding: utf-8
+# frozen_string_literal: true
+
 require "yast"
 require "yast2/execute"
 require "yast2/target_file" # adds ability to work with cfa in inst-sys
@@ -349,9 +350,7 @@ module Bootloader
 
       resume = Yast::BootArch.ResumeAvailable ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
-      if resume != "" && !resume.nil?
-        resume = UdevMapping.to_mountby_device(resume)
-      end
+      resume = UdevMapping.to_mountby_device(resume) if resume != "" && !resume.nil?
 
       resume
     end

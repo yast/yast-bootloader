@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      modules/BootSupportCheck.ycp
@@ -75,22 +75,22 @@ module Yast
     end
 
     # Check that bootloader matches current hardware
-    def correct_loader_type(lt)
-      return true if lt == "none"
+    def correct_loader_type(type)
+      return true if type == "none"
 
       # grub2 is sooo cool...
-      return true if lt == "grub2" && !Arch.aarch64
+      return true if type == "grub2" && !Arch.aarch64
 
-      return true if (Arch.i386 || Arch.x86_64) && lt == "grub2-efi" && efi?
+      return true if (Arch.i386 || Arch.x86_64) && type == "grub2-efi" && efi?
 
-      return true if lt == "grub2-efi" && Arch.aarch64
+      return true if type == "grub2-efi" && Arch.aarch64
 
-      log.error "Unsupported combination of hardware platform #{Arch.architecture} and bootloader #{lt}"
+      log.error "Unsupported combination of hardware platform #{Arch.architecture} and bootloader #{type}"
       add_new_problem(
         Builtins.sformat(
           _("Unsupported combination of hardware platform %1 and bootloader %2"),
           Arch.architecture,
-          lt
+          type
         )
       )
       false
@@ -146,6 +146,7 @@ module Yast
 
       # do not activate for ppc and GPT see bsc#983194
       return true if Arch.ppc64 && disks.all?(&:gpt?)
+
       all_activate = disks.all? do |disk|
         if disk.partition_table
           legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?

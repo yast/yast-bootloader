@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 require "bootloader/sysconfig"
 
@@ -34,8 +36,7 @@ module Bootloader
     end
 
     # writes configuration to target disk
-    def write
-    end
+    def write; end
 
     # reads configuration from target disk
     def read
@@ -85,7 +86,7 @@ module Bootloader
       raise "Invalid merge argument #{other.name} for #{name}" if name != other.name
 
       @read ||= other.read?
-      @proposed ||= other.proposed?
+      @proposed ||= other.proposed? # rubocop:disable Naming/MemoizedInstanceVariableName
     end
 
   private

@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require "yast"
 require "y2storage"
@@ -229,7 +229,7 @@ module Bootloader
     #
     def url_location_summary
       log.info "Prepare url summary for GRUB2"
-      line = "<ul>\n<li>"
+      line = +"<ul>\n<li>"
       line << mbr_line
       line << "</li>\n"
 

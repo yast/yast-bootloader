@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 Yast.import "Arch"
@@ -51,7 +53,7 @@ module Bootloader
 
       case selected_location
       when :boot, :mbr
-        method = selected_location == :mbr ? :boot_disk_names : :boot_partition_names
+        method = (selected_location == :mbr) ? :boot_disk_names : :boot_partition_names
         devices = stage1.public_send(method)
         devices.each do |dev|
           stage1.add_udev_device(dev)
@@ -99,7 +101,7 @@ module Bootloader
 
       def any_boot_flag_partition?(disk)
         log.info "any_boot_flag_partition? #{disk.inspect}"
-        return false unless disk && disk.partition_table
+        return false unless disk&.partition_table
 
         legacy_boot = disk.partition_table.partition_legacy_boot_flag_supported?
         disk.partitions.any? do |p|

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 module Bootloader
@@ -66,7 +68,7 @@ module Bootloader
 
   # Represents error when serial console arguments are not valid
   class InvalidSerialConsoleArguments < BrokenConfiguration
-    MESSAGE = "Invalid serial console arguments".freeze
+    MESSAGE = "Invalid serial console arguments"
     def initialize(msg = MESSAGE)
       super
     end

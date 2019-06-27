@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 # File:
 #      modules/BootArch.ycp
@@ -67,7 +67,7 @@ module Yast
         else
           "hvc_iucv=8 TERM=dumb"
         end
-        parameters = "#{features} #{termparm}"
+        parameters = +"#{features} #{termparm}"
         # pick selected params from installation command line
         S390_WHITELIST.each do |pattern|
           parameters << " #{Regexp.last_match(0)}" if kernel_cmdline =~ pattern
@@ -93,6 +93,7 @@ module Yast
       linuxrc_value = Yast::Linuxrc.value_for("mitigations")
       log.info "linuxrc mitigations #{linuxrc_value.inspect}"
       return "" unless linuxrc_value.nil? # linuxrc already has mitigations
+
       product_value = ProductFeatures.GetStringFeature("globals", "cpu_mitigations")
       log.info "cpu mitigations in product: #{product_value.inspect}"
 

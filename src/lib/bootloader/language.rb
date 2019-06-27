@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cfa/base_model"
 require "cfa/augeas_parser"
 
@@ -8,7 +10,7 @@ module Bootloader
   # this class Yast2 and rename to something like Sysconfig::Language
   class Language < CFA::BaseModel
     PARSER = CFA::AugeasParser.new("sysconfig.lns")
-    PATH = "/etc/sysconfig/language".freeze
+    PATH = "/etc/sysconfig/language"
 
     def initialize(file_handler: nil)
       super(PARSER, PATH, file_handler: file_handler)
