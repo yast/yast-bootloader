@@ -10,7 +10,24 @@
 # wrong constant name <Magic>
 # wrong constant name <Class:<Magic>>
 # wrong constant name <RESERVED_0>
+# wrong constant name <RESERVED_100>
+# wrong constant name <RESERVED_101>
+# wrong constant name <RESERVED_102>
+# wrong constant name <RESERVED_103>
+# wrong constant name <RESERVED_104>
+# wrong constant name <RESERVED_105>
+# wrong constant name <RESERVED_106>
+# wrong constant name <RESERVED_107>
+# wrong constant name <RESERVED_108>
+# wrong constant name <RESERVED_109>
 # wrong constant name <RESERVED_10>
+# wrong constant name <RESERVED_110>
+# wrong constant name <RESERVED_111>
+# wrong constant name <RESERVED_112>
+# wrong constant name <RESERVED_113>
+# wrong constant name <RESERVED_114>
+# wrong constant name <RESERVED_115>
+# wrong constant name <RESERVED_116>
 # wrong constant name <RESERVED_11>
 # wrong constant name <RESERVED_12>
 # wrong constant name <RESERVED_13>
@@ -104,6 +121,10 @@
 # wrong constant name <RESERVED_93>
 # wrong constant name <RESERVED_94>
 # wrong constant name <RESERVED_95>
+# wrong constant name <RESERVED_96>
+# wrong constant name <RESERVED_97>
+# wrong constant name <RESERVED_98>
+# wrong constant name <RESERVED_99>
 # wrong constant name <RESERVED_9>
 # wrong constant name <TypeAlias>
 # wrong constant name <TypeAlias>
@@ -299,17 +320,656 @@
 # wrong constant name local_variable_get
 # wrong constant name local_variable_set
 # wrong constant name receiver
+# uninitialized constant Bootloader::ActivateWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::ActivateWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::ActivateWidget::LOCALE_DIR
+# Did you mean?  Bootloader::ActivateWidget::LOCALE_DIR
+# uninitialized constant Bootloader::ActivateWidget::UI_TERMS
+# Did you mean?  Bootloader::ActivateWidget::UI_TERMS
+# uninitialized constant Bootloader::AutoClient::Address
+# Did you mean?  Bootloader::AutoClient::Address
+# uninitialized constant Bootloader::AutoClient::Arch
+# Did you mean?  Bootloader::AutoClient::Arch
+# uninitialized constant Bootloader::AutoClient::AutoInstall
+# Did you mean?  Bootloader::AutoClient::AutoInstall
+# uninitialized constant Bootloader::AutoClient::AutoInstallRules
+# Did you mean?  Bootloader::AutoClient::AutoInstallRules
+#                Bootloader::AutoClient::AutoInstallClass
+# uninitialized constant Bootloader::AutoClient::AutoinstConfig
+# Did you mean?  Bootloader::AutoClient::AutoinstConfig
+# uninitialized constant Bootloader::AutoClient::AutoinstFunctions
+# Did you mean?  Bootloader::AutoClient::AutoinstFunctions
+#                Bootloader::AutoClient::AutoinstFunctionsClass
+# uninitialized constant Bootloader::AutoClient::BACKTRACE_REGEXP
+# Did you mean?  Bootloader::AutoClient::BACKTRACE_REGEXP
+# uninitialized constant Bootloader::AutoClient::BootArch
+# Did you mean?  Bootloader::AutoClient::BootArch
+# uninitialized constant Bootloader::AutoClient::BootStorage
+# Did you mean?  Bootloader::AutoClient::BootStorage
+# uninitialized constant Bootloader::AutoClient::BootSupportCheck
+# Did you mean?  Bootloader::AutoClient::BootSupportCheck
+# uninitialized constant Bootloader::AutoClient::Bootloader
+# Did you mean?  Bootloader::AutoClient::Bootloader
+#                Bootloader
+#                Bootloader::BootloaderTab
+# uninitialized constant Bootloader::AutoClient::CWM
+# Did you mean?  Bootloader::AutoClient::CWM
+#                CWM
+# uninitialized constant Bootloader::AutoClient::CWMTab
+# Did you mean?  Bootloader::AutoClient::CWMTab
+# uninitialized constant Bootloader::AutoClient::CommandLine
+# Did you mean?  Bootloader::AutoClient::CommandLine
+# uninitialized constant Bootloader::AutoClient::DEFAULT_LOCALE
+# Did you mean?  Bootloader::AutoClient::DEFAULT_LOCALE
+# uninitialized constant Bootloader::AutoClient::DebugHooks
+# Did you mean?  Bootloader::AutoClient::DebugHooks
+# uninitialized constant Bootloader::AutoClient::Desktop
+# Did you mean?  Bootloader::AutoClient::Desktop
+# uninitialized constant Bootloader::AutoClient::Directory
+# Did you mean?  Bootloader::AutoClient::Directory
+# uninitialized constant Bootloader::AutoClient::DontShowAgain
+# Did you mean?  Bootloader::AutoClient::DontShowAgain
+# uninitialized constant Bootloader::AutoClient::Encoding
+# Did you mean?  Bootloader::AutoClient::Encoding
+#                Encoding
+# uninitialized constant Bootloader::AutoClient::FileUtils
+# Did you mean?  Bootloader::AutoClient::FileUtils
+#                FileUtils
+# uninitialized constant Bootloader::AutoClient::GetInstArgs
+# Did you mean?  Bootloader::AutoClient::GetInstArgs
+# uninitialized constant Bootloader::AutoClient::HTML
+# Did you mean?  Bootloader::AutoClient::HTML
+# uninitialized constant Bootloader::AutoClient::Hooks
+# Did you mean?  Bootloader::AutoClient::Hooks
+# uninitialized constant Bootloader::AutoClient::Hostname
+# Did you mean?  Bootloader::AutoClient::Hostname
+# uninitialized constant Bootloader::AutoClient::IP
+# Did you mean?  Bootloader::AutoClient::IP
+# uninitialized constant Bootloader::AutoClient::Icon
+# Did you mean?  Bootloader::AutoClient::Icon
+# uninitialized constant Bootloader::AutoClient::Initrd
+# Did you mean?  Bootloader::AutoClient::Initrd
+# uninitialized constant Bootloader::AutoClient::InstExtensionImage
+# Did you mean?  Bootloader::AutoClient::InstExtensionImage
+#                Bootloader::AutoClient::InstExtensionImageClass
+# uninitialized constant Bootloader::AutoClient::Installation
+# Did you mean?  Bootloader::AutoClient::Installation
+#                Installation
+# uninitialized constant Bootloader::AutoClient::Integer
+# Did you mean?  Bootloader::AutoClient::Integer
+#                Integer
+# uninitialized constant Bootloader::AutoClient::Kernel
+# Did you mean?  Bootloader::AutoClient::Kernel
+#                Kernel
+# uninitialized constant Bootloader::AutoClient::LOCALE_DIR
+# Did you mean?  Bootloader::AutoClient::LOCALE_DIR
+# uninitialized constant Bootloader::AutoClient::Label
+# Did you mean?  Bootloader::AutoClient::Label
+# uninitialized constant Bootloader::AutoClient::Linuxrc
+# Did you mean?  Bootloader::AutoClient::Linuxrc
+# uninitialized constant Bootloader::AutoClient::Map
+# Did you mean?  Bootloader::AutoClient::Map
+# uninitialized constant Bootloader::AutoClient::Message
+# Did you mean?  Bootloader::AutoClient::Message
+# uninitialized constant Bootloader::AutoClient::Misc
+# Did you mean?  Bootloader::AutoClient::Misc
+# uninitialized constant Bootloader::AutoClient::Mode
+# Did you mean?  Bootloader::AutoClient::Mode
+# uninitialized constant Bootloader::AutoClient::Netmask
+# Did you mean?  Bootloader::AutoClient::Netmask
+# uninitialized constant Bootloader::AutoClient::OSRelease
+# Did you mean?  Bootloader::AutoClient::OSRelease
+# uninitialized constant Bootloader::AutoClient::Package
+# Did you mean?  Bootloader::AutoClient::Package
+#                Packages
+#                Bootloader::AutoClient::PackageAI
+# uninitialized constant Bootloader::AutoClient::PackageAI
+# Did you mean?  Bootloader::AutoClient::Package
+#                Bootloader::AutoClient::PackageKit
+#                Packages
+#                Bootloader::AutoClient::PackageAI
+#                Packaging
+# uninitialized constant Bootloader::AutoClient::PackageCallbacks
+# Did you mean?  Bootloader::AutoClient::PackageCallbacks
+# uninitialized constant Bootloader::AutoClient::PackageKit
+# Did you mean?  Bootloader::AutoClient::PackageKit
+#                Bootloader::AutoClient::Package
+#                Packages
+#                Bootloader::AutoClient::PackageAI
+# uninitialized constant Bootloader::AutoClient::PackageLock
+# Did you mean?  Bootloader::AutoClient::PackageLock
+# uninitialized constant Bootloader::AutoClient::PackageSystem
+# Did you mean?  Bootloader::AutoClient::PackageSystem
+# uninitialized constant Bootloader::AutoClient::PackagesProposal
+# Did you mean?  Bootloader::AutoClient::PackagesProposal
+# uninitialized constant Bootloader::AutoClient::Popup
+# Did you mean?  Bootloader::AutoClient::Popup
+# uninitialized constant Bootloader::AutoClient::Product
+# Did you mean?  Bootloader::AutoClient::Product
+# uninitialized constant Bootloader::AutoClient::ProductControl
+# Did you mean?  Bootloader::AutoClient::ProductControl
+# uninitialized constant Bootloader::AutoClient::ProductFeatures
+# Did you mean?  Bootloader::AutoClient::ProductFeatures
+# uninitialized constant Bootloader::AutoClient::Profile
+# Did you mean?  Bootloader::AutoClient::Profile
+#                Bootloader::AutoClient::Profiler
+# uninitialized constant Bootloader::AutoClient::Progress
+# Did you mean?  Bootloader::AutoClient::Progress
+#                Process
+# uninitialized constant Bootloader::AutoClient::Report
+# Did you mean?  Bootloader::AutoClient::Report
+# uninitialized constant Bootloader::AutoClient::RichText
+# Did you mean?  Bootloader::AutoClient::RichText
+# uninitialized constant Bootloader::AutoClient::SLP
+# Did you mean?  Bootloader::AutoClient::SLP
+# uninitialized constant Bootloader::AutoClient::Sequencer
+# Did you mean?  Bootloader::AutoClient::Sequencer
+# uninitialized constant Bootloader::AutoClient::ServicesManagerTarget
+# Did you mean?  Bootloader::AutoClient::ServicesManagerTarget
+#                Bootloader::AutoClient::ServicesManagerTargetClass
+# uninitialized constant Bootloader::AutoClient::SignatureCheckCallbacks
+# Did you mean?  Bootloader::AutoClient::SignatureCheckCallbacks
+#                Bootloader::AutoClient::SignatureCheckCallbacksClass
+# uninitialized constant Bootloader::AutoClient::SignatureCheckDialogs
+# Did you mean?  Bootloader::AutoClient::SignatureCheckDialogs
+#                Bootloader::AutoClient::SignatureCheckDialogsClass
+# uninitialized constant Bootloader::AutoClient::Stage
+# Did you mean?  Bootloader::AutoClient::Stage
+#                Bootloader::Stage1
+#                Storage
+# uninitialized constant Bootloader::AutoClient::String
+# Did you mean?  Bootloader::AutoClient::String
+#                String
+#                StringIO
+#                STDIN
+# uninitialized constant Bootloader::AutoClient::Summary
+# Did you mean?  Bootloader::AutoClient::Summary
+# uninitialized constant Bootloader::AutoClient::SystemdTarget
+# Did you mean?  Bootloader::AutoClient::SystemdTarget
+# uninitialized constant Bootloader::AutoClient::TFTP
+# Did you mean?  Bootloader::AutoClient::TFTP
+# uninitialized constant Bootloader::AutoClient::TypeRepository
+# Did you mean?  Bootloader::AutoClient::TypeRepository
+# uninitialized constant Bootloader::AutoClient::UI_TERMS
+# Did you mean?  Bootloader::AutoClient::UI_TERMS
+# uninitialized constant Bootloader::AutoClient::URL
+# Did you mean?  Bootloader::AutoClient::URL
+#                URI
+# uninitialized constant Bootloader::AutoClient::URLRecode
+# Did you mean?  Bootloader::AutoClient::URLRecode
+# uninitialized constant Bootloader::AutoClient::Wizard
+# Did you mean?  Bootloader::AutoClient::Wizard
+# uninitialized constant Bootloader::AutoClient::XML
+# Did you mean?  Bootloader::AutoClient::XML
+# uninitialized constant Bootloader::BootCodeTab::DEFAULT_LOCALE
+# Did you mean?  Bootloader::BootCodeTab::DEFAULT_LOCALE
+# uninitialized constant Bootloader::BootCodeTab::LOCALE_DIR
+# Did you mean?  Bootloader::BootCodeTab::LOCALE_DIR
+# uninitialized constant Bootloader::BootCodeTab::UI_TERMS
+# Did you mean?  Bootloader::BootCodeTab::UI_TERMS
+# uninitialized constant Bootloader::BootloaderTab::DEFAULT_LOCALE
+# Did you mean?  Bootloader::BootloaderTab::DEFAULT_LOCALE
+# uninitialized constant Bootloader::BootloaderTab::LOCALE_DIR
+# Did you mean?  Bootloader::BootloaderTab::LOCALE_DIR
+# uninitialized constant Bootloader::BootloaderTab::UI_TERMS
+# Did you mean?  Bootloader::BootloaderTab::UI_TERMS
+# uninitialized constant Bootloader::ConsoleWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::ConsoleWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::ConsoleWidget::LOCALE_DIR
+# Did you mean?  Bootloader::ConsoleWidget::LOCALE_DIR
+# uninitialized constant Bootloader::ConsoleWidget::UI_TERMS
+# Did you mean?  Bootloader::ConsoleWidget::UI_TERMS
+# uninitialized constant Bootloader::CpuMitigationsWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::CpuMitigationsWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::CpuMitigationsWidget::LOCALE_DIR
+# Did you mean?  Bootloader::CpuMitigationsWidget::LOCALE_DIR
+# uninitialized constant Bootloader::CpuMitigationsWidget::UI_TERMS
+# Did you mean?  Bootloader::CpuMitigationsWidget::UI_TERMS
+# uninitialized constant Bootloader::DefaultSectionWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::DefaultSectionWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::DefaultSectionWidget::LOCALE_DIR
+# Did you mean?  Bootloader::DefaultSectionWidget::LOCALE_DIR
+# uninitialized constant Bootloader::DefaultSectionWidget::UI_TERMS
+# Did you mean?  Bootloader::DefaultSectionWidget::UI_TERMS
 # wrong constant name add_mapping
 # wrong constant name grub_device_for
 # wrong constant name grub_devices
 # wrong constant name remove_mapping
 # wrong constant name system_device_for
+# uninitialized constant Bootloader::DeviceMapWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::DeviceMapWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::DeviceMapWidget::LOCALE_DIR
+# Did you mean?  Bootloader::DeviceMapWidget::LOCALE_DIR
+# uninitialized constant Bootloader::DeviceMapWidget::UI_TERMS
+# Did you mean?  Bootloader::DeviceMapWidget::UI_TERMS
+# uninitialized constant Bootloader::FinishClient::Address
+# Did you mean?  Bootloader::FinishClient::Address
+# uninitialized constant Bootloader::FinishClient::Arch
+# Did you mean?  Bootloader::FinishClient::Arch
+# uninitialized constant Bootloader::FinishClient::AutoInstall
+# Did you mean?  Bootloader::FinishClient::AutoInstall
+# uninitialized constant Bootloader::FinishClient::AutoInstallRules
+# Did you mean?  Bootloader::FinishClient::AutoInstallRules
+#                Bootloader::FinishClient::AutoInstallClass
+# uninitialized constant Bootloader::FinishClient::AutoinstConfig
+# Did you mean?  Bootloader::FinishClient::AutoinstConfig
+# uninitialized constant Bootloader::FinishClient::AutoinstFunctions
+# Did you mean?  Bootloader::FinishClient::AutoinstFunctions
+#                Bootloader::FinishClient::AutoinstFunctionsClass
+# uninitialized constant Bootloader::FinishClient::BACKTRACE_REGEXP
+# Did you mean?  Bootloader::FinishClient::BACKTRACE_REGEXP
+# uninitialized constant Bootloader::FinishClient::BootArch
+# Did you mean?  Bootloader::FinishClient::BootArch
+# uninitialized constant Bootloader::FinishClient::BootStorage
+# Did you mean?  Bootloader::FinishClient::BootStorage
+# uninitialized constant Bootloader::FinishClient::BootSupportCheck
+# Did you mean?  Bootloader::FinishClient::BootSupportCheck
+# uninitialized constant Bootloader::FinishClient::Bootloader
+# Did you mean?  Bootloader::FinishClient::Bootloader
+#                Bootloader
+#                Bootloader::BootloaderTab
+# uninitialized constant Bootloader::FinishClient::CWM
+# Did you mean?  Bootloader::FinishClient::CWM
+#                CWM
+# uninitialized constant Bootloader::FinishClient::CWMTab
+# Did you mean?  Bootloader::FinishClient::CWMTab
+# uninitialized constant Bootloader::FinishClient::CommandLine
+# Did you mean?  Bootloader::FinishClient::CommandLine
+# uninitialized constant Bootloader::FinishClient::DEFAULT_LOCALE
+# Did you mean?  Bootloader::FinishClient::DEFAULT_LOCALE
+# uninitialized constant Bootloader::FinishClient::DebugHooks
+# Did you mean?  Bootloader::FinishClient::DebugHooks
+# uninitialized constant Bootloader::FinishClient::Desktop
+# Did you mean?  Bootloader::FinishClient::Desktop
+# uninitialized constant Bootloader::FinishClient::Directory
+# Did you mean?  Bootloader::FinishClient::Directory
+# uninitialized constant Bootloader::FinishClient::DontShowAgain
+# Did you mean?  Bootloader::FinishClient::DontShowAgain
+# uninitialized constant Bootloader::FinishClient::Encoding
+# Did you mean?  Bootloader::FinishClient::Encoding
+#                Encoding
+# uninitialized constant Bootloader::FinishClient::FileUtils
+# Did you mean?  Bootloader::FinishClient::FileUtils
+#                FileUtils
+# uninitialized constant Bootloader::FinishClient::GetInstArgs
+# Did you mean?  Bootloader::FinishClient::GetInstArgs
+# uninitialized constant Bootloader::FinishClient::HTML
+# Did you mean?  Bootloader::FinishClient::HTML
+# uninitialized constant Bootloader::FinishClient::Hooks
+# Did you mean?  Bootloader::FinishClient::Hooks
+# uninitialized constant Bootloader::FinishClient::Hostname
+# Did you mean?  Bootloader::FinishClient::Hostname
+# uninitialized constant Bootloader::FinishClient::IP
+# Did you mean?  Bootloader::FinishClient::IP
+# uninitialized constant Bootloader::FinishClient::Icon
+# Did you mean?  Bootloader::FinishClient::Icon
+# uninitialized constant Bootloader::FinishClient::Initrd
+# Did you mean?  Bootloader::FinishClient::Initrd
+# uninitialized constant Bootloader::FinishClient::InstExtensionImage
+# Did you mean?  Bootloader::FinishClient::InstExtensionImage
+#                Bootloader::FinishClient::InstExtensionImageClass
+# uninitialized constant Bootloader::FinishClient::Installation
+# Did you mean?  Bootloader::FinishClient::Installation
+#                Installation
+# uninitialized constant Bootloader::FinishClient::Integer
+# Did you mean?  Bootloader::FinishClient::Integer
+#                Integer
+# uninitialized constant Bootloader::FinishClient::Kernel
+# Did you mean?  Bootloader::FinishClient::Kernel
+#                Kernel
+# uninitialized constant Bootloader::FinishClient::LOCALE_DIR
+# Did you mean?  Bootloader::FinishClient::LOCALE_DIR
+# uninitialized constant Bootloader::FinishClient::Label
+# Did you mean?  Bootloader::FinishClient::Label
+# uninitialized constant Bootloader::FinishClient::Linuxrc
+# Did you mean?  Bootloader::FinishClient::Linuxrc
+# uninitialized constant Bootloader::FinishClient::Map
+# Did you mean?  Bootloader::FinishClient::Map
+# uninitialized constant Bootloader::FinishClient::Message
+# Did you mean?  Bootloader::FinishClient::Message
+# uninitialized constant Bootloader::FinishClient::Misc
+# Did you mean?  Bootloader::FinishClient::Misc
+# uninitialized constant Bootloader::FinishClient::Mode
+# Did you mean?  Bootloader::FinishClient::Mode
+# uninitialized constant Bootloader::FinishClient::Netmask
+# Did you mean?  Bootloader::FinishClient::Netmask
+# uninitialized constant Bootloader::FinishClient::OSRelease
+# Did you mean?  Bootloader::FinishClient::OSRelease
+# uninitialized constant Bootloader::FinishClient::Package
+# Did you mean?  Bootloader::FinishClient::Package
+#                Packages
+#                Bootloader::FinishClient::PackageAI
+# uninitialized constant Bootloader::FinishClient::PackageAI
+# Did you mean?  Bootloader::FinishClient::Package
+#                Bootloader::FinishClient::PackageKit
+#                Packages
+#                Bootloader::FinishClient::PackageAI
+#                Packaging
+# uninitialized constant Bootloader::FinishClient::PackageCallbacks
+# Did you mean?  Bootloader::FinishClient::PackageCallbacks
+# uninitialized constant Bootloader::FinishClient::PackageKit
+# Did you mean?  Bootloader::FinishClient::PackageKit
+#                Bootloader::FinishClient::Package
+#                Packages
+#                Bootloader::FinishClient::PackageAI
+# uninitialized constant Bootloader::FinishClient::PackageLock
+# Did you mean?  Bootloader::FinishClient::PackageLock
+# uninitialized constant Bootloader::FinishClient::PackageSystem
+# Did you mean?  Bootloader::FinishClient::PackageSystem
+# uninitialized constant Bootloader::FinishClient::PackagesProposal
+# Did you mean?  Bootloader::FinishClient::PackagesProposal
+# uninitialized constant Bootloader::FinishClient::Popup
+# Did you mean?  Bootloader::FinishClient::Popup
+# uninitialized constant Bootloader::FinishClient::Product
+# Did you mean?  Bootloader::FinishClient::Product
+# uninitialized constant Bootloader::FinishClient::ProductControl
+# Did you mean?  Bootloader::FinishClient::ProductControl
+# uninitialized constant Bootloader::FinishClient::ProductFeatures
+# Did you mean?  Bootloader::FinishClient::ProductFeatures
+# uninitialized constant Bootloader::FinishClient::Profile
+# Did you mean?  Bootloader::FinishClient::Profile
+#                Bootloader::FinishClient::Profiler
+# uninitialized constant Bootloader::FinishClient::Progress
+# Did you mean?  Bootloader::FinishClient::Progress
+#                Process
+# uninitialized constant Bootloader::FinishClient::Report
+# Did you mean?  Bootloader::FinishClient::Report
+# uninitialized constant Bootloader::FinishClient::RichText
+# Did you mean?  Bootloader::FinishClient::RichText
+# uninitialized constant Bootloader::FinishClient::SLP
+# Did you mean?  Bootloader::FinishClient::SLP
+# uninitialized constant Bootloader::FinishClient::Sequencer
+# Did you mean?  Bootloader::FinishClient::Sequencer
+# uninitialized constant Bootloader::FinishClient::ServicesManagerTarget
+# Did you mean?  Bootloader::FinishClient::ServicesManagerTarget
+#                Bootloader::FinishClient::ServicesManagerTargetClass
+# uninitialized constant Bootloader::FinishClient::SignatureCheckCallbacks
+# Did you mean?  Bootloader::FinishClient::SignatureCheckCallbacks
+#                Bootloader::FinishClient::SignatureCheckCallbacksClass
+# uninitialized constant Bootloader::FinishClient::SignatureCheckDialogs
+# Did you mean?  Bootloader::FinishClient::SignatureCheckDialogs
+#                Bootloader::FinishClient::SignatureCheckDialogsClass
+# uninitialized constant Bootloader::FinishClient::Stage
+# Did you mean?  Bootloader::FinishClient::Stage
+#                Bootloader::Stage1
+#                Storage
+# uninitialized constant Bootloader::FinishClient::String
+# Did you mean?  Bootloader::FinishClient::String
+#                String
+#                StringIO
+#                STDIN
+# uninitialized constant Bootloader::FinishClient::Summary
+# Did you mean?  Bootloader::FinishClient::Summary
+# uninitialized constant Bootloader::FinishClient::SystemdTarget
+# Did you mean?  Bootloader::FinishClient::SystemdTarget
+# uninitialized constant Bootloader::FinishClient::TFTP
+# Did you mean?  Bootloader::FinishClient::TFTP
+# uninitialized constant Bootloader::FinishClient::TypeRepository
+# Did you mean?  Bootloader::FinishClient::TypeRepository
+# uninitialized constant Bootloader::FinishClient::UI_TERMS
+# Did you mean?  Bootloader::FinishClient::UI_TERMS
+# uninitialized constant Bootloader::FinishClient::URL
+# Did you mean?  Bootloader::FinishClient::URL
+#                URI
+# uninitialized constant Bootloader::FinishClient::URLRecode
+# Did you mean?  Bootloader::FinishClient::URLRecode
+# uninitialized constant Bootloader::FinishClient::Wizard
+# Did you mean?  Bootloader::FinishClient::Wizard
+# uninitialized constant Bootloader::FinishClient::XML
+# Did you mean?  Bootloader::FinishClient::XML
+# uninitialized constant Bootloader::GenericMBRWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::GenericMBRWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::GenericMBRWidget::LOCALE_DIR
+# Did you mean?  Bootloader::GenericMBRWidget::LOCALE_DIR
+# uninitialized constant Bootloader::GenericMBRWidget::UI_TERMS
+# Did you mean?  Bootloader::GenericMBRWidget::UI_TERMS
+# uninitialized constant Bootloader::GrubPasswordWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::GrubPasswordWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::GrubPasswordWidget::LOCALE_DIR
+# Did you mean?  Bootloader::GrubPasswordWidget::LOCALE_DIR
+# uninitialized constant Bootloader::GrubPasswordWidget::UI_TERMS
+# Did you mean?  Bootloader::GrubPasswordWidget::UI_TERMS
+# uninitialized constant Bootloader::HiddenMenuWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::HiddenMenuWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::HiddenMenuWidget::LOCALE_DIR
+# Did you mean?  Bootloader::HiddenMenuWidget::LOCALE_DIR
+# uninitialized constant Bootloader::HiddenMenuWidget::UI_TERMS
+# Did you mean?  Bootloader::HiddenMenuWidget::UI_TERMS
+# uninitialized constant Bootloader::KernelAppendWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::KernelAppendWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::KernelAppendWidget::LOCALE_DIR
+# Did you mean?  Bootloader::KernelAppendWidget::LOCALE_DIR
+# uninitialized constant Bootloader::KernelAppendWidget::UI_TERMS
+# Did you mean?  Bootloader::KernelAppendWidget::UI_TERMS
+# uninitialized constant Bootloader::KernelTab::DEFAULT_LOCALE
+# Did you mean?  Bootloader::KernelTab::DEFAULT_LOCALE
+# uninitialized constant Bootloader::KernelTab::LOCALE_DIR
+# Did you mean?  Bootloader::KernelTab::LOCALE_DIR
+# uninitialized constant Bootloader::KernelTab::UI_TERMS
+# Did you mean?  Bootloader::KernelTab::UI_TERMS
+# uninitialized constant Bootloader::LoaderLocationWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::LoaderLocationWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::LoaderLocationWidget::LOCALE_DIR
+# Did you mean?  Bootloader::LoaderLocationWidget::LOCALE_DIR
+# uninitialized constant Bootloader::LoaderLocationWidget::UI_TERMS
+# Did you mean?  Bootloader::LoaderLocationWidget::UI_TERMS
+# uninitialized constant Bootloader::LoaderTypeWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::LoaderTypeWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::LoaderTypeWidget::LOCALE_DIR
+# Did you mean?  Bootloader::LoaderTypeWidget::LOCALE_DIR
+# uninitialized constant Bootloader::LoaderTypeWidget::UI_TERMS
+# Did you mean?  Bootloader::LoaderTypeWidget::UI_TERMS
+# uninitialized constant Bootloader::OSProberWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::OSProberWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::OSProberWidget::LOCALE_DIR
+# Did you mean?  Bootloader::OSProberWidget::LOCALE_DIR
+# uninitialized constant Bootloader::OSProberWidget::UI_TERMS
+# Did you mean?  Bootloader::OSProberWidget::UI_TERMS
+# uninitialized constant Bootloader::PMBRWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::PMBRWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::PMBRWidget::LOCALE_DIR
+# Did you mean?  Bootloader::PMBRWidget::LOCALE_DIR
+# uninitialized constant Bootloader::PMBRWidget::UI_TERMS
+# Did you mean?  Bootloader::PMBRWidget::UI_TERMS
+# uninitialized constant Bootloader::ProposalClient::Address
+# Did you mean?  Bootloader::ProposalClient::Address
+# uninitialized constant Bootloader::ProposalClient::Arch
+# Did you mean?  Bootloader::ProposalClient::Arch
+# uninitialized constant Bootloader::ProposalClient::AutoInstall
+# Did you mean?  Bootloader::ProposalClient::AutoInstall
+# uninitialized constant Bootloader::ProposalClient::AutoInstallRules
+# Did you mean?  Bootloader::ProposalClient::AutoInstallRules
+#                Bootloader::ProposalClient::AutoInstallClass
+# uninitialized constant Bootloader::ProposalClient::AutoinstConfig
+# Did you mean?  Bootloader::ProposalClient::AutoinstConfig
+# uninitialized constant Bootloader::ProposalClient::AutoinstFunctions
+# Did you mean?  Bootloader::ProposalClient::AutoinstFunctions
+#                Bootloader::ProposalClient::AutoinstFunctionsClass
+# uninitialized constant Bootloader::ProposalClient::BACKTRACE_REGEXP
+# Did you mean?  Bootloader::ProposalClient::BACKTRACE_REGEXP
+# uninitialized constant Bootloader::ProposalClient::BootArch
+# Did you mean?  Bootloader::ProposalClient::BootArch
+# uninitialized constant Bootloader::ProposalClient::BootStorage
+# Did you mean?  Bootloader::ProposalClient::BootStorage
+# uninitialized constant Bootloader::ProposalClient::BootSupportCheck
+# Did you mean?  Bootloader::ProposalClient::BootSupportCheck
+# uninitialized constant Bootloader::ProposalClient::Bootloader
+# Did you mean?  Bootloader::ProposalClient::Bootloader
+#                Bootloader
+#                Bootloader::BootloaderTab
+# uninitialized constant Bootloader::ProposalClient::CWM
+# Did you mean?  Bootloader::ProposalClient::CWM
+#                CWM
+# uninitialized constant Bootloader::ProposalClient::CWMTab
+# Did you mean?  Bootloader::ProposalClient::CWMTab
+# uninitialized constant Bootloader::ProposalClient::CommandLine
+# Did you mean?  Bootloader::ProposalClient::CommandLine
+# uninitialized constant Bootloader::ProposalClient::DEFAULT_LOCALE
+# Did you mean?  Bootloader::ProposalClient::DEFAULT_LOCALE
+# uninitialized constant Bootloader::ProposalClient::DebugHooks
+# Did you mean?  Bootloader::ProposalClient::DebugHooks
+# uninitialized constant Bootloader::ProposalClient::Desktop
+# Did you mean?  Bootloader::ProposalClient::Desktop
+# uninitialized constant Bootloader::ProposalClient::Directory
+# Did you mean?  Bootloader::ProposalClient::Directory
+# uninitialized constant Bootloader::ProposalClient::DontShowAgain
+# Did you mean?  Bootloader::ProposalClient::DontShowAgain
+# uninitialized constant Bootloader::ProposalClient::Encoding
+# Did you mean?  Bootloader::ProposalClient::Encoding
+#                Encoding
+# uninitialized constant Bootloader::ProposalClient::FileUtils
+# Did you mean?  Bootloader::ProposalClient::FileUtils
+#                FileUtils
+# uninitialized constant Bootloader::ProposalClient::GetInstArgs
+# Did you mean?  Bootloader::ProposalClient::GetInstArgs
+# uninitialized constant Bootloader::ProposalClient::HTML
+# Did you mean?  Bootloader::ProposalClient::HTML
+# uninitialized constant Bootloader::ProposalClient::Hooks
+# Did you mean?  Bootloader::ProposalClient::Hooks
+# uninitialized constant Bootloader::ProposalClient::Hostname
+# Did you mean?  Bootloader::ProposalClient::Hostname
+# uninitialized constant Bootloader::ProposalClient::IP
+# Did you mean?  Bootloader::ProposalClient::IP
+# uninitialized constant Bootloader::ProposalClient::Icon
+# Did you mean?  Bootloader::ProposalClient::Icon
+# uninitialized constant Bootloader::ProposalClient::Initrd
+# Did you mean?  Bootloader::ProposalClient::Initrd
+# uninitialized constant Bootloader::ProposalClient::InstExtensionImage
+# Did you mean?  Bootloader::ProposalClient::InstExtensionImage
+#                Bootloader::ProposalClient::InstExtensionImageClass
+# uninitialized constant Bootloader::ProposalClient::Installation
+# Did you mean?  Bootloader::ProposalClient::Installation
+#                Installation
+# uninitialized constant Bootloader::ProposalClient::Integer
+# Did you mean?  Bootloader::ProposalClient::Integer
+#                Integer
+# uninitialized constant Bootloader::ProposalClient::Kernel
+# Did you mean?  Bootloader::ProposalClient::Kernel
+#                Kernel
+# uninitialized constant Bootloader::ProposalClient::LOCALE_DIR
+# Did you mean?  Bootloader::ProposalClient::LOCALE_DIR
+# uninitialized constant Bootloader::ProposalClient::Label
+# Did you mean?  Bootloader::ProposalClient::Label
+# uninitialized constant Bootloader::ProposalClient::Linuxrc
+# Did you mean?  Bootloader::ProposalClient::Linuxrc
+# uninitialized constant Bootloader::ProposalClient::Map
+# Did you mean?  Bootloader::ProposalClient::Map
+# uninitialized constant Bootloader::ProposalClient::Message
+# Did you mean?  Bootloader::ProposalClient::Message
+# uninitialized constant Bootloader::ProposalClient::Misc
+# Did you mean?  Bootloader::ProposalClient::Misc
+# uninitialized constant Bootloader::ProposalClient::Mode
+# Did you mean?  Bootloader::ProposalClient::Mode
+# uninitialized constant Bootloader::ProposalClient::Netmask
+# Did you mean?  Bootloader::ProposalClient::Netmask
+# uninitialized constant Bootloader::ProposalClient::OSRelease
+# Did you mean?  Bootloader::ProposalClient::OSRelease
+# uninitialized constant Bootloader::ProposalClient::Package
+# Did you mean?  Bootloader::ProposalClient::Package
+#                Packages
+#                Bootloader::ProposalClient::PackageAI
+# uninitialized constant Bootloader::ProposalClient::PackageAI
+# Did you mean?  Bootloader::ProposalClient::Package
+#                Bootloader::ProposalClient::PackageKit
+#                Packages
+#                Bootloader::ProposalClient::PackageAI
+#                Packaging
+# uninitialized constant Bootloader::ProposalClient::PackageCallbacks
+# Did you mean?  Bootloader::ProposalClient::PackageCallbacks
+# uninitialized constant Bootloader::ProposalClient::PackageKit
+# Did you mean?  Bootloader::ProposalClient::PackageKit
+#                Bootloader::ProposalClient::Package
+#                Packages
+#                Bootloader::ProposalClient::PackageAI
+# uninitialized constant Bootloader::ProposalClient::PackageLock
+# Did you mean?  Bootloader::ProposalClient::PackageLock
+# uninitialized constant Bootloader::ProposalClient::PackageSystem
+# Did you mean?  Bootloader::ProposalClient::PackageSystem
+# uninitialized constant Bootloader::ProposalClient::PackagesProposal
+# Did you mean?  Bootloader::ProposalClient::PackagesProposal
+# uninitialized constant Bootloader::ProposalClient::Popup
+# Did you mean?  Bootloader::ProposalClient::Popup
+# uninitialized constant Bootloader::ProposalClient::Product
+# Did you mean?  Bootloader::ProposalClient::Product
+# uninitialized constant Bootloader::ProposalClient::ProductControl
+# Did you mean?  Bootloader::ProposalClient::ProductControl
+# uninitialized constant Bootloader::ProposalClient::ProductFeatures
+# Did you mean?  Bootloader::ProposalClient::ProductFeatures
+# uninitialized constant Bootloader::ProposalClient::Profile
+# Did you mean?  Bootloader::ProposalClient::Profile
+#                Bootloader::ProposalClient::Profiler
+# uninitialized constant Bootloader::ProposalClient::Progress
+# Did you mean?  Bootloader::ProposalClient::Progress
+#                Process
+# uninitialized constant Bootloader::ProposalClient::Report
+# Did you mean?  Bootloader::ProposalClient::Report
+# uninitialized constant Bootloader::ProposalClient::RichText
+# Did you mean?  Bootloader::ProposalClient::RichText
+# uninitialized constant Bootloader::ProposalClient::SLP
+# Did you mean?  Bootloader::ProposalClient::SLP
+# uninitialized constant Bootloader::ProposalClient::Sequencer
+# Did you mean?  Bootloader::ProposalClient::Sequencer
+# uninitialized constant Bootloader::ProposalClient::ServicesManagerTarget
+# Did you mean?  Bootloader::ProposalClient::ServicesManagerTarget
+#                Bootloader::ProposalClient::ServicesManagerTargetClass
+# uninitialized constant Bootloader::ProposalClient::SignatureCheckCallbacks
+# Did you mean?  Bootloader::ProposalClient::SignatureCheckCallbacks
+#                Bootloader::ProposalClient::SignatureCheckCallbacksClass
+# uninitialized constant Bootloader::ProposalClient::SignatureCheckDialogs
+# Did you mean?  Bootloader::ProposalClient::SignatureCheckDialogs
+#                Bootloader::ProposalClient::SignatureCheckDialogsClass
+# uninitialized constant Bootloader::ProposalClient::Stage
+# Did you mean?  Bootloader::ProposalClient::Stage
+#                Bootloader::Stage1
+#                Storage
+# uninitialized constant Bootloader::ProposalClient::String
+# Did you mean?  Bootloader::ProposalClient::String
+#                String
+#                StringIO
+#                STDIN
+# uninitialized constant Bootloader::ProposalClient::Summary
+# Did you mean?  Bootloader::ProposalClient::Summary
+# uninitialized constant Bootloader::ProposalClient::SystemdTarget
+# Did you mean?  Bootloader::ProposalClient::SystemdTarget
+# uninitialized constant Bootloader::ProposalClient::TFTP
+# Did you mean?  Bootloader::ProposalClient::TFTP
+# uninitialized constant Bootloader::ProposalClient::TypeRepository
+# Did you mean?  Bootloader::ProposalClient::TypeRepository
+# uninitialized constant Bootloader::ProposalClient::UI_TERMS
+# Did you mean?  Bootloader::ProposalClient::UI_TERMS
+# uninitialized constant Bootloader::ProposalClient::URL
+# Did you mean?  Bootloader::ProposalClient::URL
+#                URI
+# uninitialized constant Bootloader::ProposalClient::URLRecode
+# Did you mean?  Bootloader::ProposalClient::URLRecode
+# uninitialized constant Bootloader::ProposalClient::Wizard
+# Did you mean?  Bootloader::ProposalClient::Wizard
+# uninitialized constant Bootloader::ProposalClient::XML
+# Did you mean?  Bootloader::ProposalClient::XML
+# uninitialized constant Bootloader::SecureBootWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::SecureBootWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::SecureBootWidget::LOCALE_DIR
+# Did you mean?  Bootloader::SecureBootWidget::LOCALE_DIR
+# uninitialized constant Bootloader::SecureBootWidget::UI_TERMS
+# Did you mean?  Bootloader::SecureBootWidget::UI_TERMS
 # wrong constant name activate=
 # wrong constant name activate?
 # wrong constant name add_device
 # wrong constant name devices
 # wrong constant name generic_mbr=
 # wrong constant name generic_mbr?
+# uninitialized constant Bootloader::TimeoutWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::TimeoutWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::TimeoutWidget::LOCALE_DIR
+# Did you mean?  Bootloader::TimeoutWidget::LOCALE_DIR
+# uninitialized constant Bootloader::TimeoutWidget::UI_TERMS
+# Did you mean?  Bootloader::TimeoutWidget::UI_TERMS
+# uninitialized constant Bootloader::TrustedBootWidget::DEFAULT_LOCALE
+# Did you mean?  Bootloader::TrustedBootWidget::DEFAULT_LOCALE
+# uninitialized constant Bootloader::TrustedBootWidget::LOCALE_DIR
+# Did you mean?  Bootloader::TrustedBootWidget::LOCALE_DIR
+# uninitialized constant Bootloader::TrustedBootWidget::UI_TERMS
+# Did you mean?  Bootloader::TrustedBootWidget::UI_TERMS
 # wrong constant name instance
 # wrong constant name to_kernel_device
 # wrong constant name to_mountby_device
@@ -663,13 +1323,6 @@
 # wrong constant name empty?
 # wrong constant name for
 # wrong constant name for_many
-# wrong constant name <Class:HtmlExtension>
-# uninitialized constant CGI::RFC822_DAYS
-# Did you mean?  CGI::RFC822_DAYS
-# uninitialized constant CGI::RFC822_MONTHS
-# Did you mean?  CGI::RFC822_MONTHS
-# uninitialized constant CGI::TABLE_FOR_ESCAPE_HTML__
-# Did you mean?  CGI::TABLE_FOR_ESCAPE_HTML__
 # wrong constant name a
 # wrong constant name base
 # wrong constant name blockquote
@@ -695,6 +1348,37 @@
 # wrong constant name <static-init>
 # uninitialized constant CSV
 # uninitialized constant CSV
+# wrong constant name <Class:AbstractWidget>
+# wrong constant name <Class:CheckBox>
+# wrong constant name <Class:ComboBox>
+# wrong constant name <Class:CustomWidget>
+# wrong constant name <Class:DumbTabPager>
+# wrong constant name <Class:Empty>
+# wrong constant name <Class:InputField>
+# wrong constant name <Class:IntField>
+# wrong constant name <Class:ItemsSelection>
+# wrong constant name <Class:MenuButton>
+# wrong constant name <Class:MultiLineEdit>
+# wrong constant name <Class:MultiSelectionBox>
+# wrong constant name <Class:Page>
+# wrong constant name <Class:Pager>
+# wrong constant name <Class:Password>
+# wrong constant name <Class:PushButton>
+# wrong constant name <Class:PushButtonTabPager>
+# wrong constant name <Class:RadioButtons>
+# wrong constant name <Class:ReplacePoint>
+# wrong constant name <Class:RichText>
+# wrong constant name <Class:SelectionBox>
+# wrong constant name <Class:StringTerm>
+# wrong constant name <Class:Table>
+# wrong constant name <Class:Tabs>
+# wrong constant name <Class:Tree>
+# wrong constant name <Class:TreeItem>
+# wrong constant name <Class:UITerm>
+# wrong constant name <Class:ValueBasedWidget>
+# wrong constant name <Class:WidgetHash>
+# wrong constant name <Class:WidgetTerm>
+# wrong constant name <Class:WrapperWidget>
 # uninitialized constant CWM::AbstractWidget::DEFAULT_LOCALE
 # Did you mean?  CWM::AbstractWidget::DEFAULT_LOCALE
 # uninitialized constant CWM::AbstractWidget::LOCALE_DIR
@@ -877,6 +1561,7 @@
 #                CWM::PushButton::UI_TERMS
 # wrong constant name label
 # wrong constant name widget_type
+# wrong constant name <static-init>
 # uninitialized constant CWM::PushButtonTabPager::DEFAULT_LOCALE
 # Did you mean?  CWM::PushButtonTabPager::DEFAULT_LOCALE
 # uninitialized constant CWM::PushButtonTabPager::LOCALE_DIR
@@ -1088,9 +1773,6 @@
 # wrong constant name name
 # wrong constant name formatter
 # wrong constant name formatter=
-# undefined method `initialize$1' for class `Dir'
-# Did you mean?  initialize
-# wrong constant name initialize$1
 # undefined singleton method `[]$2' for `Dir'
 # undefined singleton method `chdir$2' for `Dir'
 # undefined singleton method `entries$1' for `Dir'
@@ -1201,21 +1883,12 @@
 # wrong constant name to_set
 # wrong constant name uniq
 # wrong constant name zip
-# undefined method `each$2' for class `Enumerator'
-# undefined method `initialize$2' for class `Enumerator'
-# Did you mean?  initialize
-# undefined method `with_index$2' for class `Enumerator'
-# wrong constant name each$2
-# wrong constant name initialize$2
-# wrong constant name with_index$2
 # wrong constant name each
 # wrong constant name initialize
 # wrong constant name chunk
 # wrong constant name chunk_while
 # wrong constant name force
 # wrong constant name slice_when
-# wrong constant name <<
-# wrong constant name yield
 # wrong constant name EWOULDBLOCK$1
 # wrong constant name EWOULDBLOCK$1
 # wrong constant name gid
@@ -1483,8 +2156,6 @@
 # wrong constant name <Class:DefaultUserInteraction>
 # wrong constant name <Class:DependencyInstaller>
 # wrong constant name <Class:DependencyList>
-# wrong constant name DependencyResolver$1
-# wrong constant name <Class:DependencyResolver>
 # wrong constant name <Class:Ext>
 # wrong constant name <Class:Installer>
 # wrong constant name <Class:Licenses>
@@ -1739,7 +2410,6 @@
 # wrong constant name conflict
 # wrong constant name conflicting_dependencies
 # wrong constant name initialize
-# wrong constant name <Class:Molinillo>
 # wrong constant name deprecate
 # wrong constant name skip
 # wrong constant name skip=
@@ -3456,6 +4126,9 @@
 # wrong constant name <static-init>
 # wrong constant name new_ntoh
 # wrong constant name ntop
+# wrong constant name <Class:AutoClient>
+# wrong constant name <Class:FinishClient>
+# wrong constant name <Class:ProposalClient>
 # uninitialized constant Installation::AutoClient::Address
 # Did you mean?  Installation::AutoClient::Address
 # uninitialized constant Installation::AutoClient::Arch
@@ -3640,6 +4313,7 @@
 # wrong constant name run
 # wrong constant name summary
 # wrong constant name write
+# wrong constant name <static-init>
 # wrong constant name run
 # uninitialized constant Installation::FinishClient::Address
 # Did you mean?  Installation::FinishClient::Address
@@ -3820,6 +4494,7 @@
 # wrong constant name steps
 # wrong constant name title
 # wrong constant name write
+# wrong constant name <static-init>
 # wrong constant name run
 # uninitialized constant Installation::ProposalClient::Address
 # Did you mean?  Installation::ProposalClient::Address
@@ -3999,6 +4674,7 @@
 # wrong constant name make_proposal
 # wrong constant name run
 # wrong constant name write
+# wrong constant name <static-init>
 # wrong constant name run
 # wrong constant name <static-init>
 # undefined method `chr$2' for class `Integer'
@@ -4134,7 +4810,6 @@
 #                singleton_method
 # undefined method `to_enum$2' for module `Kernel'
 # Did you mean?  to_enum
-# wrong constant name class
 # wrong constant name clone$1
 # wrong constant name define_singleton_method$2
 # wrong constant name display$1
@@ -5435,7 +6110,7 @@
 # wrong constant name <static-init>
 # wrong constant name worse_than?
 # wrong constant name +
-# uninitialized constant #<Class:0x0000000006839d60>::Elem
+# uninitialized constant #<Class:0x000000000519b450>::Elem
 # wrong constant name candidate?
 # wrong constant name ideal?
 # wrong constant name indeterminate_actual_indexes
@@ -5878,11 +6553,6 @@
 # Did you mean?  Rake::Version
 #                Rake::TaskLib::VERSION
 #                Rake::VERSION
-# undefined method `initialize$1' for class `Random'
-# Did you mean?  initialize
-# uninitialized constant Random::ALPHANUMERIC
-# Did you mean?  Random::ALPHANUMERIC
-# wrong constant name initialize$1
 # undefined method `rand$2' for module `Random::Formatter'
 # Did you mean?  rand
 # undefined method `random_number$2' for module `Random::Formatter'
@@ -5890,13 +6560,6 @@
 # wrong constant name rand$2
 # wrong constant name random_number$2
 # wrong constant name urandom
-# undefined method `initialize$1' for class `Range'
-# Did you mean?  initialize
-# undefined method `last$2' for class `Range'
-# undefined method `step$2' for class `Range'
-# wrong constant name initialize$1
-# wrong constant name last$2
-# wrong constant name step$2
 # wrong constant name expand
 # wrong constant name ruby
 # undefined method `initialize$2' for class `Regexp'
@@ -7016,9 +7679,11 @@
 # wrong constant name output_file
 # wrong constant name paths_for_gem_version
 # wrong constant name paths_for_ruby_version
-# wrong constant name paths_within_gem_sources
-# wrong constant name serialize_rbi_list
 # wrong constant name vendor_rbis_within_paths
+# wrong constant name <static-init>
+# wrong constant name main
+# wrong constant name output_file
+# wrong constant name paths_within_gem_sources
 # wrong constant name <Class:ClassDefinition>
 # wrong constant name <Class:TracepointSerializer>
 # wrong constant name <Class:Tracer>
@@ -7034,15 +7699,6 @@
 # wrong constant name members
 # wrong constant name initialize
 # wrong constant name serialize
-# wrong constant name <static-init>
-# wrong constant name <Class:ClassOverride>
-# wrong constant name <Class:ModuleOverride>
-# wrong constant name <Class:ObjectOverride>
-# wrong constant name new
-# wrong constant name <static-init>
-# wrong constant name include
-# wrong constant name <static-init>
-# wrong constant name extend
 # wrong constant name <static-init>
 # wrong constant name <static-init>
 # wrong constant name add_to_context
@@ -7069,17 +7725,13 @@
 # wrong constant name capture_stderr
 # wrong constant name constant_cache
 # wrong constant name gen_source_rbi
-# wrong constant name hidden_diff
-# wrong constant name hidden_json
-# wrong constant name hidden_rbi
-# wrong constant name hidden_splits
 # wrong constant name looks_like_stub_name
 # wrong constant name main
-# wrong constant name mkdir
+# wrong constant name mk_dir
 # wrong constant name read_constants
 # wrong constant name real_name
-# wrong constant name remove_temp_files
 # wrong constant name require_everything
+# wrong constant name rm_dir
 # wrong constant name serialize_alias
 # wrong constant name serialize_class
 # wrong constant name serialize_constants
@@ -10941,11 +11593,11 @@
 # wrong constant name T.noreturn
 # wrong constant name T.noreturn
 # wrong constant name T.untyped
-# undefined method `initialize$2' for class `Tempfile'
+# undefined method `initialize$1' for class `Tempfile'
 # Did you mean?  initialize
 # wrong constant name <Class:Remover>
 # wrong constant name _close
-# wrong constant name initialize$2
+# wrong constant name initialize$1
 # wrong constant name inspect
 # wrong constant name call
 # wrong constant name initialize
@@ -11028,15 +11680,6 @@
 # wrong constant name enclose
 # wrong constant name enclosed?
 # wrong constant name list
-# undefined method `getlocal$1' for class `Time'
-# undefined method `initialize$1' for class `Time'
-# Did you mean?  initialize
-# undefined method `localtime$1' for class `Time'
-# undefined method `round$1' for class `Time'
-# wrong constant name getlocal$1
-# wrong constant name initialize$1
-# wrong constant name localtime$1
-# wrong constant name round$1
 # undefined singleton method `at$2' for `Time'
 # undefined singleton method `gm$1' for `Time'
 # undefined singleton method `local$1' for `Time'
@@ -11845,6 +12488,7 @@
 # wrong constant name udev_paths
 # wrong constant name usable_as_blk_device?
 # wrong constant name vendor
+# wrong constant name <static-init>
 # wrong constant name all
 # wrong constant name find_by_any_name
 # wrong constant name find_by_name
@@ -14319,6 +14963,7 @@
 # wrong constant name update_sysconfig
 # wrong constant name write
 # wrong constant name <static-init>
+# wrong constant name <static-init>
 # wrong constant name create_instance
 # wrong constant name create_test_instance
 # wrong constant name instance
@@ -14622,14 +15267,13 @@
 # wrong constant name <Class:CWMClass>
 # wrong constant name <Class:CWMTabClass>
 # wrong constant name <Class:CommandLineClass>
-# wrong constant name <Class:Convert>
 # wrong constant name <Class:DebugHooksClass>
 # wrong constant name <Class:Debugger>
 # wrong constant name <Class:DesktopClass>
 # wrong constant name <Class:DirectoryClass>
 # wrong constant name <Class:DontShowAgainClass>
 # wrong constant name <Class:EncodingClass>
-# wrong constant name <Class:Exportable>
+# wrong constant name <Class:Execute>
 # wrong constant name <Class:External>
 # wrong constant name <Class:FileUtilsClass>
 # wrong constant name <Class:FunRef>
@@ -14650,11 +15294,9 @@
 # wrong constant name <Class:MessageClass>
 # wrong constant name <Class:MiscClass>
 # wrong constant name <Class:ModeClass>
-# wrong constant name <Class:Module>
 # wrong constant name <Class:NetmaskClass>
 # wrong constant name <Class:OSReleaseClass>
 # wrong constant name <Class:OSReleaseFileMissingError>
-# wrong constant name <Class:Ops>
 # wrong constant name <Class:PackageAIClass>
 # wrong constant name <Class:PackageCallbacksClass>
 # wrong constant name <Class:PackageClass>
@@ -16800,9 +17442,6 @@
 # uninitialized constant Yast::BootloaderClass::Address
 # Did you mean?  Yast::BootloaderClass::Address
 #                Yast::Address
-# uninitialized constant Yast::BootloaderClass::Arch
-# Did you mean?  Yast::BootloaderClass::Arch
-#                Yast::Arch
 # uninitialized constant Yast::BootloaderClass::AutoInstall
 # Did you mean?  Yast::BootloaderClass::AutoInstall
 #                Yast::AutoInstall
@@ -16885,9 +17524,6 @@
 # uninitialized constant Yast::BootloaderClass::Icon
 # Did you mean?  Yast::BootloaderClass::Icon
 #                Yast::Icon
-# uninitialized constant Yast::BootloaderClass::Initrd
-# Did you mean?  Yast::BootloaderClass::Initrd
-#                Yast::Initrd
 # uninitialized constant Yast::BootloaderClass::InstExtensionImage
 # Did you mean?  Yast::BootloaderClass::InstExtensionImage
 #                Yast::InstExtensionImage
@@ -16922,9 +17558,6 @@
 # uninitialized constant Yast::BootloaderClass::Misc
 # Did you mean?  Yast::BootloaderClass::Misc
 #                Yast::Misc
-# uninitialized constant Yast::BootloaderClass::Mode
-# Did you mean?  Yast::BootloaderClass::Mode
-#                Yast::Mode
 # uninitialized constant Yast::BootloaderClass::Netmask
 # Did you mean?  Yast::BootloaderClass::Netmask
 #                Yast::Netmask
@@ -16983,10 +17616,6 @@
 #                Yast::Profile
 #                Yast::BootloaderClass::Profiler
 #                Yast::Profiler
-# uninitialized constant Yast::BootloaderClass::Progress
-# Did you mean?  Yast::BootloaderClass::Progress
-#                Yast::Progress
-#                Process
 # uninitialized constant Yast::BootloaderClass::Report
 # Did you mean?  Yast::BootloaderClass::Report
 #                Yast::Report
@@ -17014,10 +17643,6 @@
 #                Yast::SignatureCheckDialogs
 #                Yast::BootloaderClass::SignatureCheckDialogsClass
 #                Yast::SignatureCheckDialogsClass
-# uninitialized constant Yast::BootloaderClass::Stage
-# Did you mean?  Yast::BootloaderClass::Stage
-#                Yast::Stage
-#                Storage
 # uninitialized constant Yast::BootloaderClass::String
 # Did you mean?  Yast::BootloaderClass::String
 #                Yast::String
@@ -17077,20 +17702,16 @@
 # wrong constant name add
 # wrong constant name argsof
 # wrong constant name change
-# wrong constant name contains
 # wrong constant name crypt
 # wrong constant name cryptblowfish
 # wrong constant name cryptmd5
 # wrong constant name cryptsha256
 # wrong constant name cryptsha512
-# wrong constant name deletechars
 # wrong constant name dgettext
 # wrong constant name dngettext
 # wrong constant name dpgettext
 # wrong constant name eval
-# wrong constant name filter
 # wrong constant name filterchars
-# wrong constant name find
 # wrong constant name findfirstnotof
 # wrong constant name findfirstof
 # wrong constant name findlastnotof
@@ -17123,15 +17744,12 @@
 # wrong constant name setenv
 # wrong constant name sformat
 # wrong constant name shift_frame_number
-# wrong constant name size
 # wrong constant name sleep
 # wrong constant name sort
-# wrong constant name splitstring
 # wrong constant name srandom
 # wrong constant name strftime
 # wrong constant name strftime_wrapper
 # wrong constant name sublist
-# wrong constant name substring
 # wrong constant name symbolof
 # wrong constant name time
 # wrong constant name timestring
@@ -17150,10 +17768,7 @@
 # wrong constant name toterm
 # wrong constant name toupper
 # wrong constant name union
-# wrong constant name y2debug
-# wrong constant name y2error
 # wrong constant name y2internal
-# wrong constant name y2milestone
 # wrong constant name y2security
 # wrong constant name y2useritem
 # wrong constant name y2usernote
@@ -17736,260 +18351,6 @@
 # wrong constant name handleDebug
 # wrong constant name main
 # wrong constant name <static-init>
-# uninitialized constant Yast::Client::Address
-# Did you mean?  Yast::Client::Address
-#                Yast::Address
-# uninitialized constant Yast::Client::Arch
-# Did you mean?  Yast::Client::Arch
-#                Yast::Arch
-# uninitialized constant Yast::Client::AutoInstall
-# Did you mean?  Yast::Client::AutoInstall
-#                Yast::AutoInstall
-# uninitialized constant Yast::Client::AutoInstallRules
-# Did you mean?  Yast::Client::AutoInstallRules
-#                Yast::AutoInstallRules
-#                Yast::Client::AutoInstallClass
-#                Yast::AutoInstallClass
-# uninitialized constant Yast::Client::AutoinstConfig
-# Did you mean?  Yast::Client::AutoinstConfig
-#                Yast::AutoinstConfig
-# uninitialized constant Yast::Client::AutoinstFunctions
-# Did you mean?  Yast::Client::AutoinstFunctions
-#                Yast::AutoinstFunctions
-#                Yast::Client::AutoinstFunctionsClass
-#                Yast::AutoinstFunctionsClass
-# uninitialized constant Yast::Client::BACKTRACE_REGEXP
-# Did you mean?  Yast::Client::BACKTRACE_REGEXP
-#                Yast::BACKTRACE_REGEXP
-# uninitialized constant Yast::Client::BootArch
-# Did you mean?  Yast::Client::BootArch
-#                Yast::BootArch
-# uninitialized constant Yast::Client::BootStorage
-# Did you mean?  Yast::Client::BootStorage
-#                Yast::BootStorage
-# uninitialized constant Yast::Client::BootSupportCheck
-# Did you mean?  Yast::Client::BootSupportCheck
-#                Yast::BootSupportCheck
-# uninitialized constant Yast::Client::Bootloader
-# Did you mean?  Yast::Client::Bootloader
-#                Yast::Bootloader
-#                Bootloader
-# uninitialized constant Yast::Client::CWM
-# Did you mean?  Yast::Client::CWM
-#                Yast::CWM
-#                CWM
-# uninitialized constant Yast::Client::CWMTab
-# Did you mean?  Yast::Client::CWMTab
-#                Yast::CWMTab
-# uninitialized constant Yast::Client::CommandLine
-# Did you mean?  Yast::Client::CommandLine
-#                Yast::CommandLine
-# uninitialized constant Yast::Client::DEFAULT_LOCALE
-# Did you mean?  Yast::Client::DEFAULT_LOCALE
-# uninitialized constant Yast::Client::DebugHooks
-# Did you mean?  Yast::Client::DebugHooks
-#                Yast::DebugHooks
-# uninitialized constant Yast::Client::Desktop
-# Did you mean?  Yast::Client::Desktop
-#                Yast::Desktop
-# uninitialized constant Yast::Client::Directory
-# Did you mean?  Yast::Client::Directory
-#                Yast::Directory
-# uninitialized constant Yast::Client::DontShowAgain
-# Did you mean?  Yast::Client::DontShowAgain
-#                Yast::DontShowAgain
-# uninitialized constant Yast::Client::Encoding
-# Did you mean?  Yast::Client::Encoding
-#                Yast::Encoding
-#                Encoding
-# uninitialized constant Yast::Client::FileUtils
-# Did you mean?  Yast::Client::FileUtils
-#                Yast::FileUtils
-#                FileUtils
-# uninitialized constant Yast::Client::GetInstArgs
-# Did you mean?  Yast::Client::GetInstArgs
-#                Yast::GetInstArgs
-# uninitialized constant Yast::Client::HTML
-# Did you mean?  Yast::Client::HTML
-#                Yast::HTML
-# uninitialized constant Yast::Client::Hooks
-# Did you mean?  Yast::Client::Hooks
-#                Yast::Hooks
-# uninitialized constant Yast::Client::Hostname
-# Did you mean?  Yast::Client::Hostname
-#                Yast::Hostname
-# uninitialized constant Yast::Client::IP
-# Did you mean?  Yast::Client::IP
-#                Yast::IP
-# uninitialized constant Yast::Client::Icon
-# Did you mean?  Yast::Client::Icon
-#                Yast::Icon
-# uninitialized constant Yast::Client::Initrd
-# Did you mean?  Yast::Client::Initrd
-#                Yast::Initrd
-# uninitialized constant Yast::Client::InstExtensionImage
-# Did you mean?  Yast::Client::InstExtensionImage
-#                Yast::InstExtensionImage
-#                Yast::Client::InstExtensionImageClass
-#                Yast::InstExtensionImageClass
-# uninitialized constant Yast::Client::Installation
-# Did you mean?  Yast::Client::Installation
-#                Yast::Installation
-#                Installation
-# uninitialized constant Yast::Client::Integer
-# Did you mean?  Yast::Client::Integer
-#                Yast::Integer
-#                Integer
-# uninitialized constant Yast::Client::Kernel
-# Did you mean?  Yast::Client::Kernel
-#                Yast::Kernel
-#                Kernel
-# uninitialized constant Yast::Client::LOCALE_DIR
-# Did you mean?  Yast::Client::LOCALE_DIR
-# uninitialized constant Yast::Client::Label
-# Did you mean?  Yast::Client::Label
-#                Yast::Label
-# uninitialized constant Yast::Client::Linuxrc
-# Did you mean?  Yast::Client::Linuxrc
-#                Yast::Linuxrc
-# uninitialized constant Yast::Client::Map
-# Did you mean?  Yast::Client::Map
-#                Yast::Map
-# uninitialized constant Yast::Client::Message
-# Did you mean?  Yast::Client::Message
-#                Yast::Message
-# uninitialized constant Yast::Client::Misc
-# Did you mean?  Yast::Client::Misc
-#                Yast::Misc
-# uninitialized constant Yast::Client::Mode
-# Did you mean?  Yast::Client::Mode
-#                Yast::Mode
-# uninitialized constant Yast::Client::Netmask
-# Did you mean?  Yast::Client::Netmask
-#                Yast::Netmask
-# uninitialized constant Yast::Client::OSRelease
-# Did you mean?  Yast::Client::OSRelease
-#                Yast::OSRelease
-# uninitialized constant Yast::Client::Package
-# Did you mean?  Yast::Client::Package
-#                Yast::Package
-#                Packages
-#                Yast::Client::PackageAI
-#                Yast::PackageAI
-# uninitialized constant Yast::Client::PackageAI
-# Did you mean?  Yast::Client::Package
-#                Yast::Package
-#                Yast::Client::PackageKit
-#                Yast::PackageKit
-#                Packages
-#                Yast::Client::PackageAI
-#                Yast::PackageAI
-#                Packaging
-# uninitialized constant Yast::Client::PackageCallbacks
-# Did you mean?  Yast::Client::PackageCallbacks
-#                Yast::PackageCallbacks
-# uninitialized constant Yast::Client::PackageKit
-# Did you mean?  Yast::Client::PackageKit
-#                Yast::PackageKit
-#                Yast::Client::Package
-#                Yast::Package
-#                Packages
-#                Yast::Client::PackageAI
-#                Yast::PackageAI
-# uninitialized constant Yast::Client::PackageLock
-# Did you mean?  Yast::Client::PackageLock
-#                Yast::PackageLock
-# uninitialized constant Yast::Client::PackageSystem
-# Did you mean?  Yast::Client::PackageSystem
-#                Yast::PackageSystem
-# uninitialized constant Yast::Client::PackagesProposal
-# Did you mean?  Yast::Client::PackagesProposal
-#                Yast::PackagesProposal
-# uninitialized constant Yast::Client::Popup
-# Did you mean?  Yast::Client::Popup
-#                Yast::Popup
-# uninitialized constant Yast::Client::Product
-# Did you mean?  Yast::Client::Product
-#                Yast::Product
-# uninitialized constant Yast::Client::ProductControl
-# Did you mean?  Yast::Client::ProductControl
-#                Yast::ProductControl
-# uninitialized constant Yast::Client::ProductFeatures
-# Did you mean?  Yast::Client::ProductFeatures
-#                Yast::ProductFeatures
-# uninitialized constant Yast::Client::Profile
-# Did you mean?  Yast::Client::Profile
-#                Yast::Profile
-#                Yast::Client::Profiler
-#                Yast::Profiler
-# uninitialized constant Yast::Client::Progress
-# Did you mean?  Yast::Client::Progress
-#                Yast::Progress
-#                Process
-# uninitialized constant Yast::Client::Report
-# Did you mean?  Yast::Client::Report
-#                Yast::Report
-# uninitialized constant Yast::Client::RichText
-# Did you mean?  Yast::Client::RichText
-#                Yast::RichText
-# uninitialized constant Yast::Client::SLP
-# Did you mean?  Yast::Client::SLP
-#                Yast::SLP
-# uninitialized constant Yast::Client::Sequencer
-# Did you mean?  Yast::Client::Sequencer
-#                Yast::Sequencer
-# uninitialized constant Yast::Client::ServicesManagerTarget
-# Did you mean?  Yast::Client::ServicesManagerTarget
-#                Yast::ServicesManagerTarget
-#                Yast::Client::ServicesManagerTargetClass
-#                Yast::ServicesManagerTargetClass
-# uninitialized constant Yast::Client::SignatureCheckCallbacks
-# Did you mean?  Yast::Client::SignatureCheckCallbacks
-#                Yast::SignatureCheckCallbacks
-#                Yast::Client::SignatureCheckCallbacksClass
-#                Yast::SignatureCheckCallbacksClass
-# uninitialized constant Yast::Client::SignatureCheckDialogs
-# Did you mean?  Yast::Client::SignatureCheckDialogs
-#                Yast::SignatureCheckDialogs
-#                Yast::Client::SignatureCheckDialogsClass
-#                Yast::SignatureCheckDialogsClass
-# uninitialized constant Yast::Client::Stage
-# Did you mean?  Yast::Client::Stage
-#                Yast::Stage
-#                Storage
-# uninitialized constant Yast::Client::String
-# Did you mean?  Yast::Client::String
-#                Yast::String
-#                String
-#                StringIO
-#                STDIN
-# uninitialized constant Yast::Client::Summary
-# Did you mean?  Yast::Client::Summary
-#                Yast::Summary
-# uninitialized constant Yast::Client::SystemdTarget
-# Did you mean?  Yast::Client::SystemdTarget
-#                Yast::SystemdTarget
-# uninitialized constant Yast::Client::TFTP
-# Did you mean?  Yast::Client::TFTP
-#                Yast::TFTP
-# uninitialized constant Yast::Client::TypeRepository
-# Did you mean?  Yast::Client::TypeRepository
-#                Yast::TypeRepository
-# uninitialized constant Yast::Client::UI_TERMS
-# Did you mean?  Yast::Client::UI_TERMS
-# uninitialized constant Yast::Client::URL
-# Did you mean?  Yast::Client::URL
-#                Yast::URL
-#                URI
-# uninitialized constant Yast::Client::URLRecode
-# Did you mean?  Yast::Client::URLRecode
-#                Yast::URLRecode
-# uninitialized constant Yast::Client::Wizard
-# Did you mean?  Yast::Client::Wizard
-#                Yast::Wizard
-# uninitialized constant Yast::Client::XML
-# Did you mean?  Yast::Client::XML
-#                Yast::XML
 # uninitialized constant Yast::CommandLineClass::Abort
 # uninitialized constant Yast::CommandLineClass::Aborted
 # uninitialized constant Yast::CommandLineClass::Address
@@ -18282,19 +18643,8 @@
 # uninitialized constant Yast::CommandLineClass::YesNo
 # wrong constant name main
 # wrong constant name <static-init>
-# wrong constant name <static-init>
 # wrong constant name allowed_type
 # wrong constant name convert
-# wrong constant name to_boolean
-# wrong constant name to_float
-# wrong constant name to_integer
-# wrong constant name to_list
-# wrong constant name to_locale
-# wrong constant name to_map
-# wrong constant name to_path
-# wrong constant name to_string
-# wrong constant name to_symbol
-# wrong constant name to_term
 # uninitialized constant Yast::DebugHooksClass::Address
 # Did you mean?  Yast::DebugHooksClass::Address
 #                Yast::Address
@@ -19679,13 +20029,13 @@
 # wrong constant name utf8
 # wrong constant name utf8=
 # wrong constant name <static-init>
+# wrong constant name <static-init>
 # wrong constant name locally
 # wrong constant name locally!
 # wrong constant name on_target
 # wrong constant name on_target!
 # wrong constant name <Class:ExceptionReporter>
 # wrong constant name <Class:ExportData>
-# wrong constant name publish
 # wrong constant name published_functions
 # wrong constant name published_variables
 # wrong constant name last_exception
@@ -19693,7 +20043,6 @@
 # uninitialized constant Yast::Exportable::ExportData::InspectKey
 # Did you mean?  Yast::Exportable::ExportData::InspectKey
 # wrong constant name private?
-# wrong constant name <static-init>
 # wrong constant name <static-init>
 # wrong constant name extended
 # wrong constant name initialize
@@ -21087,11 +21436,8 @@
 #                Yast::XML
 # wrong constant name main
 # wrong constant name <static-init>
-# uninitialized constant Yast::I18n::N_
 # uninitialized constant Yast::I18n::Nn_
-# wrong constant name _
 # wrong constant name n_
-# wrong constant name textdomain
 # uninitialized constant Yast::IPClass::Address
 # Did you mean?  Yast::IPClass::Address
 #                Yast::Address
@@ -23662,7 +24008,6 @@
 # wrong constant name value_for
 # wrong constant name vnc
 # wrong constant name <static-init>
-# wrong constant name log
 # wrong constant name included
 # uninitialized constant Yast::MapClass::Address
 # Did you mean?  Yast::MapClass::Address
@@ -25011,7 +25356,6 @@
 # uninitialized constant Yast::Module::XML
 # Did you mean?  Yast::Module::XML
 #                Yast::XML
-# wrong constant name <static-init>
 # uninitialized constant Yast::NetmaskClass::Address
 # Did you mean?  Yast::NetmaskClass::Address
 #                Yast::Address
@@ -25554,8 +25898,6 @@
 # wrong constant name <=>
 # wrong constant name initialize
 # wrong constant name <static-init>
-# wrong constant name <static-init>
-# wrong constant name add
 # wrong constant name bitwise_and
 # wrong constant name bitwise_not
 # wrong constant name bitwise_or
@@ -25563,37 +25905,9 @@
 # wrong constant name comparable_object
 # wrong constant name divide
 # wrong constant name equal
-# wrong constant name get
-# wrong constant name get_boolean
-# wrong constant name get_float
-# wrong constant name get_integer
-# wrong constant name get_list
-# wrong constant name get_locale
-# wrong constant name get_map
-# wrong constant name get_path
-# wrong constant name get_string
-# wrong constant name get_symbol
-# wrong constant name get_term
 # wrong constant name greater_or_equal
-# wrong constant name greater_than
 # wrong constant name is
-# wrong constant name is_any?
-# wrong constant name is_boolean?
-# wrong constant name is_byteblock?
-# wrong constant name is_float?
-# wrong constant name is_function?
-# wrong constant name is_integer?
-# wrong constant name is_list?
-# wrong constant name is_locale?
-# wrong constant name is_map?
-# wrong constant name is_nil?
-# wrong constant name is_path?
-# wrong constant name is_string?
-# wrong constant name is_symbol?
-# wrong constant name is_term?
-# wrong constant name is_void?
 # wrong constant name less_or_equal
-# wrong constant name less_than
 # wrong constant name logical_and
 # wrong constant name logical_not
 # wrong constant name logical_or
@@ -30336,10 +30650,6 @@
 # uninitialized constant Yast::SCR::Error
 # Did you mean?  IOError
 #                Errno
-# uninitialized constant Yast::SCR::Execute
-# Did you mean?  Yast::Execute
-# uninitialized constant Yast::SCR::Read
-# Did you mean?  Thread
 # uninitialized constant Yast::SCR::RegisterAgent
 # uninitialized constant Yast::SCR::RegisterNewAgents
 # uninitialized constant Yast::SCR::UnmountAgent
@@ -33664,7 +33974,6 @@
 # uninitialized constant Yast::UI::AskForSaveFileName
 # uninitialized constant Yast::UI::Beep
 # uninitialized constant Yast::UI::BusyCursor
-# uninitialized constant Yast::UI::ChangeWidget
 # uninitialized constant Yast::UI::CheckShortcuts
 # uninitialized constant Yast::UI::CloseDialog
 # uninitialized constant Yast::UI::CloseUI
@@ -33685,7 +33994,6 @@
 # uninitialized constant Yast::UI::PlayMacro
 # uninitialized constant Yast::UI::PollInput
 # uninitialized constant Yast::UI::PostponeShortcutCheck
-# uninitialized constant Yast::UI::QueryWidget
 # uninitialized constant Yast::UI::RecalcLayout
 # uninitialized constant Yast::UI::Recode
 # Did you mean?  Yast::URLRecode
@@ -33713,88 +34021,6 @@
 # uninitialized constant Yast::UI::WidgetExists
 # uninitialized constant Yast::UI::WizardCommand
 # Did you mean?  Yast::WizardClass
-# uninitialized constant Yast::UIShortcuts::BarGraph
-# uninitialized constant Yast::UIShortcuts::Bottom
-# uninitialized constant Yast::UIShortcuts::BusyIndicator
-# uninitialized constant Yast::UIShortcuts::ButtonBox
-# uninitialized constant Yast::UIShortcuts::Cell
-# uninitialized constant Yast::UIShortcuts::Center
-# uninitialized constant Yast::UIShortcuts::CheckBox
-# uninitialized constant Yast::UIShortcuts::CheckBoxFrame
-# uninitialized constant Yast::UIShortcuts::ColoredLabel
-# uninitialized constant Yast::UIShortcuts::ComboBox
-# uninitialized constant Yast::UIShortcuts::DateField
-# Did you mean?  DateTime
-# uninitialized constant Yast::UIShortcuts::DownloadProgress
-# uninitialized constant Yast::UIShortcuts::DumbTab
-# uninitialized constant Yast::UIShortcuts::Dummy
-# uninitialized constant Yast::UIShortcuts::DummySpecialWidget
-# uninitialized constant Yast::UIShortcuts::Empty
-# uninitialized constant Yast::UIShortcuts::Frame
-# uninitialized constant Yast::UIShortcuts::HBox
-# uninitialized constant Yast::UIShortcuts::HCenter
-# uninitialized constant Yast::UIShortcuts::HMultiProgressMeter
-# uninitialized constant Yast::UIShortcuts::HSpacing
-# uninitialized constant Yast::UIShortcuts::HSquash
-# uninitialized constant Yast::UIShortcuts::HStretch
-# uninitialized constant Yast::UIShortcuts::HVCenter
-# uninitialized constant Yast::UIShortcuts::HVSquash
-# uninitialized constant Yast::UIShortcuts::HVStretch
-# uninitialized constant Yast::UIShortcuts::HWeight
-# uninitialized constant Yast::UIShortcuts::Header
-# uninitialized constant Yast::UIShortcuts::Heading
-# uninitialized constant Yast::UIShortcuts::IconButton
-# uninitialized constant Yast::UIShortcuts::Id
-# uninitialized constant Yast::UIShortcuts::Image
-# uninitialized constant Yast::UIShortcuts::InputField
-# uninitialized constant Yast::UIShortcuts::IntField
-# uninitialized constant Yast::UIShortcuts::Item
-# uninitialized constant Yast::UIShortcuts::Label
-# Did you mean?  Yast::Label
-# uninitialized constant Yast::UIShortcuts::Left
-# uninitialized constant Yast::UIShortcuts::LogView
-# uninitialized constant Yast::UIShortcuts::MarginBox
-# uninitialized constant Yast::UIShortcuts::MenuButton
-# uninitialized constant Yast::UIShortcuts::MinHeight
-# uninitialized constant Yast::UIShortcuts::MinSize
-# uninitialized constant Yast::UIShortcuts::MinWidth
-# uninitialized constant Yast::UIShortcuts::MultiLineEdit
-# uninitialized constant Yast::UIShortcuts::MultiSelectionBox
-# uninitialized constant Yast::UIShortcuts::Opt
-# Did you mean?  Yast::Ops
-# uninitialized constant Yast::UIShortcuts::PackageSelector
-# Did you mean?  Packages
-# uninitialized constant Yast::UIShortcuts::PartitionSplitter
-# uninitialized constant Yast::UIShortcuts::Password
-# uninitialized constant Yast::UIShortcuts::PatternSelector
-# uninitialized constant Yast::UIShortcuts::PkgSpecial
-# uninitialized constant Yast::UIShortcuts::ProgressBar
-# Did you mean?  Yast::Progress
-# uninitialized constant Yast::UIShortcuts::PushButton
-# uninitialized constant Yast::UIShortcuts::RadioButton
-# uninitialized constant Yast::UIShortcuts::RadioButtonGroup
-# uninitialized constant Yast::UIShortcuts::ReplacePoint
-# uninitialized constant Yast::UIShortcuts::RichText
-# Did you mean?  Yast::RichText
-# uninitialized constant Yast::UIShortcuts::Right
-# uninitialized constant Yast::UIShortcuts::SelectionBox
-# uninitialized constant Yast::UIShortcuts::Slider
-# uninitialized constant Yast::UIShortcuts::Table
-# uninitialized constant Yast::UIShortcuts::TextEntry
-# uninitialized constant Yast::UIShortcuts::TimeField
-# uninitialized constant Yast::UIShortcuts::TimezoneSelector
-# uninitialized constant Yast::UIShortcuts::Top
-# uninitialized constant Yast::UIShortcuts::Tree
-# Did you mean?  TRUE
-# uninitialized constant Yast::UIShortcuts::VBox
-# uninitialized constant Yast::UIShortcuts::VCenter
-# uninitialized constant Yast::UIShortcuts::VMultiProgressMeter
-# uninitialized constant Yast::UIShortcuts::VSpacing
-# uninitialized constant Yast::UIShortcuts::VSquash
-# uninitialized constant Yast::UIShortcuts::VStretch
-# uninitialized constant Yast::UIShortcuts::VWeight
-# uninitialized constant Yast::UIShortcuts::Wizard
-# Did you mean?  Yast::Wizard
 # uninitialized constant Yast::URLClass::Address
 # Did you mean?  Yast::URLClass::Address
 #                Yast::Address
@@ -34330,9 +34556,6 @@
 # Did you mean?  Yast::URLRecodeClass::XML
 #                Yast::XML
 # wrong constant name <static-init>
-# uninitialized constant Yast::WFM::Args
-# Did you mean?  ARGV
-#                ARGF
 # uninitialized constant Yast::WFM::CallFunction
 # uninitialized constant Yast::WFM::ClientExists
 # uninitialized constant Yast::WFM::Execute
@@ -35021,7 +35244,6 @@
 # wrong constant name import
 # wrong constant name import_pure
 # wrong constant name include
-# wrong constant name path
 # wrong constant name strcoll
 # wrong constant name symbols
 # wrong constant name term
