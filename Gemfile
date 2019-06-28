@@ -1,2 +1,8 @@
 gem "cfa"
 gem "cfa_grub2"
+gem "rake"
+gem "rspec"
+gem "yast-rake"
+gem "fast_gettext"
+gem "cheetah"
+gem "simplecov"

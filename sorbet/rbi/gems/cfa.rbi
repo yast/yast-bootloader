@@ -149,3 +149,22 @@ class CFA::BooleanValue
   def to_s; end
   def value=(value); end
 end
+class CFA::AugeasKeysCache
+  def assign_matches(matches, cache); end
+  def fill_cache(aug, prefix); end
+  def initialize(aug, prefix); end
+  def keys_for_prefix(prefix); end
+end
+class CFA::AugeasReader
+  def self.load_key(prefix, aug_key); end
+  def self.load_tree(aug, prefix, tree, keys_cache); end
+  def self.load_value(aug, aug_key, keys_cache); end
+  def self.read(aug, prefix); end
+  def self.stripped_path(prefix, aug_key); end
+end
+module Yast
+end
+class Yast::BootloaderClient < Yast::Client
+  def GuiHandler; end
+  def main; end
+end

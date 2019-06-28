@@ -1,4 +1,4 @@
-# typed: false
+# typed: true
 require "yast"
 require "date"
 require "shellwords"

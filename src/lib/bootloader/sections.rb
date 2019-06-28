@@ -1,4 +1,4 @@
-# typed: false
+# typed: true
 require "yast"
 require "yast2/execute"
 
