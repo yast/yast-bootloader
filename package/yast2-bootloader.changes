@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Jul  2 16:08:24 UTC 2019 - Guillaume GARDET <guillaume.gardet@opensuse.org>
+
+- Replace --suse-signed-grub with --suse-force-signed to follow 
+  update from boo#1136601
+- 4.2.6
+
+-------------------------------------------------------------------
 Tue Jun 25 12:42:23 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
 - adapt to new rubocop (bsc#1139270)
