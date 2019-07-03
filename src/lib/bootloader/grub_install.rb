@@ -75,8 +75,8 @@ module Bootloader
         cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
       else
         cmd = ["/usr/sbin/grub2-install", "--target=#{target}"]
-        # On aarch64, we do not use shim, but '--suse-signed-grub' option (bsc#1136601)
-        cmd << "--suse-signed-grub" if secure_boot && Yast::Arch.aarch64
+        # On aarch64, we do not use shim, but '--suse-force-signed' option (bsc#1136601)
+        cmd << "--suse-force-signed" if secure_boot && Yast::Arch.aarch64
         # Do skip-fs-probe to avoid error when embedding stage1
         # to extended partition
         cmd << "--force" << "--skip-fs-probe"
