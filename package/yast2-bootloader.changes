@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Jul 17 05:38:04 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
+
+- fix resume parameter to be in uuid if requested (bsc#1134895)
+- 3.4.3
+
+-------------------------------------------------------------------
 Thu Jun 20 14:33:46 UTC 2019 - Josef Reidinger <jreidinger@suse.com>
 
 - Backport option to configure cpu mitigations (bsc#1098559,
