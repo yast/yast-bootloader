@@ -5,6 +5,11 @@ Yast.import "BootArch"
 describe Yast::BootArch do
   subject { Yast::BootArch }
 
+  before do
+    allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+      .and_return("")
+  end
+
   def stub_arch(arch)
     Yast.import "Arch"
 
@@ -24,10 +29,10 @@ describe Yast::BootArch do
       expect(subject.ResumeAvailable).to eq true
     end
 
-    it "returns true if it is on s390 architecture" do
+    it "returns false if it is on s390 architecture" do
       stub_arch("s390_64")
-
-      expect(subject.ResumeAvailable).to eq true
+      # see Jira#SLE-6926
+      expect(subject.ResumeAvailable).to eq false
     end
 
     it "it returns false otherwise" do
@@ -50,7 +55,8 @@ describe Yast::BootArch do
       end
 
       it "adds additional parameters from Product file" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS0")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("globals", "additional_kernel_parameters").and_return("console=ttyS0")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
@@ -83,7 +89,8 @@ describe Yast::BootArch do
       end
 
       it "adds additional parameters from Product file" do
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS0")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("globals", "additional_kernel_parameters").and_return("console=ttyS0")
 
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
@@ -129,11 +136,14 @@ describe Yast::BootArch do
       end
 
       it "returns parameters from current command line" do
-        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0 splash=verbose")
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("console=ttyS0")
         # just to test that it do not add product features
-        allow(Yast::ProductFeatures).to receive(:GetStringFeature).and_return("console=ttyS1")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature)
+          .with("globals", "additional_kernel_parameters").and_return("console=ttyS1")
 
-        expect(subject.DefaultKernelParams("/dev/sda2")).to eq "console=ttyS0 resume=/dev/sda2 console=ttyS1 splash=silent quiet showopts"
+        expect(subject.DefaultKernelParams("/dev/sda2")).to eq(
+          "console=ttyS0 resume=/dev/sda2 console=ttyS1 mitigations=auto splash=silent quiet showopts"
+        )
       end
 
       it "adds splash=silent quit showopts parameters" do

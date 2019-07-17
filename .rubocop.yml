@@ -22,18 +22,19 @@ Metrics/BlockNesting:
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
+# Configuration parameters: CountComments.
+Metrics/ClassLength:
+  Max: 200
+  Include:
+    - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 # Configuration parameters: CountComments.
 Metrics/ClassLength:
   Max: 385
   Exclude:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
-
-# Configuration parameters: CountComments.
-Metrics/ClassLength:
-  Max: 200
   Include:
-    - 'src/lib/**/*.rb' # be more strict for new code in lib
+    - 'src/lib/bootloader/grub2base.rb' # TODO: grub2 base grown a bit
 
 Metrics/ModuleLength:
   Max: 385
