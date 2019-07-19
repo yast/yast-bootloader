@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jul 19 09:20:09 UTC 2019 - Ladislav Slezák <lslezak@suse.cz>
+
+- Added "BuildRequires: update-desktop-files"
+- Related to the previous desktop file changes (fate#319035)
+- 4.2.7
+
+-------------------------------------------------------------------
 Tue Jul  2 16:08:24 UTC 2019 - Guillaume GARDET <guillaume.gardet@opensuse.org>
 
 - Replace --suse-signed-grub with --suse-force-signed to follow 
