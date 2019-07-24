@@ -78,17 +78,11 @@ module Bootloader
     def make_proposal(attrs)
       make_proposal_raising(attrs)
     rescue ::Bootloader::NoRoot
-      {
-        "label_proposal" => [],
-        "warning_level"  => :fatal,
-        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
-      }
+      no_root_proposal
     rescue MismatchBootloader => e
-      {
-        "label_proposal" => [],
-        "warning_level"  => :warning,
-        "warning"        => e.user_message
-      }
+      mismatch_bootloader_proposal(e)
+    rescue ::Bootloader::BrokenConfiguration => e
+      broken_configuration_proposal(e)
     end
 
     def ask_user(param)
@@ -250,6 +244,48 @@ module Bootloader
       handle_errors(ret)
 
       ret
+    end
+
+    # Result of {#make_proposal} if a {Bootloader::NoRoot} exception is raised
+    # while calculating the proposal
+    #
+    # @return [Hash]
+    def no_root_proposal
+      {
+        "label_proposal" => [],
+        "warning_level"  => :fatal,
+        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
+    end
+
+    # Result of {#make_proposal} if a {Bootloader::BrokenConfiguration} exception
+    # is raised while calculating the proposal
+    #
+    # @param err [Bootloader::BrokenConfiguration] raised exception
+    # @return [Hash]
+    def broken_configuration_proposal(err)
+      {
+        "label_proposal" => [],
+        "warning_level"  => :error,
+        # TRANSLATORS: %s is a string containing the technical details of the error
+        "warning"        => _(
+          "Error reading the bootloader configuration files. " \
+          "Please open the booting options to fix it. Details: %s"
+        ) % err.reason
+      }
+    end
+
+    # Result of {#make_proposal} if a {Bootloader::MismatchBootloader} exception
+    # is raised while calculating the proposal
+    #
+    # @param err [Bootloader::MismatchBootloader] raised exception
+    # @return [Hash]
+    def mismatch_bootloader_proposal(err)
+      {
+        "label_proposal" => [],
+        "warning_level"  => :warning,
+        "warning"        => err.user_message
+      }
     end
 
     # Add to argument proposal map all errors detected by proposal

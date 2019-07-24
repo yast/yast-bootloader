@@ -3,6 +3,7 @@
 require_relative "test_helper"
 
 require "bootloader/proposal_client"
+require "bootloader/exceptions"
 
 require "bootloader/bootloader_factory"
 require "bootloader/main_dialog"
@@ -206,6 +207,25 @@ describe Bootloader::ProposalClient do
       expect(subject).to receive("old_bootloader").and_return("grub2-efi").at_least(:once)
 
       expect(subject.make_proposal({})["warning_level"]).to eq :warning
+    end
+
+    it "reports fatal error if no root disk is detected" do
+      allow(Yast::BootStorage).to receive(:detect_disks).and_raise(Bootloader::NoRoot)
+
+      result = subject.make_proposal({})
+
+      expect(result["warning_level"]).to eq :fatal
+      expect(result["warning"]).to_not be_empty
+    end
+
+    it "reports error if the previous configuration is broken" do
+      allow(Yast::Bootloader).to receive(:Summary)
+        .and_raise(Bootloader::BrokenConfiguration, "Broken reason")
+
+      result = subject.make_proposal({})
+
+      expect(result["warning_level"]).to eq :error
+      expect(result["warning"]).to include("Broken reason")
     end
   end
 end
