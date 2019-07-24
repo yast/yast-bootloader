@@ -87,6 +87,29 @@ describe Bootloader::ProposalClient do
 
         subject.ask_user({})
       end
+
+      context "if the previous configuration is broken" do
+        before do
+          allow(Yast::Bootloader).to receive(:Export)
+            .and_raise(::Bootloader::BrokenConfiguration, "Broken reason")
+        end
+
+        it "sets to true that proposed cfg changed if GUI changes are confirmed" do
+          allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:next)
+
+          subject.ask_user({})
+
+          expect(Yast::Bootloader.proposed_cfg_changed).to be true
+        end
+
+        it "does nothing if GUI is canceled" do
+          allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:cancel)
+
+          expect(Yast::Bootloader).to_not receive(:Import)
+          subject.ask_user({})
+          expect(Yast::Bootloader.proposed_cfg_changed).to be false
+        end
+      end
     end
   end
 
