@@ -84,12 +84,12 @@ module Bootloader
         option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
         single_click_action(option, value)
       else
-        settings = Yast::Bootloader.Export
+        settings = export_settings
         result = ::Bootloader::MainDialog.new.run_auto
-        if result != :next
-          Yast::Bootloader.Import(settings)
-        else
+        if result == :next
           Yast::Bootloader.proposed_cfg_changed = true
+        elsif settings
+          Yast::Bootloader.Import(settings)
         end
       end
       # Fill return map
@@ -222,6 +222,22 @@ module Bootloader
           "Please open the booting options to fix it. Details: %s"
         ) % err.reason
       }
+    end
+
+    # Settings from the system being upgraded
+    #
+    # If the configuration is broken, this method simply returns nil without
+    # user interaction. The circumstance has already been notified via the
+    # standard warning mechanism of the proposal and the user will be asked
+    # about what to do when opening the main configuration dialog.
+    #
+    # We don't need to handle the same problem for a third time.
+    #
+    # @return [Hash, nil] nil if the existing configuration is broken
+    def export_settings
+      Yast::Bootloader.Export
+    rescue ::Bootloader::BrokenConfiguration
+      nil
     end
 
     # Add to argument proposal map all errors detected by proposal
