@@ -1,6 +1,7 @@
 require_relative "test_helper"
 
 require "bootloader/proposal_client"
+require "bootloader/exceptions"
 
 require "bootloader/bootloader_factory"
 require "bootloader/main_dialog"
@@ -98,6 +99,29 @@ describe Bootloader::ProposalClient do
         expect(Yast::Bootloader).to receive(:Import).with({})
 
         subject.ask_user({})
+      end
+
+      context "if the previous configuration is broken" do
+        before do
+          allow(Yast::Bootloader).to receive(:Export)
+            .and_raise(::Bootloader::BrokenConfiguration, "Broken reason")
+        end
+
+        it "sets to true that proposed cfg changed if GUI changes are confirmed" do
+          allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:next)
+
+          subject.ask_user({})
+
+          expect(Yast::Bootloader.proposed_cfg_changed).to be true
+        end
+
+        it "does nothing if GUI is canceled" do
+          allow_any_instance_of(::Bootloader::MainDialog).to receive(:run_auto).and_return(:cancel)
+
+          expect(Yast::Bootloader).to_not receive(:Import)
+          subject.ask_user({})
+          expect(Yast::Bootloader.proposed_cfg_changed).to be false
+        end
       end
     end
   end
@@ -207,6 +231,25 @@ describe Bootloader::ProposalClient do
       expect(Yast::Bootloader).to_not receive(:Reset)
 
       subject.make_proposal("force_reset" => true)
+    end
+
+    it "reports fatal error if no root disk is detected" do
+      allow(Yast::BootStorage).to receive(:detect_disks).and_raise(Bootloader::NoRoot)
+
+      result = subject.make_proposal({})
+
+      expect(result["warning_level"]).to eq :fatal
+      expect(result["warning"]).to_not be_empty
+    end
+
+    it "reports error if the previous configuration is broken" do
+      allow(Yast::Bootloader).to receive(:Summary)
+        .and_raise(Bootloader::BrokenConfiguration, "Broken reason")
+
+      result = subject.make_proposal({})
+
+      expect(result["warning_level"]).to eq :error
+      expect(result["warning"]).to include("Broken reason")
     end
   end
 end
