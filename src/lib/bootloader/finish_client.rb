@@ -2,6 +2,7 @@
 
 require "bootloader/kexec"
 require "bootloader/bootloader_factory"
+require "bootloader/exceptions"
 require "installation/finish_client"
 require "yast2/execute"
 
@@ -9,6 +10,7 @@ Yast.import "Arch"
 Yast.import "Linuxrc"
 Yast.import "Misc"
 Yast.import "Mode"
+Yast.import "Report"
 
 module Bootloader
   # Finish client for bootloader configuration
@@ -45,12 +47,18 @@ module Bootloader
       # we do not manage bootloader, so relax :)
       return true if bl_current.name == "none"
 
-      # read one from system, so we do not overwrite changes done in rpm post install scripts
-      ::Bootloader::BootloaderFactory.clear_cache
-      system = ::Bootloader::BootloaderFactory.system
-      system.read
-      system.merge(bl_current)
-      system.write
+      begin
+        # read one from system, so we do not overwrite changes done in rpm post install scripts
+        ::Bootloader::BootloaderFactory.clear_cache
+        system = ::Bootloader::BootloaderFactory.system
+        system.read
+        system.merge(bl_current)
+        system.write
+      rescue BrokenConfiguration => e
+        # bug#1138930: although there should never be errors in this phase
+        # (unless udev is broken), aborting the installation is not nice
+        Yast::Report.LongMessage(e.message)
+      end
 
       # and remember result of merge as current one
       ::Bootloader::BootloaderFactory.current = system

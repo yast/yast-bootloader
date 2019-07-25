@@ -78,17 +78,11 @@ module Bootloader
     def make_proposal(attrs)
       make_proposal_raising(attrs)
     rescue ::Bootloader::NoRoot
-      {
-        "label_proposal" => [],
-        "warning_level"  => :fatal,
-        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
-      }
+      no_root_proposal
     rescue MismatchBootloader => e
-      {
-        "label_proposal" => [],
-        "warning_level"  => :warning,
-        "warning"        => e.user_message
-      }
+      mismatch_bootloader_proposal(e)
+    rescue ::Bootloader::BrokenConfiguration => e
+      broken_configuration_proposal(e)
     end
 
     def ask_user(param)
@@ -103,12 +97,12 @@ module Bootloader
         option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
         single_click_action(option, value)
       else
-        settings = Yast::Bootloader.Export
+        settings = export_settings
         result = ::Bootloader::MainDialog.new.run_auto
-        if result != :next
-          Yast::Bootloader.Import(settings)
-        else
+        if result == :next
           Yast::Bootloader.proposed_cfg_changed = true
+        elsif settings
+          Yast::Bootloader.Import(settings)
         end
       end
       # Fill return map
@@ -250,6 +244,64 @@ module Bootloader
       handle_errors(ret)
 
       ret
+    end
+
+    # Result of {#make_proposal} if a {Bootloader::NoRoot} exception is raised
+    # while calculating the proposal
+    #
+    # @return [Hash]
+    def no_root_proposal
+      {
+        "label_proposal" => [],
+        "warning_level"  => :fatal,
+        "warning"        => _("Cannot detect device mounted as root. Please check partitioning.")
+      }
+    end
+
+    # Result of {#make_proposal} if a {Bootloader::BrokenConfiguration} exception
+    # is raised while calculating the proposal
+    #
+    # @param err [Bootloader::BrokenConfiguration] raised exception
+    # @return [Hash]
+    def broken_configuration_proposal(err)
+      {
+        "label_proposal" => [],
+        "warning_level"  => :error,
+        # TRANSLATORS: %s is a string containing the technical details of the error
+        "warning"        => _(
+          "Error reading the bootloader configuration files. " \
+          "Please open the booting options to fix it. Details: %s"
+        ) % err.reason
+      }
+    end
+
+    # Result of {#make_proposal} if a {Bootloader::MismatchBootloader} exception
+    # is raised while calculating the proposal
+    #
+    # @param err [Bootloader::MismatchBootloader] raised exception
+    # @return [Hash]
+    def mismatch_bootloader_proposal(err)
+      {
+        "label_proposal" => [],
+        "warning_level"  => :warning,
+        "warning"        => err.user_message
+      }
+    end
+
+    # Settings from the system being upgraded
+    #
+    # If the configuration is broken, this method simply returns nil without
+    # user interaction. The circumstance has already been notified via the
+    # standard warning mechanism of the proposal and the user will be asked
+    # about what to do when opening the main configuration dialog.
+    #
+    # We don't need to handle the same problem for a third time.
+    #
+    # @return [Hash, nil] nil if the existing configuration is broken
+    def export_settings
+      Yast::Bootloader.Export
+    rescue ::Bootloader::BrokenConfiguration
+      nil
     end
 
     # Add to argument proposal map all errors detected by proposal

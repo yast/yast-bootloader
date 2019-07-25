@@ -120,5 +120,24 @@ describe Bootloader::FinishClient do
         subject.write
       end
     end
+
+    context "when merging the configuration fails with an exception" do
+      before do
+        allow(@system_bl).to receive(:merge)
+          .and_raise(Bootloader::BrokenConfiguration, "Broken message")
+
+        allow(Yast::Report).to receive(:LongMessage)
+      end
+
+      it "does not raise an exception" do
+        expect { subject.write }.to_not raise_error
+      end
+
+      it "displays the error to the user" do
+        expect(Yast::Report).to receive(:LongMessage)
+          .with(/Please use YaST2 bootloader to fix it.*Broken message/)
+        subject.write
+      end
+    end
   end
 end
