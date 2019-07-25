@@ -40,10 +40,21 @@ describe Bootloader::GrubInstall do
     context "initialized with efi: true" do
       subject { Bootloader::GrubInstall.new(efi: true) }
 
-      it "runs shim-install instead of grub2-install if secure_boot: true passed" do
+      it "runs shim-install instead of grub2-install if secure_boot: true passed for non-arm" do
+        stub_arch("x86_64")
         stub_efivars
         expect(Yast::Execute).to receive(:on_target)
           .with([/shim-install/, "--config-file=/boot/grub2/grub.cfg"])
+
+        subject.execute(secure_boot: true)
+      end
+
+      it "runs grub2-install with --suse-force-signed on aarch64" do
+        stub_arch("aarch64")
+        stub_efivars
+
+        expect(Yast::Execute).to receive(:on_target)
+          .with([/grub2-install/, anything, "--suse-force-signed", anything, anything])
 
         subject.execute(secure_boot: true)
       end
