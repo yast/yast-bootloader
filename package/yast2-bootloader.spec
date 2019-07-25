@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        4.2.8
+Version:        4.2.9
 Release:        0
 Summary:        YaST2 - Bootloader Configuration
 License:        GPL-2.0-or-later
