@@ -14,6 +14,7 @@ X-SuSE-YaST-Geometry=
 X-SuSE-YaST-SortKey=
 X-SuSE-YaST-AutoInstResource=
 X-SuSE-YaST-AutoInstPath=install
+X-SuSE-YaST-AutoInstResource=bootloader
 X-SuSE-YaST-AutoInstSchema=bootloader.rnc
 X-SuSE-YaST-Keywords=bootloader,GRUB,system,EFI
 
