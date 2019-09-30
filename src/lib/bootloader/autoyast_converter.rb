@@ -224,6 +224,7 @@ module Bootloader
       GRUB2EFI_BOOLEAN_MAPPING = {
         "secure_boot" => :secure_boot
       }.freeze
+      private_constant :GRUB2EFI_BOOLEAN_MAPPING
       def export_grub2efi(res, bootloader)
         GRUB2EFI_BOOLEAN_MAPPING.each do |key, method|
           val = bootloader.public_send(method)
@@ -235,6 +236,7 @@ module Bootloader
       GRUB2_BOOLEAN_MAPPING = {
         "trusted_grub" => :trusted_boot
       }.freeze
+      private_constant :GRUB2_BOOLEAN_MAPPING
       def export_grub2(res, bootloader)
         GRUB2_BOOLEAN_MAPPING.each do |key, method|
           val = bootloader.public_send(method)
@@ -245,11 +247,13 @@ module Bootloader
       DEFAULT_BOOLEAN_MAPPING = {
         "os_prober" => :os_prober
       }.freeze
+      private_constant :DEFAULT_BOOLEAN_MAPPING
 
       DEFAULT_STRING_MAPPING = {
         "gfxmode" => :gfxmode,
         "serial"  => :serial_console
       }.freeze
+      private_constant :DEFAULT_STRING_MAPPING
 
       DEFAULT_ARRAY_MAPPING = {
         "terminal" => :terminal
@@ -260,6 +264,7 @@ module Bootloader
         "xen_append"        => :xen_kernel_params,
         "xen_kernel_append" => :xen_hypervisor_params
       }.freeze
+      private_constant :DEFAULT_KERNEL_PARAMS_MAPPING
 
       def export_default(res, default)
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
