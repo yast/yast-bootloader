@@ -53,6 +53,7 @@ bl_global =
     element hiddenmenu      { "true" | "false" }? &
     element os_prober       { "true" | "false" }? &
     element suse_btrfs      { "true" | "false" }? &
+    element secure_boot      { "true" | "false" }? &
     element xen_append        { text }? &
     element xen_kernel_append { text }? &
 

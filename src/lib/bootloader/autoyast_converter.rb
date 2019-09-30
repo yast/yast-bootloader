@@ -35,6 +35,7 @@ module Bootloader
         data["global"] ||= {}
 
         import_grub2(data, bootloader)
+        import_grub2efi(data, bootloader)
         import_stage1(data, bootloader)
         import_default(data, bootloader.grub_default)
         import_device_map(data, bootloader)
@@ -61,6 +62,7 @@ module Bootloader
         res["global"] = {}
         global = res["global"]
         export_grub2(global, config) if config.name == "grub2"
+        export_grub2efi(global, config) if config.name == "grub2-efi"
         export_default(global, config.grub_default)
         res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         # Do not export device map as device name are very unpredictable and is used only as
@@ -76,6 +78,17 @@ module Bootloader
         return unless bootloader.name == "grub2"
 
         GRUB2_BOOLEAN_MAPPING.each do |key, method|
+          val = data["global"][key]
+          next unless val
+
+          bootloader.public_send(:"#{method}=", val == "true")
+        end
+      end
+
+      def import_grub2efi(data, bootloader)
+        return unless bootloader.name == "grub2-efi"
+
+        GRUB2EFI_BOOLEAN_MAPPING.each do |key, method|
           val = data["global"][key]
           next unless val
 
@@ -204,6 +217,17 @@ module Bootloader
           BootloaderFactory.proposed
         else
           BootloaderFactory.bootloader_by_name(loader_type)
+        end
+      end
+
+      # only for grub2, not for others
+      GRUB2EFI_BOOLEAN_MAPPING = {
+        "secure_boot" => :secure_boot
+      }.freeze
+      def export_grub2efi(res, bootloader)
+        GRUB2EFI_BOOLEAN_MAPPING.each do |key, method|
+          val = bootloader.public_send(method)
+          res[key] = val ? "true" : "false" unless val.nil?
         end
       end
 
