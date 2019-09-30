@@ -129,5 +129,14 @@ describe Bootloader::AutoyastConverter do
 
       expect(subject.export(bootloader)["global"]).to eq expected_export
     end
+
+    context "for grub2-efi bootloader" do
+      let(:bootloader) { Bootloader::Grub2EFI.new }
+
+      it "exports secure boot key" do
+        bootloader.secure_boot = true
+        expect(subject.export(bootloader)["global"]["secure_boot"]).to eq "true"
+      end
+    end
   end
 end
