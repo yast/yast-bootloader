@@ -24,6 +24,11 @@ module Bootloader
 
     def run
       guarded_run
+    rescue ::Bootloader::NoRoot
+      Yast::Report.Error(
+        _("YaST cannot configure the bootloader because it failed to find the root file system.")
+      )
+      :abort
     rescue ::Bootloader::BrokenConfiguration, ::Bootloader::UnsupportedOption => e
       msg = if e.is_a?(::Bootloader::BrokenConfiguration)
         # TRANSLATORS: %s stands for readon why yast cannot process it
