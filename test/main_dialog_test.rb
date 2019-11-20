@@ -9,6 +9,7 @@ describe Bootloader::MainDialog do
     wizard = double.as_null_object
     stub_const("Yast::Wizard", wizard)
 
+    @real_sequencer = Yast::Sequencer
     sequencer = double.as_null_object
     stub_const("Yast::Sequencer", sequencer)
 
@@ -111,6 +112,28 @@ describe Bootloader::MainDialog do
       expect(Yast::Sequencer).to receive(:Run).and_return(:next)
 
       expect(subject.run_auto).to eq :next
+    end
+
+    context "when no root filesystem is detected" do
+      before do
+        # Undo the global stub
+        stub_const("Yast::Sequencer", @real_sequencer)
+        allow(Bootloader::ReadDialog).to receive(:new).and_return double("ReadDialog", run: :next)
+
+        allow(Yast::BootStorage).to receive(:boot_filesystem).and_raise(Bootloader::NoRoot)
+      end
+
+      it "reports the corresponding error" do
+        expect(Yast::Report).to receive(:Error).with(/cannot configure the bootloader/)
+
+        subject.run
+      end
+
+      it "returns :abort" do
+        allow(Yast::Report).to receive(:Error)
+
+        expect(subject.run).to eq :abort
+      end
     end
   end
 end
