@@ -259,8 +259,20 @@ module Yast
     end
 
     # Find the filesystem mounted to given mountpoint.
+    #
+    # If the mountpoint is assigned to a Btrfs subvolume, it returns the
+    # corresponding filesystem. That's specially relevant in cases like
+    # bsc#1151748 or bsc#1124581, in which libstorage-ng gets confused by
+    # non-standard Btrfs configurations.
+    #
+    # @param mountpoint [String]
+    # @return [Y2Storage::Filesystems::Base, nil] nil if nothing is mounted in
+    #   the given location
     def find_mountpoint(mountpoint)
-      staging.filesystems.find { |f| f.mount_path == mountpoint }
+      mp = Y2Storage::MountPoint.all(staging).find { |m| m.path == mountpoint }
+      return nil unless mp
+
+      mp.filesystem
     end
 
     # In a device graph, starting at *device* (inclusive), find the parents

@@ -136,4 +136,51 @@ describe Yast::BootStorage do
       )
     end
   end
+
+  describe ".boot_filesystems" do
+    before { devicegraph_stub(scenario) }
+
+    context "using only NFS storage" do
+      let(:scenario) { "nfs_root.xml" }
+
+      it "returns the NFS filesystem" do
+        fs = subject.boot_filesystem
+        expect(fs).to be_a Y2Storage::Filesystems::Nfs
+        expect(fs.mount_path).to eq "/"
+      end
+    end
+
+    context "with local storage and a separate boot" do
+      let(:scenario) { "separate_boot.yaml" }
+
+      it "returns the /boot filesystem" do
+        fs = subject.boot_filesystem
+        expect(fs).to be_a Y2Storage::Filesystems::BlkFilesystem
+        expect(fs.type.is?(:ext2)).to eq true
+        expect(fs.mount_path).to eq "/boot"
+      end
+    end
+
+    context "with local storage and no separate boot" do
+      let(:scenario) { "trivial.yaml" }
+
+      it "returns the root filesystem" do
+        fs = subject.boot_filesystem
+        expect(fs).to be_a Y2Storage::Filesystems::BlkFilesystem
+        expect(fs.type.is?(:btrfs)).to eq true
+        expect(fs.mount_path).to eq "/"
+      end
+    end
+
+    # Regression test for bsc#1124581 and bsc#1151748
+    context "with the root mount point located in a Btrfs subvolume" do
+      let(:scenario) { "root_in_subvolume.xml" }
+
+      it "returns the corresponding Btrfs filesystem" do
+        fs = subject.boot_filesystem
+        expect(fs).to be_a Y2Storage::Filesystems::BlkFilesystem
+        expect(fs.type.is?(:btrfs)).to eq true
+      end
+    end
+  end
 end
