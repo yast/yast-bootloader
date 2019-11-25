@@ -135,7 +135,7 @@ module Yast
       return false if testAbort
 
       begin
-        ::Bootloader::BootloaderFactory.current.read
+        ret = ::Bootloader::BootloaderFactory.current.read
       rescue ::Bootloader::UnsupportedBootloader => e
         ret = Yast::Report.AnyQuestion(_("Unsupported Bootloader"),
           _("Unsupported bootloader '%s' detected. Use proposal of supported configuration instead?") %
@@ -166,7 +166,13 @@ module Yast
 
         ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
         ::Bootloader::BootloaderFactory.current.propose
+      rescue ::Bootloader::InsufficientPrivileges => e
+        Yast2::Popup.show(e.message, headline: :error)
+
+        return false
       end
+
+      return false unless ret
 
       Progress.Finish
 
