@@ -76,4 +76,19 @@ module Bootloader
 
   class NoRoot < RuntimeError
   end
+
+  # Represent the lack of permissions to perform all possible actions
+  #
+  # To be used mainly when the module is running without read/write permission to perform all
+  # the needed actions.
+  class InsufficientPrivileges < RuntimeError
+    include Yast::I18n
+
+    def initialize
+      super _(
+        "The module is running without enough privileges to perform all possible actions.\n\n" \
+        "Cannot continue. Please, try again as root."
+      )
+    end
+  end
 end
