@@ -135,7 +135,7 @@ module Yast
       return false if testAbort
 
       begin
-        ret = ::Bootloader::BootloaderFactory.current.read
+        ::Bootloader::BootloaderFactory.current.read
       rescue ::Bootloader::UnsupportedBootloader => e
         ret = Yast::Report.AnyQuestion(_("Unsupported Bootloader"),
           _("Unsupported bootloader '%s' detected. Use proposal of supported configuration instead?") %
@@ -166,13 +166,17 @@ module Yast
 
         ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
         ::Bootloader::BootloaderFactory.current.propose
-      rescue ::Bootloader::InsufficientPrivileges => e
-        Yast2::Popup.show(e.message, headline: :error)
+      rescue Errno::EACCES
+        # TRANSLATORS: warn to the user that is running the module without enough permissions
+        error_msg = _(
+          "The module is running without enough privileges to perform all possible actions.\n\n" \
+          "Cannot continue. Please, try again as root."
+        )
+
+        Yast2::Popup.show(error_msg, headline: :error)
 
         return false
       end
-
-      return false unless ret
 
       Progress.Finish
 

@@ -105,11 +105,6 @@ module Bootloader
       rescue Errno::ENOENT
         # there may not need to be grub.cfg generated (bnc#976534),(bsc#1124064)
         log.info "/boot/grub2/grub.cfg is missing. Defaulting to empty one."
-        return false
-      rescue Errno::EACCES
-        log.info "running without access permission to grub.cfg"
-
-        raise ::Bootloader::InsufficientPrivileges
       end
       @sections = ::Bootloader::Sections.new(grub_cfg)
       log.info "grub sections: #{@sections.all}"
