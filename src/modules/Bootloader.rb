@@ -166,6 +166,19 @@ module Yast
 
         ::Bootloader::BootloaderFactory.current = ::Bootloader::BootloaderFactory.proposed
         ::Bootloader::BootloaderFactory.current.propose
+      rescue Errno::EACCES
+        # If the access to any needed file (e.g., grub.cfg when using GRUB bootloader) is not
+        # allowed, just abort the execution. Using Yast::Confirm.MustBeRoot early in the
+        # wizard/client is not enough since it allows continue.
+
+        Yast2::Popup.show(
+          # TRANSLATORS: pop-up message, beware the line breaks
+          _("The module is running without enough privileges to perform all possible actions.\n\n" \
+            "Cannot continue. Please, try again as root."),
+          headline: :error
+        )
+
+        return false
       end
 
       Progress.Finish
