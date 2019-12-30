@@ -64,7 +64,7 @@ describe Bootloader::Grub2Base do
       allow(default).to receive(:load).and_raise(Errno::ENOENT)
       allow(::CFA::Grub2::Default).to receive(:new).and_return(default)
 
-      expect{subject.read}.to raise_error(::Bootloader::BrokenConfiguration)
+      expect { subject.read }.to raise_error(::Bootloader::BrokenConfiguration)
     end
   end
 
