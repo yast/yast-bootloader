@@ -98,7 +98,12 @@ module Bootloader
     def read
       super
 
-      grub_default.load
+      begin
+        grub_default.load
+      rescue Errno::ENOENT
+        raise BrokenConfiguration, _("File /etc/default/grub missing on system")
+      end
+
       grub_cfg = CFA::Grub2::GrubCfg.new
       begin
         grub_cfg.load
