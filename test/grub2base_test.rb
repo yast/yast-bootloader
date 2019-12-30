@@ -58,6 +58,14 @@ describe Bootloader::Grub2Base do
 
       expect(subject.trusted_boot).to eq false
     end
+
+    it "raises BrokenConfiguration if /etc/default/grub missing" do
+      default = double
+      allow(default).to receive(:load).and_raise(Errno::ENOENT)
+      allow(::CFA::Grub2::Default).to receive(:new).and_return(default)
+
+      expect{subject.read}.to raise_error(::Bootloader::BrokenConfiguration)
+    end
   end
 
   describe "write" do
