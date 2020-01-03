@@ -256,8 +256,10 @@ module Bootloader
       default_serialize.gsub!(/mitigations=\S+/, "") if other_params.parameter("mitigations")
 
       new_kernel_params = default_serialize + " " + other_params.serialize
+      # deduplicate identicatel parameter. Keep always the last one ( so reverse is needed ).
+      new_params = new_kernel_params.split.reverse.uniq.reverse.join(" ")
 
-      default_params.replace(new_kernel_params)
+      default_params.replace(new_params)
     end
 
     def merge_attributes(default, other)

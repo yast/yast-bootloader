@@ -476,13 +476,13 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.os_prober).to be_disabled
     end
 
-    it "for kernel line place subject params and then merged ones" do
-      subject.grub_default.kernel_params.replace("verbose debug=true resume=/dev/sda1")
-      other.grub_default.kernel_params.replace("silent noresume debug=false 3")
+    it "for kernel line place subject params and then merged ones and deduplicate" do
+      subject.grub_default.kernel_params.replace("nosplash verbose debug=true resume=/dev/sda1")
+      other.grub_default.kernel_params.replace("nosplash silent noresume debug=false 3")
 
       subject.merge(other)
 
-      expect(subject.grub_default.kernel_params.serialize).to eq "verbose debug=true silent noresume debug=false 3"
+      expect(subject.grub_default.kernel_params.serialize).to eq "verbose debug=true nosplash silent noresume debug=false 3"
     end
 
     it "use grub2 password configuration specified in merged object" do
