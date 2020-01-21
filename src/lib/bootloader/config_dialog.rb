@@ -26,7 +26,8 @@ module Bootloader
       guarded_run
     rescue ::Bootloader::NoRoot
       Yast::Report.Error(
-        _("YaST cannot configure the bootloader because it failed to find the root file system.")
+        _("YaST cannot configure the bootloader because it failed to find the root file system.\n" \
+          "This usually happens when there are bind-mounted devices.")
       )
       :abort
     rescue ::Bootloader::BrokenConfiguration, ::Bootloader::UnsupportedOption => e
