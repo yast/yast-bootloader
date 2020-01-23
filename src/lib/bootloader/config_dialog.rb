@@ -27,7 +27,8 @@ module Bootloader
     rescue ::Bootloader::NoRoot
       Yast::Report.Error(
         _("YaST cannot configure the bootloader because it failed to find the root file system.\n" \
-          "This usually happens when there are bind-mounted devices.")
+          "This usually happens when there are bind-mounted devices. Please, unmount your bind \n" \
+          "mounts first and try again. You can mount them back after configuring your bootloader.")
       )
       :abort
     rescue ::Bootloader::BrokenConfiguration, ::Bootloader::UnsupportedOption => e
