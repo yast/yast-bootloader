@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 23 16:15:38 UTC 2020 - José Iván López González <jlopez@suse.com>
+
+- Improve message when root file system is not found (bsc#1160176).
+- 4.1.26
+
+-------------------------------------------------------------------
 Tue Jan 21 16:39:30 UTC 2020 - José Iván López González <jlopez@suse.com>
 
 - Improved detection of the root filesystem in non-standard
