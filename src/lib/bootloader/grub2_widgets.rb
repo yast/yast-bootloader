@@ -6,6 +6,7 @@ require "bootloader/generic_widgets"
 require "bootloader/device_map_dialog"
 require "bootloader/serial_console"
 require "bootloader/cpu_mitigations"
+require "bootloader/systeminfo"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -14,6 +15,7 @@ Yast.import "Label"
 Yast.import "Report"
 Yast.import "UI"
 Yast.import "Mode"
+Yast.import "Arch"
 
 module Bootloader
   # Adds to generic widget grub2 specific helpers
@@ -326,7 +328,7 @@ module Bootloader
     end
 
     def help
-      _("<p><b>Enable Secure Boot Support</b> if checked enables UEFI Secure Boot support.</p>")
+      _("<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.</p>")
     end
 
     def init
@@ -978,18 +980,11 @@ module Bootloader
     end
 
     def secure_boot_widget?
-      (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64) && grub2.name == "grub2-efi"
+      Systeminfo.secure_boot_available?
     end
 
     def trusted_boot_widget?
-      return false if !(Yast::Arch.x86_64 || Yast::Arch.i386)
-
-      return true if grub2.name == "grub2"
-
-      # for details about grub2 efi trusted boot support see FATE#315831
-      return File.exist?("/dev/tpm0") if grub2.name == "grub2-efi"
-
-      false
+      Systeminfo.trusted_boot_available?
     end
 
     def pmbr_widget?
