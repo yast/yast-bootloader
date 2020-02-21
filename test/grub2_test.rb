@@ -81,7 +81,7 @@ describe Bootloader::Grub2 do
 
       grub2_install = double(Bootloader::GrubInstall)
       expect(grub2_install).to receive(:execute)
-        .with(devices: ["/dev/sda", "/dev/sdb1"], trusted_boot: false).and_return([])
+        .with(devices: ["/dev/sda", "/dev/sdb1"], secure_boot: nil, trusted_boot: false).and_return([])
       expect(Bootloader::GrubInstall).to receive(:new).with(efi: false).and_return(grub2_install)
 
       subject.trusted_boot = false

@@ -132,6 +132,7 @@ describe Bootloader::GrubInstall do
       subject { Bootloader::GrubInstall.new(efi: false) }
 
       it "raise exception if secure_boot: true passed" do
+        stub_arch("x86_64")
         expect { subject.execute(secure_boot: true) }.to raise_error(RuntimeError)
       end
 

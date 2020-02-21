@@ -16,36 +16,31 @@ module Bootloader
         efi_supported? || s390_secure_boot_active?
       end
 
-      # true if boot config uses secure boot
-      def secure_boot_used?
-        ::Bootloader::BootloaderFactory.current.secure_boot
-      end
-
       # true if secure boot is (in principle) supported
       def secure_boot_supported?
         efi_supported? || s390_secure_boot_supported?
       end
 
       # true if secure boot setting is available for current boot config
-      def secure_boot_available?
-        efi_used? || s390_secure_boot_supported?
+      def secure_boot_available?(bootloader_name)
+        efi_used?(bootloader_name) || s390_secure_boot_supported?
       end
 
       # true if trusted boot setting is available for current boot config
-      def trusted_boot_available?
+      def trusted_boot_available?(bootloader_name)
         # for details about grub2 efi trusted boot support see FATE#315831
         (
-          ::Bootloader::BootloaderFactory.current.name == "grub2" &&
+          bootloader_name == "grub2" &&
           (Yast::Arch.x86_64 || Yast::Arch.i386)
         ) || (
-          ::Bootloader::BootloaderFactory.current.name == "grub2-efi" &&
+          bootloader_name == "grub2-efi" &&
           File.exist?("/dev/tpm0")
         )
       end
 
       # true if UEFI will be used for booting
-      def efi_used?
-        ::Bootloader::BootloaderFactory.current.name == "grub2-efi"
+      def efi_used?(bootloader_name)
+        bootloader_name == "grub2-efi"
       end
 
       # true if system can (in principle) boot via UEFI
@@ -54,8 +49,8 @@ module Bootloader
       end
 
       # true if shim has to be used
-      def shim_needed?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && secure_boot_used? && efi_used?
+      def shim_needed?(bootloader_name, secure_boot)
+        (Yast::Arch.x86_64 || Yast::Arch.i386) && secure_boot && efi_used?(bootloader_name)
       end
 
       # true if s390 machine has secure boot support
