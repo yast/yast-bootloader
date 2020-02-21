@@ -2,6 +2,7 @@
 
 require "yast"
 require "yast2/execute"
+require "bootloader/systeminfo"
 
 Yast.import "Arch"
 Yast.import "Report"
@@ -25,7 +26,9 @@ module Bootloader
     # @param trusted_boot [Boolean] if trusted boot variant should be used
     # @return [Array<String>] list of devices for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false)
-      raise "cannot have secure boot without efi" if secure_boot && !efi
+      if secure_boot && !Systeminfo.secure_boot_available?
+        raise "cannot enable secure boot on this machine"
+      end
 
       cmd = basic_cmd(secure_boot, trusted_boot)
 
@@ -71,7 +74,7 @@ module Bootloader
     # creates basic command for grub2 install without specifying any stage1
     # locations
     def basic_cmd(secure_boot, trusted_boot)
-      if secure_boot && !Yast::Arch.aarch64
+      if Systeminfo.shim_needed?
         cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
       else
         cmd = ["/usr/sbin/grub2-install", "--target=#{target}"]
