@@ -38,26 +38,15 @@ module Bootloader
 
     # Converts udev or kernel device (disk or partition) to udev name that fits best.
     #
-    # Here is description of strategy for finding the best possible udev persistent name.
     # There are three scenarios we consider:
     # S1. disk with boot configuration is moved to different PC
     # S2. disk dies and its content is loaded to new disk from backup
     # S3. path to disk dies and disk is moved to different one
     #
-    # Strategy is:
-    #
-    # 1. if device have filesystem and it have its mount_by, then respect it
-    # 2. if there is by-label use it, as it allows to handle S1, S2 and S3 just with using same
-    #    label
-    # 3. if there is by-uuid then use it as it can also handle S1, S2 and S3 as uuid can be
-    #    changed, but it is harder to do
-    # 4. if there is by-id use it, as it can handle S3 in some scenarios, but not always.
-    # 5. if there is by-path use it as it is last supported udev symlink that at least prevent
-    #    change of kernel device during boot
-    # 6. as fallback use kernel name
+    # The strategy to discover the best mount by option when the device is not mounted is delegated
+    # to storage-ng, see Y2Storage::Mountable#preferred_mount_by.
     #
     # @param dev [String] device udev or kernel one like /dev/disk/by-id/blabla
-    # @raise when device have udev format but do not exists
     # @return [String] udev name
     def to_mountby_device(dev)
       kernel_dev = to_kernel_device(dev)
@@ -105,48 +94,28 @@ module Bootloader
       result
     end
 
-    # picks udev name according to strategy
+    # Udev name for the device
+    #
+    # The selected udev name depends on the mount by option. In case of an unmounted device,
+    # storage-ng has logic to discover the preferred mount by option.
+    #
     # @see #to_mountby_device
+    #
+    # @return [String]
     def udev_name_for(device)
-      mount_by_udev(device) ||
-        udev_by_label(device) ||
-        udev_by_uuid(device) ||
-        udev_by_id(device) ||
-        udev_by_path(device) ||
-        device.name
+      mount_by_udev(device) || device.name
     end
 
+    # @return [String, nil] nil if the udev name cannot be found
     def mount_by_udev(device)
       filesystem = device.filesystem
       return nil unless filesystem
-      # mount_by is nil, so not mounted and we need to use our own strategy
-      return nil if filesystem.mount_by.nil?
 
-      case filesystem.mount_by.to_sym
-      when :device then device.name
-      when :uuid then udev_by_uuid(device)
-      when :label then udev_by_label(device)
-      when :id then udev_by_id(device)
-      when :path then udev_by_path(device)
-      else
-        raise "Unknown mount by option #{filesystem.mount_by.inspect} for #{filesystem.inspect}"
-      end
-    end
+      # If the device is not mounted, a preferred mount by option is calculated.
+      mount_by = filesystem.mount_by || filesystem.preferred_mount_by
+      return nil unless mount_by
 
-    def udev_by_uuid(device)
-      device.udev_full_uuid
-    end
-
-    def udev_by_label(device)
-      device.udev_full_label
-    end
-
-    def udev_by_id(device)
-      device.udev_full_ids.first
-    end
-
-    def udev_by_path(device)
-      device.udev_full_paths.first
+      device.path_for_mount_by(mount_by)
     end
   end
 end
