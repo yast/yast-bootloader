@@ -113,8 +113,8 @@ module Bootloader
         )
       ]
 
-      result.push secure_boot_summary if Systeminfo.secure_boot_available?
-      result.push trusted_boot_summary if Systeminfo.trusted_boot_available?
+      result.push secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result.push trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
 
       locations_val = locations
       if !locations_val.empty?

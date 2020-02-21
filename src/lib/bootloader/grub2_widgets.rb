@@ -980,11 +980,11 @@ module Bootloader
     end
 
     def secure_boot_widget?
-      Systeminfo.secure_boot_available?
+      Systeminfo.secure_boot_available?(grub2.name)
     end
 
     def trusted_boot_widget?
-      Systeminfo.trusted_boot_available?
+      Systeminfo.trusted_boot_available?(grub2.name)
     end
 
     def pmbr_widget?

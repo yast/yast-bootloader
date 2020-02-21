@@ -15,6 +15,8 @@ module Bootloader
 
     def initialize(efi: false)
       @efi = efi
+      @grub2_name = "grub2"
+      @grub2_name += "-efi" if @efi
       textdomain "bootloader"
     end
 
@@ -26,7 +28,7 @@ module Bootloader
     # @param trusted_boot [Boolean] if trusted boot variant should be used
     # @return [Array<String>] list of devices for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false)
-      if secure_boot && !Systeminfo.secure_boot_available?
+      if secure_boot && !Systeminfo.secure_boot_available?(@grub2_name)
         raise "cannot enable secure boot on this machine"
       end
 
@@ -74,7 +76,7 @@ module Bootloader
     # creates basic command for grub2 install without specifying any stage1
     # locations
     def basic_cmd(secure_boot, trusted_boot)
-      if Systeminfo.shim_needed?
+      if Systeminfo.shim_needed?(@grub2_name, secure_boot)
         cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
       else
         cmd = ["/usr/sbin/grub2-install", "--target=#{target}"]
