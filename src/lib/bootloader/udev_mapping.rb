@@ -38,11 +38,6 @@ module Bootloader
 
     # Converts udev or kernel device (disk or partition) to udev name that fits best.
     #
-    # There are three scenarios we consider:
-    # S1. disk with boot configuration is moved to different PC
-    # S2. disk dies and its content is loaded to new disk from backup
-    # S3. path to disk dies and disk is moved to different one
-    #
     # The strategy to discover the best mount by option when the device is not mounted is delegated
     # to storage-ng, see Y2Storage::Mountable#preferred_mount_by.
     #
