@@ -42,56 +42,66 @@ describe Bootloader::UdevMapping do
   end
 
   describe ".to_mountby_device" do
-    let(:device) { find_device("/dev/sda3") }
-
     before do
       # find by name creates always new instance, so to make mocking easier, mock it to return always same instance
       allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
+
+      allow(device).to receive(:path_for_mount_by).with(mount_by).and_return(udev_name)
     end
 
-    it "returns udev link in same format as used to its mounting" do
-      device.filesystem.mount_point.mount_by = Y2Storage::Filesystems::MountByType.new(:uuid)
+    let(:device) { find_device("/dev/sda3") }
 
-      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
+    let(:mount_by) { Y2Storage::Filesystems::MountByType.new(mount_by_option) }
+
+    context "when the device is mounted" do
+      before do
+        device.filesystem.mount_point.mount_by = mount_by
+      end
+
+      let(:mount_by_option) { :label }
+
+      context "and the udev name is available for the mount by option in the mount point" do
+        let(:udev_name) { "/dev/disk/by-label/test" }
+
+        it "returns the udev name according to the mount by option in the mount point" do
+          expect(subject.to_mountby_device(device.name)).to eq(udev_name)
+        end
+      end
+
+      context "and the udev name is not available for the mount by option in the mount point" do
+        let(:udev_name) { nil }
+
+        it "returns the kernel name as fallback" do
+          expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
+        end
+      end
     end
 
-    it "returns udev link by label if defined" do
-      device.filesystem.remove_mount_point
+    context "when the device is not mounted" do
+      before do
+        device.filesystem&.remove_mount_point
 
-      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-label/DATA"
-    end
+        allow_any_instance_of(Y2Storage::MountPoint).to receive(:preferred_mount_by)
+          .and_return(mount_by)
+      end
 
-    it "returns udev link by uuid if defined" do
-      device.filesystem.remove_mount_point
-      allow(device).to receive(:udev_full_label).and_return(nil)
+      let(:mount_by_option) { :label }
 
-      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
-    end
+      context "and the udev name is available for the preferred mount by option" do
+        let(:udev_name) { "/dev/disk/by-label/test" }
 
-    it "returns first udev link by id if defined" do
-      device.filesystem.remove_mount_point
-      allow(device).to receive(:udev_full_label).and_return(nil)
-      allow(device).to receive(:udev_full_uuid).and_return(nil)
-      allow(device).to receive(:udev_ids).and_return(["abc", "cde"])
+        it "returns the udev name according to the preferred mount by option" do
+          expect(subject.to_mountby_device(device.name)).to eq(udev_name)
+        end
+      end
 
-      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-id/abc"
-    end
+      context "and the udev name is not available for the preferred mount by option" do
+        let(:udev_name) { nil }
 
-    it "returns first udev link by path if defined" do
-      device.filesystem.remove_mount_point
-      allow(device).to receive(:udev_full_label).and_return(nil)
-      allow(device).to receive(:udev_full_uuid).and_return(nil)
-      allow(device).to receive(:udev_paths).and_return(["abc", "cde"])
-
-      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-path/abc"
-    end
-
-    it "returns kernel name as last fallback" do
-      device.filesystem.remove_mount_point
-      allow(device).to receive(:udev_full_label).and_return(nil)
-      allow(device).to receive(:udev_full_uuid).and_return(nil)
-
-      expect(subject.to_mountby_device(device.name)).to eq device.name
+        it "returns the kernel name as fallback" do
+          expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
+        end
+      end
     end
   end
 end
