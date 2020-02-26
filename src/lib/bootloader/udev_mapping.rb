@@ -76,19 +76,6 @@ module Bootloader
       device.name
     end
 
-    def kernel_to_udev(dev)
-      device = Y2Storage::BlkDevice.find_by_name(staging, dev)
-      if device.nil?
-        log.error "Cannot find #{dev}"
-        return dev
-      end
-
-      result = udev_name_for(device)
-      log.info "udev device for #{dev.inspect} is #{result.inspect}"
-
-      result
-    end
-
     # Udev name for the device
     #
     # The selected udev name depends on the mount by option. In case of an unmounted device,
@@ -97,8 +84,17 @@ module Bootloader
     # @see #to_mountby_device
     #
     # @return [String]
-    def udev_name_for(device)
-      mount_by_udev(device) || device.name
+    def kernel_to_udev(dev)
+      device = Y2Storage::BlkDevice.find_by_name(staging, dev)
+      if device.nil?
+        log.error "Cannot find #{dev}"
+        return dev
+      end
+
+      udev = mount_by_udev(device) || device.name
+      log.info "udev device for #{dev.inspect} is #{udev.inspect}"
+
+      udev
     end
 
     # @return [String, nil] nil if the udev name cannot be found
