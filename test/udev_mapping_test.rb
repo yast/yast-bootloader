@@ -45,109 +45,13 @@ describe Bootloader::UdevMapping do
     before do
       # find by name creates always new instance, so to make mocking easier, mock it to return always same instance
       allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
+
+      allow(device).to receive(:path_for_mount_by).with(mount_by).and_return(udev_name)
     end
 
     let(:device) { find_device("/dev/sda3") }
 
     let(:mount_by) { Y2Storage::Filesystems::MountByType.new(mount_by_option) }
-
-    shared_examples "options_and_fallback" do
-      context "and the mount by option is by UUID" do
-        let(:mount_by_option) { :uuid }
-
-        before do
-          device.filesystem.uuid = uuid
-        end
-
-        context "and the filesystem UUID is known" do
-          let(:uuid) { "111-222" }
-
-          it "returns the by uuid udev link" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/disk/by-uuid/111-222")
-          end
-        end
-
-        context "and the filesystem UUID is unknown" do
-          let(:uuid) { "" }
-
-          it "returns the kernel name as fallback" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
-          end
-        end
-      end
-
-      context "and the mount by option is by LABEL" do
-        let(:mount_by_option) { :label }
-
-        before do
-          device.filesystem.label = label
-        end
-
-        context "and the filesystem label is known" do
-          let(:label) { "test" }
-
-          it "returns the by label udev link" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/disk/by-label/test")
-          end
-        end
-
-        context "and the filesystem label is unknown" do
-          let(:label) { "" }
-
-          it "returns the kernel name as fallback" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
-          end
-        end
-      end
-
-      context "and the mount by option is by ID" do
-        let(:mount_by_option) { :id }
-
-        before do
-          allow(device).to receive(:udev_ids).and_return(ids)
-        end
-
-        context "and the device ids are known" do
-          let(:ids) { ["abc", "cde"] }
-
-          it "returns the first by id udev link" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/disk/by-id/abc")
-          end
-        end
-
-        context "and the device ids are unknown" do
-          let(:ids) { [] }
-
-          it "returns the kernel name as fallback" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
-          end
-        end
-      end
-
-      context "and the mount by option is by PATH" do
-        let(:mount_by_option) { :path }
-
-        before do
-          allow(device).to receive(:udev_paths).and_return(paths)
-        end
-
-        context "and the device paths are known" do
-          let(:paths) { ["abc", "cde"] }
-
-          it "returns the first by path udev link" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/disk/by-path/abc")
-          end
-        end
-
-        context "and the device paths are unknown" do
-          let(:paths) { [] }
-
-          it "returns the kernel name as fallback" do
-            expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
-          end
-        end
-      end
-    end
 
     context "when the device is mounted" do
       before do
@@ -156,11 +60,21 @@ describe Bootloader::UdevMapping do
 
       let(:mount_by_option) { :label }
 
-      it "returns the udev link according to its mount point configuration" do
-        expect(subject.to_mountby_device(device.name)).to eq("/dev/disk/by-label/DATA")
+      context "and the udev name is available for the mount by option in the mount point" do
+        let(:udev_name) { "/dev/disk/by-label/test" }
+
+        it "returns the udev name according to the mount by option in the mount point" do
+          expect(subject.to_mountby_device(device.name)).to eq(udev_name)
+        end
       end
 
-      include_examples "options_and_fallback"
+      context "and the udev name is not available for the mount by option in the mount point" do
+        let(:udev_name) { nil }
+
+        it "returns the kernel name as fallback" do
+          expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
+        end
+      end
     end
 
     context "when the device is not mounted" do
@@ -173,11 +87,21 @@ describe Bootloader::UdevMapping do
 
       let(:mount_by_option) { :label }
 
-      it "returns the udev link according to the preferred mount by" do
-        expect(subject.to_mountby_device(device.name)).to eq("/dev/disk/by-label/DATA")
+      context "and the udev name is available for the preferred mount by option" do
+        let(:udev_name) { "/dev/disk/by-label/test" }
+
+        it "returns the udev name according to the preferred mount by option" do
+          expect(subject.to_mountby_device(device.name)).to eq(udev_name)
+        end
       end
 
-      include_examples "options_and_fallback"
+      context "and the udev name is not available for the preferred mount by option" do
+        let(:udev_name) { nil }
+
+        it "returns the kernel name as fallback" do
+          expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
+        end
+      end
     end
   end
 end
