@@ -13,7 +13,6 @@ module Bootloader
   # Represents grub2 bootloader with efi target
   class Grub2EFI < Grub2Base
     include Yast::Logger
-    attr_accessor :secure_boot
 
     def initialize
       super
@@ -25,8 +24,6 @@ module Bootloader
 
     # Read settings from disk overwritting already set values
     def read
-      @secure_boot = Sysconfig.from_system.secure_boot
-
       super
     end
 
@@ -50,7 +47,7 @@ module Bootloader
         pmbr_setup(*disks.map(&:name))
       end
 
-      @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)
+      @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot)
 
       true
     end
@@ -61,34 +58,27 @@ module Bootloader
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove
 
-      # Only x86_64 and aarch64 systems support secure boot
-      @secure_boot = (Yast::Arch.x86_64 || Yast::Arch.aarch64) ? true : false
       grub_default.generic_set("GRUB_USE_LINUXEFI", Yast::Arch.aarch64 ? "false" : "true")
     end
 
     def merge(other)
       super
-
-      @secure_boot = other.secure_boot unless other.secure_boot.nil?
     end
 
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
-      [
+      result = [
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2 EFI"
-        ),
-        Yast::Builtins.sformat(
-          _("Enable Secure Boot: %1"),
-          @secure_boot ? _("yes") : _("no")
-        ),
-        Yast::Builtins.sformat(
-          _("Enable Trusted Boot: %1"),
-          trusted_boot ? _("yes") : _("no")
         )
       ]
+
+      result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
+
+      result
     end
 
     def name
@@ -103,7 +93,7 @@ module Bootloader
         res << "grub2-i386-efi"
       when "x86_64"
         res << "grub2-x86_64-efi"
-        res << "shim" << "mokutil" if @secure_boot
+        res << "shim" << "mokutil" if secure_boot
       when "arm"
         res << "grub2-arm-efi"
       when "aarch64"
@@ -118,7 +108,7 @@ module Bootloader
     # overwrite BootloaderBase version to save secure boot
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name,
-        secure_boot: @secure_boot, trusted_boot: trusted_boot)
+        secure_boot: secure_boot, trusted_boot: trusted_boot)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 

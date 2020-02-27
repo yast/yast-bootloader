@@ -29,7 +29,11 @@ module Bootloader
     # @return [Array<String>] list of devices for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false)
       if secure_boot && !Systeminfo.secure_boot_available?(@grub2_name)
-        raise "cannot enable secure boot on this machine"
+        # There might be some secure boot setting left over when the
+        # bootloader had been switched.
+        # Simply ignore it when it is not applicable instead of raising an
+        # error.
+        log.warn "Ignoring secure boot setting on this machine"
       end
 
       cmd = basic_cmd(secure_boot, trusted_boot)

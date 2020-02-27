@@ -18,7 +18,6 @@ module Bootloader
   class Grub2 < Grub2Base
     attr_reader :stage1
     attr_reader :device_map
-    attr_accessor :secure_boot
 
     def initialize
       super
@@ -32,8 +31,6 @@ module Bootloader
     # Read settings from disk, overwritting already set values
     def read
       super
-
-      @secure_boot = Sysconfig.from_system.secure_boot
 
       begin
         stage1.read
@@ -70,7 +67,7 @@ module Bootloader
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
         failed = @grub_install.execute(
-          devices: stage1.devices, secure_boot: @secure_boot, trusted_boot: trusted_boot
+          devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot
         )
         failed.each { |f| stage1.remove_device(f) }
         stage1.write
@@ -83,8 +80,6 @@ module Bootloader
     def propose
       super
 
-      @secure_boot = Systeminfo.secure_boot_active?
-
       stage1.propose
       # for GPT add protective MBR flag otherwise some systems won't
       # boot, safer option for legacy booting (bnc#872054)
@@ -95,8 +90,6 @@ module Bootloader
 
     def merge(other)
       super
-
-      @secure_boot = other.secure_boot unless other.secure_boot.nil?
 
       @device_map = other.device_map if !other.device_map.empty?
 
@@ -153,30 +146,12 @@ module Bootloader
     # overwrite BootloaderBase version to save trusted boot
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(
-        bootloader: name, secure_boot: @secure_boot, trusted_boot: trusted_boot
+        bootloader: name, secure_boot: secure_boot, trusted_boot: trusted_boot
       )
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
   private
-
-    def secure_boot_summary
-      _("Secure Boot:") + " " + (@secure_boot ? _("enabled") : _("disabled")) + " " +
-        if @secure_boot
-          "<a href=\"disable_secure_boot\">(" + _("disable") + ")</a>"
-        else
-          "<a href=\"enable_secure_boot\">(" + _("enable") + ")</a>"
-        end
-    end
-
-    def trusted_boot_summary
-      _("Trusted Boot:") + " " + (trusted_boot ? _("enabled") : _("disabled")) + " " +
-        if trusted_boot
-          "<a href=\"disable_trusted_boot\">(" + _("disable") + ")</a>"
-        else
-          "<a href=\"enable_trusted_boot\">(" + _("enable") + ")</a>"
-        end
-    end
 
     # Checks if syslinux package should be included
     #

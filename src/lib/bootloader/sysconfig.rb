@@ -34,11 +34,7 @@ module Bootloader
       bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
       # but only on architectures that support it
-      secure_boot = if Systeminfo.secure_boot_supported?
-        Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
-      else
-        false
-      end
+      secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
 
       trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
