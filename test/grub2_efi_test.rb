@@ -17,6 +17,7 @@ describe Bootloader::Grub2EFI do
     allow(Bootloader::Sections).to receive(:new).and_return(double("Sections").as_null_object)
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
     allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
+    allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
   end
 
   describe "#read" do
@@ -142,7 +143,7 @@ describe Bootloader::Grub2EFI do
     it "returns line with secure boot option specified" do
       subject.secure_boot = false
 
-      expect(subject.summary).to include("Enable Secure Boot: no")
+      expect(subject.summary).to include(match(/Secure Boot: disabled/))
     end
   end
 
