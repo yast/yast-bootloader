@@ -54,6 +54,8 @@ module Bootloader
     #   @return [::Bootloader::SerialConsole] serial console or nil if none
     attr_reader :console
 
+    attr_reader :stage1
+
     def initialize
       super
 
