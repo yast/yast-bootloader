@@ -2,6 +2,7 @@
 
 require "yast"
 require "bootloader/bootloader_factory"
+require "bootloader/sysconfig"
 
 Yast.import "Arch"
 
@@ -13,20 +14,27 @@ module Bootloader
     class << self
       # true if secure boot is currently active
       def secure_boot_active?
-        efi_supported? || s390_secure_boot_active?
+        (efi_supported? && Sysconfig.from_system.secure_boot) || s390_secure_boot_active?
       end
 
-      # true if secure boot is (in principle) supported
+      # true if secure boot is (in principle) supported on this system
       def secure_boot_supported?
         efi_supported? || s390_secure_boot_supported?
       end
 
-      # true if secure boot setting is available for current boot config
+      # true if secure boot setting is available for current bootloader
       def secure_boot_available?(bootloader_name)
         efi_used?(bootloader_name) || s390_secure_boot_supported?
       end
 
-      # true if trusted boot setting is available for current boot config
+      # true if trusted boot is currently active
+      def trusted_boot_active?
+        # FIXME: this should probably be a real check as in Grub2Widget#validate
+        #   and then Grub2Widget#validate should use Systeminfo.trusted_boot_active?
+        Sysconfig.from_system.trusted_boot
+      end
+
+      # true if trusted boot setting is available for current bootloader
       def trusted_boot_available?(bootloader_name)
         # for details about grub2 efi trusted boot support see FATE#315831
         (

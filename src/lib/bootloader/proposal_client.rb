@@ -355,8 +355,8 @@ module Bootloader
         if value && Yast::Arch.s390
           Yast2::Popup.show(
             _(
-              "Please make sure to also enable Secure Boot in the HMC.\n" \
-              "Otherwise this machine may not boot."
+              "Make sure to also enable Secure Boot in the HMC.\n\n" \
+              "Otherwise this system will not boot."
             ),
             headline: :warning, buttons: :ok
           )

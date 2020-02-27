@@ -338,6 +338,19 @@ module Bootloader
     def store
       grub2.secure_boot = value
     end
+
+    def validate
+      return true if Yast::Mode.config ||
+        !Yast::Arch.s390 ||
+        value == Systeminfo.secure_boot_active?
+
+      Yast::Popup.ContinueCancel(
+        _(
+          "Make sure the Secure Boot setting matches the configuration of the HMC.\n\n" \
+          "Otherwise this system will not boot."
+        )
+      )
+    end
   end
 
   # Represents switcher for Trusted Boot
