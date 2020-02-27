@@ -45,15 +45,20 @@ module Bootloader
 
     attr_accessor :pmbr_action
 
-    # @return [Boolean]
+    # @!attribute trusted_boot
+    #   @return [Boolean] current trusted boot setting
     attr_accessor :trusted_boot
 
+    # @!attribute secure_boot
+    #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
 
     # @!attribute console
     #   @return [::Bootloader::SerialConsole] serial console or nil if none
     attr_reader :console
 
+    # @!attribute stage1
+    #   @return [::Bootloader::Stage1, nil] bootloader stage1, if one is needed
     attr_reader :stage1
 
     def initialize
@@ -372,6 +377,9 @@ module Bootloader
       grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
     end
 
+    # Secure boot setting shown in summary screen.
+    #
+    # @return [String]
     def secure_boot_summary
       _("Secure Boot:") + " " + (secure_boot ? _("enabled") : _("disabled")) + " " +
         if secure_boot
@@ -381,6 +389,9 @@ module Bootloader
         end
     end
 
+    # Trusted boot setting shown in summary screen.
+    #
+    # @return [String]
     def trusted_boot_summary
       _("Trusted Boot:") + " " + (trusted_boot ? _("enabled") : _("disabled")) + " " +
         if trusted_boot
