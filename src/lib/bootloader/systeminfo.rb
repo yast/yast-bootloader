@@ -7,34 +7,48 @@ require "bootloader/sysconfig"
 Yast.import "Arch"
 
 module Bootloader
-  # provide system and architecture dependent information
+  # Provide system and architecture dependent information
   class Systeminfo
-    include Yast::Logger
-
     class << self
-      # true if secure boot is currently active
+      # Check current secure boot state.
+      #
+      # This prefers the 'real' state over the config file setting, if possible.
+      #
+      # @return [Boolean] true if secure boot is currently active
       def secure_boot_active?
         (efi_supported? && Sysconfig.from_system.secure_boot) || s390_secure_boot_active?
       end
 
-      # true if secure boot is (in principle) supported on this system
-      def secure_boot_supported?
-        efi_supported? || s390_secure_boot_supported?
-      end
+      # Check if secure boot is in principle supported.
+      #
+      # @return [Boolean] true if secure boot is (in principle) supported on this system
+      # def secure_boot_supported?
+      #  efi_supported? || s390_secure_boot_supported?
+      # end
 
-      # true if secure boot setting is available for current bootloader
+      # Check if secure boot is configurable with a bootloader.
+      #
+      # @param bootloader_name [String] bootloader name
+      # @return [Boolean] true if secure boot setting is available with this bootloader
       def secure_boot_available?(bootloader_name)
         efi_used?(bootloader_name) || s390_secure_boot_supported?
       end
 
-      # true if trusted boot is currently active
+      # Check current trusted boot state.
+      #
+      # ATM this just returns the config file setting.
+      #
+      # @return [Boolean] true if trusted boot is currently active
       def trusted_boot_active?
         # FIXME: this should probably be a real check as in Grub2Widget#validate
-        #   and then Grub2Widget#validate should use Systeminfo.trusted_boot_active?
+        #   and then Grub2Widget#validate could use Systeminfo.trusted_boot_active?
         Sysconfig.from_system.trusted_boot
       end
 
-      # true if trusted boot setting is available for current bootloader
+      # Check if trusted boot is configurable with a bootloader.
+      #
+      # param bootloader_name [String] bootloader name
+      # @return [Boolean] true if trusted boot setting is available with this bootloader
       def trusted_boot_available?(bootloader_name)
         # for details about grub2 efi trusted boot support see FATE#315831
         (
@@ -46,28 +60,48 @@ module Bootloader
         )
       end
 
-      # true if UEFI will be used for booting
+      # Check if UEFI will be used.
+      #
+      # param bootloader_name [String] bootloader name
+      # @return [Boolean] true if UEFI will be used for booting with this bootloader
       def efi_used?(bootloader_name)
         bootloader_name == "grub2-efi"
       end
 
-      # true if system can (in principle) boot via UEFI
+      # Check if UEFI is available on this system.
+      #
+      # It need not currently be used. It should just be possible to put the
+      # system into UEFI mode.
+      #
+      # @return [Boolean] true if system can (in principle) boot via UEFI
       def efi_supported?
         Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64
       end
 
-      # true if shim has to be used
+      # Check if shim-install should be used instead of grub2-install.
+      #
+      # param bootloader_name [String] bootloader name
+      # param secure_boot [Boolean] secure boot setting
+      # @return [Boolean] true if shim has to be used
       def shim_needed?(bootloader_name, secure_boot)
         (Yast::Arch.x86_64 || Yast::Arch.i386) && secure_boot && efi_used?(bootloader_name)
       end
 
-      # true if s390 machine has secure boot support
+      # Check if secure boot is supported on an s390 machine.
+      #
+      # @return [Boolean] true if this is an s390 machine and it has secure boot support
       def s390_secure_boot_supported?
+        # FIXME: this is just a stub - replace with real code later
         Yast::Arch.s390
       end
 
-      # true if 390x machine has secure boot enabled
+      # Check if secure boot is currently active on an s390 machine.
+      #
+      # The 'real' state, not any config file setting.
+      #
+      # @return [Boolean] true if 390x machine has secure boot enabled
       def s390_secure_boot_active?
+        # FIXME: this is just a stub - replace with real code later
         false
       end
     end
