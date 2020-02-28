@@ -355,9 +355,9 @@ module Bootloader
           value ? stage1.add_udev_device(device) : stage1.remove_device(device)
         end
       when "trusted_boot"
-        ::Bootloader::BootloaderFactory.current.trusted_boot = value
+        bootloader.trusted_boot = value
       when "secure_boot"
-        ::Bootloader::BootloaderFactory.current.secure_boot = value
+        bootloader.secure_boot = value
         if value && Yast::Arch.s390
           Yast2::Popup.show(
             _(
