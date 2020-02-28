@@ -7,6 +7,7 @@ require "bootloader/mbr_update"
 require "bootloader/device_map"
 require "bootloader/stage1"
 require "bootloader/grub_install"
+require "bootloader/systeminfo"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
@@ -15,7 +16,6 @@ Yast.import "HTML"
 module Bootloader
   # Represents non-EFI variant of GRUB2
   class Grub2 < Grub2Base
-    attr_reader :stage1
     attr_reader :device_map
 
     def initialize
@@ -65,7 +65,9 @@ module Bootloader
 
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
-        failed = @grub_install.execute(devices: stage1.devices, trusted_boot: trusted_boot)
+        failed = @grub_install.execute(
+          devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot
+        )
         failed.each { |f| stage1.remove_device(f) }
         stage1.write
       end
@@ -100,12 +102,12 @@ module Bootloader
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2"
-        ),
-        Yast::Builtins.sformat(
-          _("Enable Trusted Boot: %1"),
-          trusted_boot ? _("yes") : _("no")
         )
       ]
+
+      result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
+
       locations_val = locations
       if !locations_val.empty?
         result << Yast::Builtins.sformat(
@@ -142,7 +144,9 @@ module Bootloader
     # FIXME: refactor with injection like super(prewrite: prewrite, sysconfig = ...)
     # overwrite BootloaderBase version to save trusted boot
     def write_sysconfig(prewrite: false)
-      sysconfig = Bootloader::Sysconfig.new(bootloader: name, trusted_boot: trusted_boot)
+      sysconfig = Bootloader::Sysconfig.new(
+        bootloader: name, secure_boot: secure_boot, trusted_boot: trusted_boot
+      )
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 

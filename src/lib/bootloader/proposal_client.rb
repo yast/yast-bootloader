@@ -4,12 +4,14 @@ require "installation/proposal_client"
 require "bootloader/exceptions"
 require "bootloader/main_dialog"
 require "bootloader/bootloader_factory"
+require "bootloader/systeminfo"
 require "yast2/popup"
 
 Yast.import "BootArch"
 
 module Bootloader
   # Proposal client for bootloader configuration
+  # rubocop:disable Metrics/ClassLength
   class ProposalClient < ::Installation::ProposalClient
     # Error when during update media is booted by different technology than target system.
     class MismatchBootloader < RuntimeError
@@ -72,7 +74,11 @@ module Bootloader
       "enable_boot_mbr",
       "disable_boot_mbr",
       "enable_boot_boot",
-      "disable_boot_boot"
+      "disable_boot_boot",
+      "enable_secure_boot",
+      "disable_secure_boot",
+      "enable_trusted_boot",
+      "disable_trusted_boot"
     ].freeze
 
     def make_proposal(attrs)
@@ -94,7 +100,7 @@ module Bootloader
       case chosen_id
       when *PROPOSAL_LINKS
         value = (chosen_id =~ /enable/) ? true : false
-        option = chosen_id[/(enable|disable)_boot_(.*)/, 2]
+        option = chosen_id[/(enable|disable)_(.*)/, 2]
         single_click_action(option, value)
       else
         settings = export_settings
@@ -336,12 +342,31 @@ module Bootloader
     end
 
     def single_click_action(option, value)
-      stage1 = ::Bootloader::BootloaderFactory.current.stage1
-      devices = (option.to_sym == :mbr) ? stage1.boot_disk_names : stage1.boot_partition_names
-      log.info "single_click_action #{option} #{value.inspect} #{devices}"
+      bootloader = ::Bootloader::BootloaderFactory.current
 
-      devices.each do |device|
-        value ? stage1.add_udev_device(device) : stage1.remove_device(device)
+      log.info "single_click_action: option #{option}, value #{value.inspect}"
+
+      case option
+      when "boot_mbr", "boot_boot"
+        stage1 = bootloader.stage1
+        devices = (option == "boot_mbr") ? stage1.boot_disk_names : stage1.boot_partition_names
+        log.info "single_click_action: devices #{devices}"
+        devices.each do |device|
+          value ? stage1.add_udev_device(device) : stage1.remove_device(device)
+        end
+      when "trusted_boot"
+        bootloader.trusted_boot = value
+      when "secure_boot"
+        bootloader.secure_boot = value
+        if value && Yast::Arch.s390
+          Yast2::Popup.show(
+            _(
+              "Make sure to also enable Secure Boot in the HMC.\n\n" \
+              "Otherwise this system will not boot."
+            ),
+            headline: :warning, buttons: :ok
+          )
+        end
       end
 
       Yast::Bootloader.proposed_cfg_changed = true
@@ -355,4 +380,5 @@ module Bootloader
       Yast::PackagesProposal.AddResolvables("yast2-bootloader", :package, bl.packages)
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

@@ -2,6 +2,7 @@
 
 require "yast"
 require "yast2/execute"
+require "bootloader/systeminfo"
 
 Yast.import "Arch"
 Yast.import "Report"
@@ -14,6 +15,7 @@ module Bootloader
 
     def initialize(efi: false)
       @efi = efi
+      @grub2_name = "grub2" + (@efi ? "-efi" : "")
       textdomain "bootloader"
     end
 
@@ -25,7 +27,13 @@ module Bootloader
     # @param trusted_boot [Boolean] if trusted boot variant should be used
     # @return [Array<String>] list of devices for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false)
-      raise "cannot have secure boot without efi" if secure_boot && !efi
+      if secure_boot && !Systeminfo.secure_boot_available?(@grub2_name)
+        # There might be some secure boot setting left over when the
+        # bootloader had been switched.
+        # Simply ignore it when it is not applicable instead of raising an
+        # error.
+        log.warn "Ignoring secure boot setting on this machine"
+      end
 
       cmd = basic_cmd(secure_boot, trusted_boot)
 
@@ -71,7 +79,7 @@ module Bootloader
     # creates basic command for grub2 install without specifying any stage1
     # locations
     def basic_cmd(secure_boot, trusted_boot)
-      if secure_boot && !Yast::Arch.aarch64
+      if Systeminfo.shim_needed?(@grub2_name, secure_boot)
         cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
       else
         cmd = ["/usr/sbin/grub2-install", "--target=#{target}"]

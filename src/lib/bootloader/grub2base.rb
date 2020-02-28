@@ -45,12 +45,21 @@ module Bootloader
 
     attr_accessor :pmbr_action
 
-    # @return [Boolean]
+    # @!attribute trusted_boot
+    #   @return [Boolean] current trusted boot setting
     attr_accessor :trusted_boot
+
+    # @!attribute secure_boot
+    #   @return [Boolean] current secure boot setting
+    attr_accessor :secure_boot
 
     # @!attribute console
     #   @return [::Bootloader::SerialConsole] serial console or nil if none
     attr_reader :console
+
+    # @!attribute stage1
+    #   @return [::Bootloader::Stage1, nil] bootloader stage1, if one is needed
+    attr_reader :stage1
 
     def initialize
       super
@@ -114,7 +123,8 @@ module Bootloader
       @sections = ::Bootloader::Sections.new(grub_cfg)
       log.info "grub sections: #{@sections.all}"
 
-      self.trusted_boot = Sysconfig.from_system.trusted_boot
+      self.trusted_boot = Systeminfo.trusted_boot_active?
+      self.secure_boot = Systeminfo.secure_boot_active?
     end
 
     def write
@@ -151,7 +161,7 @@ module Bootloader
       propose_xen_hypervisor
 
       self.trusted_boot = false
-      nil
+      self.secure_boot = Systeminfo.secure_boot_active?
     end
 
     def merge(other)
@@ -163,6 +173,7 @@ module Bootloader
       merge_sections(other)
 
       self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
+      self.secure_boot = other.secure_boot unless other.secure_boot.nil?
     end
 
     def enable_serial_console(console_arg_string)
@@ -364,6 +375,30 @@ module Bootloader
 
     def propose_encrypted
       grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
+    end
+
+    # Secure boot setting shown in summary screen.
+    #
+    # @return [String]
+    def secure_boot_summary
+      _("Secure Boot:") + " " + (secure_boot ? _("enabled") : _("disabled")) + " " +
+        if secure_boot
+          "<a href=\"disable_secure_boot\">(" + _("disable") + ")</a>"
+        else
+          "<a href=\"enable_secure_boot\">(" + _("enable") + ")</a>"
+        end
+    end
+
+    # Trusted boot setting shown in summary screen.
+    #
+    # @return [String]
+    def trusted_boot_summary
+      _("Trusted Boot:") + " " + (trusted_boot ? _("enabled") : _("disabled")) + " " +
+        if trusted_boot
+          "<a href=\"disable_trusted_boot\">(" + _("disable") + ")</a>"
+        else
+          "<a href=\"enable_trusted_boot\">(" + _("enable") + ")</a>"
+        end
     end
   end
   # rubocop:enable Metrics/ClassLength

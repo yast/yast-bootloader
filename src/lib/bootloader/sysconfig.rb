@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "yast"
+require "bootloader/systeminfo"
 
 Yast.import "Arch"
 
@@ -33,11 +34,7 @@ module Bootloader
       bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
       # but only on architectures that support it
-      secure_boot = if Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64
-        Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
-      else
-        false
-      end
+      secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
 
       trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
