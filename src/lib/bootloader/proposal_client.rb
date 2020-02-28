@@ -342,12 +342,18 @@ module Bootloader
     end
 
     def single_click_action(option, value)
-      stage1 = ::Bootloader::BootloaderFactory.current.stage1
+      bootloader = ::Bootloader::BootloaderFactory.current
+
+      log.info "single_click_action: option #{option}, value #{value.inspect}"
+
       case option
-      when "boot_mbr"
-        devices = stage1.boot_disk_names
-      when "boot_boot"
-        devices = stage1.boot_partition_names
+      when "boot_mbr", "boot_boot"
+        stage1 = bootloader.stage1
+        devices = (option == "boot_mbr") ? stage1.boot_disk_names : stage1.boot_partition_names
+        log.info "single_click_action: devices #{devices}"
+        devices.each do |device|
+          value ? stage1.add_udev_device(device) : stage1.remove_device(device)
+        end
       when "trusted_boot"
         ::Bootloader::BootloaderFactory.current.trusted_boot = value
       when "secure_boot"
@@ -361,11 +367,6 @@ module Bootloader
             headline: :warning, buttons: :ok
           )
         end
-      end
-      log.info "single_click_action #{option} #{value.inspect} #{devices}"
-
-      devices&.each do |device|
-        value ? stage1.add_udev_device(device) : stage1.remove_device(device)
       end
 
       Yast::Bootloader.proposed_cfg_changed = true
