@@ -328,7 +328,22 @@ module Bootloader
     end
 
     def help
-      _("<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.</p>")
+      if Yast::Arch.s390
+        _(
+          "<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
+          "This does not turn on secure booting. " \
+          "It only switches to the new secure-boot enabled boot data format. " \
+          "Note that this new format works only on z15 or later. " \
+          "You cannot boot on z14 machines or older.</p>"
+        )
+      else
+        _(
+          "<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
+          "This does not turn on secure booting. " \
+          "It only sets up the boot loader in a way that supports secure booting. " \
+          "You still have to enable Secure Boot in the UEFI Firmware.</p> "
+        )
+      end
     end
 
     def init
@@ -342,12 +357,13 @@ module Bootloader
     def validate
       return true if Yast::Mode.config ||
         !Yast::Arch.s390 ||
+        !value ||
         value == Systeminfo.secure_boot_active?
 
       Yast::Popup.ContinueCancel(
         _(
-          "Make sure the Secure Boot setting matches the configuration of the HMC.\n\n" \
-          "Otherwise this system will not boot."
+          "The new secure-boot enabled boot data format works only on z15 and later.\n\n" \
+          "Older machines will not boot."
         )
       )
     end
@@ -361,7 +377,7 @@ module Bootloader
       textdomain "bootloader"
     end
 
-    def label
+    def labe
       _("Enable &Trusted Boot Support")
     end
 
