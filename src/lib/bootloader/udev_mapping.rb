@@ -91,22 +91,37 @@ module Bootloader
         return dev
       end
 
-      udev = mount_by_udev(device) || device.name
+      udev = udev_path(device)
       log.info "udev device for #{dev.inspect} is #{udev.inspect}"
 
       udev
     end
 
-    # @return [String, nil] nil if the udev name cannot be found
-    def mount_by_udev(device)
+    # Most convenient udev name of the device
+    #
+    # If possible, the udev path is chosen based on the mount_by attribute of
+    # the filesystem. If the device is not mounted or there is no path for
+    # the specified mount_by, a preferred (and available) name is calculated.
+    #
+    # @param device [Y2Storage::BlkDevice]
+    # @return [String]
+    def udev_path(device)
       filesystem = device.filesystem
-      return nil unless filesystem
 
-      # If the device is not mounted, a preferred mount by option is calculated.
-      mount_by = filesystem.mount_by || filesystem.preferred_mount_by
-      return nil unless mount_by
+      if filesystem
+        mount_by_name = filesystem.mount_by_name
 
-      device.path_for_mount_by(mount_by)
+        if mount_by_name
+          log.info "udev_path: using the udev name of the configured mount_by"
+          mount_by_name
+        else
+          log.info "udev_path: using the preferred udev name for the filesystem"
+          filesystem.preferred_name
+        end
+      else
+        log.info "udev_path: not formatted, using preferred udev name for the block device"
+        device.preferred_name
+      end
     end
   end
 end
