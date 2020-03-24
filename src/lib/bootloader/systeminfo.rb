@@ -16,7 +16,7 @@ module Bootloader
       #
       # @return [Boolean] true if secure boot is currently active
       def secure_boot_active?
-        (efi_supported? && Sysconfig.from_system.secure_boot) || s390_secure_boot_active?
+        (efi_supported? || s390_secure_boot_supported?) && Sysconfig.from_system.secure_boot
       end
 
       # Check if secure boot is in principle supported.
@@ -91,8 +91,10 @@ module Bootloader
       #
       # @return [Boolean] true if this is an s390 machine and it has secure boot support
       def s390_secure_boot_supported?
-        # FIXME: this is just a stub - replace with real code later
-        Yast::Arch.s390
+        # see jsc#SLE-9425
+        File.read("/sys/firmware/ipl/has_secure", 1) == "1"
+      rescue StandardError
+        false
       end
 
       # Check if secure boot is currently active on an s390 machine.
@@ -101,7 +103,9 @@ module Bootloader
       #
       # @return [Boolean] true if 390x machine has secure boot enabled
       def s390_secure_boot_active?
-        # FIXME: this is just a stub - replace with real code later
+        # see jsc#SLE-9425
+        File.read("/sys/firmware/ipl/secure", 1) == "1"
+      rescue StandardError
         false
       end
     end

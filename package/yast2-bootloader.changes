@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Mar 24 08:10:33 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
+
+- support s390 secure boot (jsc#SLE-9425, jsc#SLE-9471, bsc#1166736)
+- 4.2.18
+
+-------------------------------------------------------------------
 Fri Feb 28 14:23:30 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
 
 - add support for S390 secure boot (jsc#SLE-9471, jsc#SLE-9425)

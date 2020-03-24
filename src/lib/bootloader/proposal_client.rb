@@ -361,8 +361,8 @@ module Bootloader
         if value && Yast::Arch.s390
           Yast2::Popup.show(
             _(
-              "Make sure to also enable Secure Boot in the HMC.\n\n" \
-              "Otherwise this system will not boot."
+              "The new secure-boot enabled boot data format works only on z15 and later.\n\n" \
+              "Older machines will not boot."
             ),
             headline: :warning, buttons: :ok
           )

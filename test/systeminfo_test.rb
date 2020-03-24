@@ -68,9 +68,10 @@ describe Bootloader::Systeminfo do
         end
       end
 
-      context "and arch is s390x" do
+      context "and has_secure is 1 on arch s390x " do
         let(:arch) { "s390_64" }
         it "returns true" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("1")
           expect(described_class.secure_boot_available?("grub2")).to be true
         end
       end
@@ -287,8 +288,18 @@ describe Bootloader::Systeminfo do
     context "if arch is s390x" do
       let(:arch) { "s390_64" }
 
-      it "returns true" do
-        expect(described_class.s390_secure_boot_supported?).to be true
+      context "and has_secure is 1" do
+        it "returns true" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("1")
+          expect(described_class.s390_secure_boot_supported?).to be true
+        end
+      end
+
+      context "and has_secure is 0" do
+        it "returns false" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("0")
+          expect(described_class.s390_secure_boot_supported?).to be false
+        end
       end
     end
 
