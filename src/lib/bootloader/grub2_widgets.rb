@@ -377,7 +377,7 @@ module Bootloader
       textdomain "bootloader"
     end
 
-    def labe
+    def label
       _("Enable &Trusted Boot Support")
     end
 
