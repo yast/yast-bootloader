@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Mar 25 07:57:13 UTC 2020 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- Fixed the calculation of the udev name used to reference devices
+  that are not formatted, like PReP partitions (bsc#1166096).
+- 4.2.19
+
+-------------------------------------------------------------------
 Tue Mar 24 08:10:33 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
 
 - support s390 secure boot (jsc#SLE-9425, jsc#SLE-9471, bsc#1166736)
