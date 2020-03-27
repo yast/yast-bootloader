@@ -1,4 +1,14 @@
 -------------------------------------------------------------------
+Fri Mar 27 08:19:54 UTC 2020 - Ancor Gonzalez Sosa <ancor@suse.com>
+
+- Reverted the changes to delegate to yast2-storage-ng the
+  calculation of udev links. See previous entries for versions
+  4.2.16 and 4.2.19.
+- This fixes bsc#1167779 and is related to bsc#1166096 and
+  bsc#1151075.
+- 4.2.20
+
+-------------------------------------------------------------------
 Wed Mar 25 07:57:13 UTC 2020 - Ancor Gonzalez Sosa <ancor@suse.com>
 
 - Fixed the calculation of the udev name used to reference devices
