@@ -45,59 +45,66 @@ describe Bootloader::UdevMapping do
     before do
       # find by name creates always new instance, so to make mocking easier, mock it to return always same instance
       allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
+
+      allow(device).to receive(:path_for_mount_by).with(mount_by).and_return(udev_name)
     end
 
     let(:device) { find_device("/dev/sda3") }
 
-    context "when the device is formatted" do
+    let(:mount_by) { Y2Storage::Filesystems::MountByType.new(mount_by_option) }
+
+    context "when the device is mounted" do
       before do
-        # The libstorage-ng bindings constantly create new instances of the storage objects.
-        # To make mocking easier, mock it to return always the same instances
-        allow(device).to receive(:filesystem).and_return(device.filesystem)
+        device.filesystem.mount_point.mount_by = mount_by
       end
 
-      context "and mounted (or marked to be mounted)" do
-        before do
-          allow(device.filesystem).to receive(:mount_by_name).and_return mount_by_name
-        end
+      let(:mount_by_option) { :label }
 
-        context "and the udev name is available for the mount_by option in the mount point" do
-          let(:mount_by_name) { "/dev/something" }
+      context "and the udev name is available for the mount by option in the mount point" do
+        let(:udev_name) { "/dev/disk/by-label/test" }
 
-          it "returns the udev name according to the mount_by option in the mount point" do
-            expect(subject.to_mountby_device(device.name)).to eq mount_by_name
-          end
-        end
-
-        context "and the udev name is not available for the mount by option in the mount point" do
-          let(:mount_by_name) { nil }
-
-          it "returns as fallback the name preferred by storage-ng" do
-            expect(device.filesystem).to receive(:preferred_name).and_return "/dev/preferred/fs"
-
-            expect(subject.to_mountby_device(device.name)).to eq "/dev/preferred/fs"
-          end
+        it "returns the udev name according to the mount by option in the mount point" do
+          expect(subject.to_mountby_device(device.name)).to eq(udev_name)
         end
       end
 
-      context "but not mounted" do
-        before { device.filesystem&.remove_mount_point }
+      context "and the udev name is not available for the mount by option in the mount point" do
+        let(:udev_name) { nil }
 
-        it "returns the preferred udev name for the filesystem" do
-          expect(device.filesystem).to receive(:preferred_name).and_return "/dev/preferred/fs"
-
-          expect(subject.to_mountby_device(device.name)).to eq "/dev/preferred/fs"
+        # This is likely not the right fallback, it should use the preferred mount_by.
+        # And, by definition, the preferred mount_by is always available
+        it "returns the kernel name as fallback" do
+          expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
         end
       end
     end
 
-    context "when the device is not formatted" do
-      before { device.remove_descendants }
+    context "when the device is not mounted" do
+      before do
+        device.filesystem&.remove_mount_point
 
-      it "returns the preferred udev name for the block device" do
-        expect(device).to receive(:preferred_name).and_return "/dev/preferred/blk_dev"
+        allow_any_instance_of(Y2Storage::MountPoint).to receive(:preferred_mount_by)
+          .and_return(mount_by)
+      end
 
-        expect(subject.to_mountby_device(device.name)).to eq "/dev/preferred/blk_dev"
+      let(:mount_by_option) { :label }
+
+      context "and the udev name is available for the preferred mount by option" do
+        let(:udev_name) { "/dev/disk/by-label/test" }
+
+        it "returns the udev name according to the preferred mount by option" do
+          expect(subject.to_mountby_device(device.name)).to eq(udev_name)
+        end
+      end
+
+      context "and the udev name is not available for the preferred mount by option" do
+        let(:udev_name) { nil }
+
+        # This fallback is nice to have as extra check, but in general makes no sense.
+        # The preferred mount_by should always be available by definition
+        it "returns the kernel name as fallback" do
+          expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
+        end
       end
     end
 
@@ -113,6 +120,7 @@ describe Bootloader::UdevMapping do
 
       # These mocks are not needed
       let(:device) { nil }
+      let(:udev_name) { nil }
       let(:mount_by) { nil }
 
       it "returns an udev link if there is any available" do
