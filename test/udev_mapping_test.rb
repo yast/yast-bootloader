@@ -42,82 +42,56 @@ describe Bootloader::UdevMapping do
   end
 
   describe ".to_mountby_device" do
+    let(:device) { find_device("/dev/sda3") }
+
     before do
       # find by name creates always new instance, so to make mocking easier, mock it to return always same instance
       allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
     end
 
-    let(:device) { find_device("/dev/sda3") }
+    it "returns udev link in same format as used to its mounting" do
+      device.filesystem.mount_point.mount_by = Y2Storage::Filesystems::MountByType.new(:uuid)
 
-    context "when the device is formatted" do
-      before do
-        # The libstorage-ng bindings constantly create new instances of the storage objects.
-        # To make mocking easier, mock it to return always the same instances
-        allow(device).to receive(:filesystem).and_return(device.filesystem)
-      end
-
-      context "and mounted (or marked to be mounted)" do
-        before do
-          allow(device.filesystem).to receive(:mount_by_name).and_return mount_by_name
-        end
-
-        context "and the udev name is available for the mount_by option in the mount point" do
-          let(:mount_by_name) { "/dev/something" }
-
-          it "returns the udev name according to the mount_by option in the mount point" do
-            expect(subject.to_mountby_device(device.name)).to eq mount_by_name
-          end
-        end
-
-        context "and the udev name is not available for the mount by option in the mount point" do
-          let(:mount_by_name) { nil }
-
-          it "returns as fallback the name preferred by storage-ng" do
-            expect(device.filesystem).to receive(:preferred_name).and_return "/dev/preferred/fs"
-
-            expect(subject.to_mountby_device(device.name)).to eq "/dev/preferred/fs"
-          end
-        end
-      end
-
-      context "but not mounted" do
-        before { device.filesystem&.remove_mount_point }
-
-        it "returns the preferred udev name for the filesystem" do
-          expect(device.filesystem).to receive(:preferred_name).and_return "/dev/preferred/fs"
-
-          expect(subject.to_mountby_device(device.name)).to eq "/dev/preferred/fs"
-        end
-      end
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
     end
 
-    context "when the device is not formatted" do
-      before { device.remove_descendants }
+    it "returns udev link by label if defined" do
+      device.filesystem.remove_mount_point
 
-      it "returns the preferred udev name for the block device" do
-        expect(device).to receive(:preferred_name).and_return "/dev/preferred/blk_dev"
-
-        expect(subject.to_mountby_device(device.name)).to eq "/dev/preferred/blk_dev"
-      end
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-label/DATA"
     end
 
-    # Regression test for bsc#1166096
-    context "for a regular PReP partition (contains no filesystem and is not mounted)" do
-      before do
-        # First, disable the general mocking
-        allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_call_original
+    it "returns udev link by uuid if defined" do
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
 
-        # Then, just stub the whole devicegraph to reproduce the scenario
-        devicegraph_stub("bug_1166096.xml")
-      end
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-uuid/3de29985-8cc6-4c9d-8562-2ede26b0c5b6"
+    end
 
-      # These mocks are not needed
-      let(:device) { nil }
-      let(:mount_by) { nil }
+    it "returns first udev link by id if defined" do
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
+      allow(device).to receive(:udev_full_uuid).and_return(nil)
+      allow(device).to receive(:udev_ids).and_return(["abc", "cde"])
 
-      it "returns an udev link if there is any available" do
-        expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/disk/by-path/pci-0000:00:06.0-part1"
-      end
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-id/abc"
+    end
+
+    it "returns first udev link by path if defined" do
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
+      allow(device).to receive(:udev_full_uuid).and_return(nil)
+      allow(device).to receive(:udev_paths).and_return(["abc", "cde"])
+
+      expect(subject.to_mountby_device(device.name)).to eq "/dev/disk/by-path/abc"
+    end
+
+    it "returns kernel name as last fallback" do
+      device.filesystem.remove_mount_point
+      allow(device).to receive(:udev_full_label).and_return(nil)
+      allow(device).to receive(:udev_full_uuid).and_return(nil)
+
+      expect(subject.to_mountby_device(device.name)).to eq device.name
     end
   end
 end
