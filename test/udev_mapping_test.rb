@@ -71,8 +71,6 @@ describe Bootloader::UdevMapping do
       context "and the udev name is not available for the mount by option in the mount point" do
         let(:udev_name) { nil }
 
-        # This is likely not the right fallback, it should use the preferred mount_by.
-        # And, by definition, the preferred mount_by is always available
         it "returns the kernel name as fallback" do
           expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
         end
@@ -100,31 +98,9 @@ describe Bootloader::UdevMapping do
       context "and the udev name is not available for the preferred mount by option" do
         let(:udev_name) { nil }
 
-        # This fallback is nice to have as extra check, but in general makes no sense.
-        # The preferred mount_by should always be available by definition
         it "returns the kernel name as fallback" do
           expect(subject.to_mountby_device(device.name)).to eq("/dev/sda3")
         end
-      end
-    end
-
-    # Regression test for bsc#1166096
-    context "for a regular PReP partition (contains no filesystem and is not mounted)" do
-      before do
-        # First, disable the general mocking
-        allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_call_original
-
-        # Then, just stub the whole devicegraph to reproduce the scenario
-        devicegraph_stub("bug_1166096.xml")
-      end
-
-      # These mocks are not needed
-      let(:device) { nil }
-      let(:udev_name) { nil }
-      let(:mount_by) { nil }
-
-      it "returns an udev link if there is any available" do
-        expect(subject.to_mountby_device("/dev/vda1")).to eq "/dev/disk/by-path/pci-0000:00:06.0-part1"
       end
     end
   end
