@@ -284,14 +284,53 @@ describe Bootloader::Systeminfo do
     end
   end
 
-  describe ".s390_secure_boot_supported?" do
+  describe ".s390_secure_boot_available?" do
     context "if arch is s390x" do
       let(:arch) { "s390_64" }
 
       context "and has_secure is 1" do
         it "returns true" do
           allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("1")
-          expect(described_class.s390_secure_boot_supported?).to be true
+          expect(described_class.s390_secure_boot_available?).to be true
+        end
+      end
+
+      context "and has_secure is 0" do
+        it "returns false" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("0")
+          expect(described_class.s390_secure_boot_available?).to be false
+        end
+      end
+    end
+
+    context "if arch is x86_64" do
+      let(:arch) { "x86_64" }
+
+      it "returns false" do
+        expect(described_class.s390_secure_boot_available?).to be false
+      end
+    end
+  end
+
+  describe ".s390_secure_boot_supported?" do
+    context "if arch is s390x" do
+      let(:arch) { "s390_64" }
+
+      context "and has_secure is 1" do
+        context "and zipl is on a SCSI disk" do
+          it "returns true" do
+            allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("1")
+            allow(Bootloader::Systeminfo).to receive(:scsi?).and_return(true)
+            expect(described_class.s390_secure_boot_supported?).to be true
+          end
+        end
+
+        context "and zipl is not on a SCSI disk" do
+          it "returns false" do
+            allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("1")
+            allow(Bootloader::Systeminfo).to receive(:scsi?).and_return(false)
+            expect(described_class.s390_secure_boot_supported?).to be false
+          end
         end
       end
 
