@@ -124,7 +124,10 @@ module Bootloader
       # @return [Y2Storage::Partition, NilClass] zipl partition
       def zipl_device
         staging = Y2Storage::StorageManager.instance.staging
-        mountpoint = Y2Storage::MountPoint.find_by_path(staging, "/boot/zipl").first
+        mountpoint =
+          Y2Storage::MountPoint.find_by_path(staging, "/boot/zipl").first ||
+          Y2Storage::MountPoint.find_by_path(staging, "/boot").first ||
+          Y2Storage::MountPoint.find_by_path(staging, "/").first
         mountpoint.filesystem.blk_devices.first
       rescue StandardError
         nil
