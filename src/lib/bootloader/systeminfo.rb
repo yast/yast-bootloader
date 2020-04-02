@@ -31,7 +31,7 @@ module Bootloader
       # @param bootloader_name [String] bootloader name
       # @return [Boolean] true if secure boot setting is available with this bootloader
       def secure_boot_available?(bootloader_name)
-        efi_used?(bootloader_name) || s390_secure_boot_supported?
+        efi_used?(bootloader_name) || s390_secure_boot_available?
       end
 
       # Check current trusted boot state.
@@ -87,14 +87,24 @@ module Bootloader
         (Yast::Arch.x86_64 || Yast::Arch.i386) && secure_boot && efi_used?(bootloader_name)
       end
 
-      # Check if secure boot is supported on an s390 machine.
+      # Check if secure boot is (in principle) available on an s390 machine.
       #
       # @return [Boolean] true if this is an s390 machine and it has secure boot support
-      def s390_secure_boot_supported?
+      def s390_secure_boot_available?
         # see jsc#SLE-9425
         File.read("/sys/firmware/ipl/has_secure", 1) == "1"
       rescue StandardError
         false
+      end
+
+      # Check if secure boot is supported with the current setup.
+      #
+      # The catch here is that secure boot works only with SCSI disks.
+      #
+      # @return [Boolean] true if this is an s390 machine and secure boot is
+      #   supported with the current setup
+      def s390_secure_boot_supported?
+        s390_secure_boot_available? && scsi?(zipl_device)
       end
 
       # Check if secure boot is currently active on an s390 machine.
@@ -105,6 +115,31 @@ module Bootloader
       def s390_secure_boot_active?
         # see jsc#SLE-9425
         File.read("/sys/firmware/ipl/secure", 1) == "1"
+      rescue StandardError
+        false
+      end
+
+      # The partition where zipl is installed.
+      #
+      # @return [Y2Storage::Partition, NilClass] zipl partition
+      def zipl_device
+        staging = Y2Storage::StorageManager.instance.staging
+        mountpoint = Y2Storage::MountPoint.find_by_path(staging, "/boot/zipl").first
+        mountpoint.filesystem.blk_devices.first
+      rescue StandardError
+        nil
+      end
+
+      # Check if device is a SCSI device.
+      #
+      # param device [Y2Storage::Partition, NilClass] partition device (or nil)
+      #
+      # @return [Boolean] true if device is a SCSI device
+      def scsi?(device)
+        # in lack of a better idea: check if device name starts with 'sd'
+        # alternatively: device.udev_ids.any?(/^scsi-/)
+        # or: device.udev_paths.any?(/-zfcp-/)
+        device.name.start_with?("/dev/sd")
       rescue StandardError
         false
       end
