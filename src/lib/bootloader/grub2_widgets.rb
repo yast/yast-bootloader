@@ -333,8 +333,8 @@ module Bootloader
           "<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
           "This does not turn on secure booting. " \
           "It only switches to the new secure-boot enabled boot data format. " \
-          "Note that this new format works only on z15 or later. " \
-          "You cannot boot on z14 machines or older.</p>"
+          "Note that this new format works only on z15 or later and only for zFCP disks. " \
+          "The system does not boot if these requirements are not met.</p>"
         )
       else
         _(
@@ -362,8 +362,9 @@ module Bootloader
 
       Yast::Popup.ContinueCancel(
         _(
-          "The new secure-boot enabled boot data format works only on z15 and later.\n\n" \
-          "Older machines will not boot."
+          "The new secure-boot enabled boot data format works only on z15 " \
+          "and later and only for zFCP disks.\n\n" \
+          "The system does not boot if these requirements are not met."
         )
       )
     end

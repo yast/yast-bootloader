@@ -361,8 +361,9 @@ module Bootloader
         if value && Yast::Arch.s390
           Yast2::Popup.show(
             _(
-              "The new secure-boot enabled boot data format works only on z15 and later.\n\n" \
-              "Older machines will not boot."
+              "The new secure-boot enabled boot data format works only on z15 " \
+              "and later and only for zFCP disks.\n\n" \
+              "The system does not boot if these requirements are not met."
             ),
             headline: :warning, buttons: :ok
           )
