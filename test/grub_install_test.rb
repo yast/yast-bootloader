@@ -37,6 +37,10 @@ describe Bootloader::GrubInstall do
       end
     end
 
+    before do
+      allow(::File).to receive(:directory?).and_return(false)
+    end
+
     context "initialized with efi: true" do
       subject { Bootloader::GrubInstall.new(efi: true) }
 
@@ -49,12 +53,12 @@ describe Bootloader::GrubInstall do
         subject.execute(secure_boot: true)
       end
 
-      it "runs grub2-install with --suse-force-signed on aarch64" do
+      it "runs grub2-install with --suse-force-signed on aarch64 with secure boot" do
         stub_arch("aarch64")
         stub_efivars
 
         expect(Yast::Execute).to receive(:on_target)
-          .with([/grub2-install/, anything, "--suse-force-signed", anything, anything])
+          .with([/grub2-install/, anything, "--suse-force-signed", anything, anything, anything, anything])
 
         subject.execute(secure_boot: true)
       end
@@ -92,7 +96,17 @@ describe Bootloader::GrubInstall do
       it "runs with target arm64-efi on aarch64" do
         stub_arch("aarch64")
         stub_efivars
-        expect_grub2_install("arm64-efi")
+        expect_grub2_install("arm64-efi", removable: true)
+
+        subject.execute(devices: [])
+      end
+
+      it "runs twice as removable and non removable on aarch64 with efi vars (bsc#1167015)" do
+        stub_arch("aarch64")
+        stub_efivars
+        allow(::File).to receive(:directory?).and_return(true)
+        expect_grub2_install("arm64-efi", removable: false)
+        expect_grub2_install("arm64-efi", removable: true)
 
         subject.execute(devices: [])
       end
@@ -133,7 +147,7 @@ describe Bootloader::GrubInstall do
 
       it "do not raise exception if secure_boot: true passed" do
         stub_arch("x86_64")
-        expect { subject.execute(secure_boot: true) }.to_not raise_error(RuntimeError)
+        expect { subject.execute(secure_boot: true) }.to_not raise_error
       end
 
       it "runs for each device passed in devices" do

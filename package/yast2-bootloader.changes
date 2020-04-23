@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 23 08:53:49 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
+
+- add SLE15 SP2 only workaround for ARM to make GRUB2 works for
+  every device. It can potentially break multi-boot (bsc#1167015)
+- 4.2.23
+
+-------------------------------------------------------------------
 Wed Apr 15 10:57:23 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
 
 - update s390x secure boot message (bsc#1168165)
