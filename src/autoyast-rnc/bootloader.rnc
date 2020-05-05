@@ -2,28 +2,36 @@ default namespace = "http://www.suse.com/1.0/yast2ns"
 namespace a = "http://relaxng.org/ns/compatibility/annotations/1.0"
 namespace config = "http://www.suse.com/1.0/configns"
 
+STRING_BOOL = STRING_ATTR, ("true" | "false")
+
 bootloader =
   element bootloader {
-    activate? &
-    bl_global? &
-    initrd_modules? &
-    loader_device? &
-    loader_type? &
-    bl_location? &
-    repl_mbr? &
-    device_map? &
-    sections?
+    MAP,
+    (
+      activate? &
+      bl_global? &
+      initrd_modules? &
+      loader_device? &
+      loader_type? &
+      bl_location? &
+      repl_mbr? &
+      device_map? &
+      sections?
+    )
   }
 device_map = element device_map {
     LIST,
     device_map_entry*
 }
 device_map_entry = element device_map_entry {
-    bl_firmware? &
-    bl_linux?
+    MAP,
+    (
+      bl_firmware? &
+      bl_linux?
+    )
 }
-bl_firmware = element firmware { text }
-bl_linux    = element linux    { text }
+bl_firmware = element firmware { STRING }
+bl_linux    = element linux    { STRING }
 activate =
   element activate { BOOLEAN }
 repl_mbr =
@@ -34,61 +42,65 @@ initrd_modules =
     initrd_module+
   }
 initrd_module = element initrd_module { bl_module, module_args? }
-module_args = element module_args { text }
-bl_module = element module { text }
-loader_device = element loader_device { text }
-loader_type = element loader_type { text }
-bl_location = element location { text }
+module_args = element module_args { STRING }
+bl_module = element module { STRING }
+loader_device = element loader_device { STRING }
+loader_type = element loader_type { STRING }
+bl_location = element location { STRING }
 bl_global =
   element global {
-    element append          { text }? &
-    element append_failsafe { text }? &
-    element cryptodisk      { INTEGER }? &
-    element distributor     { text }? &
-    element gfxbackground   { text }? &
-    element gfxmode         { text }? &
-    element gfxtheme        { text }? &
-    # really "true"|"false", without config:type=boolean
-    element failsafe_disabled { "true" | "false" }? &
-    element hiddenmenu      { "true" | "false" }? &
-    element os_prober       { "true" | "false" }? &
-    element suse_btrfs      { "true" | "false" }? &
-    element secure_boot      { "true" | "false" }? &
-    element xen_append        { text }? &
-    element xen_kernel_append { text }? &
+    MAP,
+    (
+      element append          { STRING }? &
+      element append_failsafe { STRING }? &
+      element cryptodisk      { INTEGER }? &
+      element distributor     { STRING }? &
+      element gfxbackground   { STRING }? &
+      element gfxmode         { STRING }? &
+      element gfxtheme        { STRING }? &
+      # really "true"|"false", without config:type=boolean
+      element failsafe_disabled { STRING_BOOL }? &
+      element hiddenmenu      { STRING_BOOL }? &
+      element os_prober       { STRING_BOOL }? &
+      element suse_btrfs      { STRING_BOOL }? &
+      element secure_boot      { STRING_BOOL }? &
+      element xen_append        { STRING }? &
+      element xen_kernel_append { STRING }? &
 
-    element boot_custom { text }? &
-    element generic_mbr { text }? &
-    element trusted_grub{ text }? &
-    element serial      { text }? &
-    element terminal    { text }? &
-    lines_cache_id? &
-    bl_timeout? &
-    gfxmenu? &
-    element default { text }? &
-    bl_activate? &
-    boot_root? &
-    boot_boot? &
-    boot_extended? &
-    boot_mbr? &
-    stage1_dev? &
-    cpu_mitigations? &
-    element vgamode { text }?
+      element boot_custom { STRING }? &
+      element generic_mbr { STRING }? &
+      element trusted_grub{ STRING }? &
+      element serial      { STRING }? &
+      element terminal    { STRING }? &
+      lines_cache_id? &
+      bl_timeout? &
+      gfxmenu? &
+      element default { STRING }? &
+      bl_activate? &
+      boot_root? &
+      boot_boot? &
+      boot_extended? &
+      boot_mbr? &
+      stage1_dev? &
+      cpu_mitigations? &
+      element vgamode { STRING }?
+    )
   }
 
-lines_cache_id = element lines_cache_id { text }
-stage1_dev = element stage1_dev { text }
+lines_cache_id = element lines_cache_id { STRING }
+stage1_dev = element stage1_dev { STRING }
 bl_timeout = element timeout { INTEGER }
-gfxmenu = element gfxmenu { text }
+gfxmenu = element gfxmenu { STRING }
 
 # really "true"|"false", without config:type=boolean
-bl_activate = element activate { "true" | "false" }
-boot_root = element boot_root { "true" | "false" }
-boot_boot = element boot_boot { "true" | "false" }
-boot_extended = element boot_extended { "true" | "false" }
-boot_mbr = element boot_mbr { "true" | "false" }
-cpu_mitigations = element cpu_mitigations { "nosmt" | "auto" | "off" | "manual" }
+bl_activate = element activate { STRING_BOOL }
+boot_root = element boot_root { STRING_BOOL }
+boot_boot = element boot_boot { STRING_BOOL }
+boot_extended = element boot_extended { STRING_BOOL }
+boot_mbr = element boot_mbr { STRING_BOOL }
+cpu_mitigations = element cpu_mitigations { STRING_ATTR, ("nosmt" | "auto" | "off" | "manual") }
 
+# Backward compatibility only. Ignored for new profiles as sections are generated by grub2
 sections =
   element sections {
     LIST,
@@ -96,38 +108,44 @@ sections =
   }
 section =
   element section {
-    element menuentry {text}? &
-    element usage   {text}? &
-    element append  {text}? &
-    element initial {text}? &
-    element console {text}? &
-    element initrd  {text}? &
-    element kernel  {text}? &
-    element name    {text}? &
-    element original_name {text}? &
-    element root    {text}? &
-    element type    {text}? &
-    element vga     {text}? &
-    element chainloader {text}? &
-    element lines_cache_id {text}? &
-    element sectors {text}? &
-    element blockoffset {text}? &
-    element vgamode     {text}? &
-    measures? &
-    element xen {text}? &
-    element xen_append {text}? &
-    element noverifyroot { "true" | "false" }? &
-    element makeactive { "true" | "false" }? &
-    element remap { "true" | "false" }? &
-    element configfile {text}? &
-    element image   {text}?
+    MAP,
+    (
+      element menuentry {STRING}? &
+      element usage   {STRING}? &
+      element append  {STRING}? &
+      element initial {STRING}? &
+      element console {STRING}? &
+      element initrd  {STRING}? &
+      element kernel  {STRING}? &
+      element name    {STRING}? &
+      element original_name {STRING}? &
+      element root    {STRING}? &
+      element type    {STRING}? &
+      element vga     {STRING}? &
+      element chainloader {STRING}? &
+      element lines_cache_id {STRING}? &
+      element sectors {STRING}? &
+      element blockoffset {STRING}? &
+      element vgamode     {STRING}? &
+      measures? &
+      element xen {STRING}? &
+      element xen_append {STRING}? &
+      element noverifyroot { STRING_BOOL }? &
+      element makeactive { STRING_BOOL }? &
+      element remap { STRING_BOOL }? &
+      element configfile {STRING}? &
+      element image   {STRING}?
+    )
   }
-kernel_parameters = element kernel_parameters { text }
+kernel_parameters = element kernel_parameters { STRING }
 
 measure =
   element measure {
-    element file { text } &
-    element pcr  { text }
+    MAP,
+    (
+      element file { STRING } &
+      element pcr  { STRING }
+    )
   }
 
 measures =
