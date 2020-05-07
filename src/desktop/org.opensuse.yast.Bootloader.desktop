@@ -16,6 +16,7 @@ X-SuSE-YaST-AutoInstResource=
 X-SuSE-YaST-AutoInstPath=install
 X-SuSE-YaST-AutoInstResource=bootloader
 X-SuSE-YaST-AutoInstSchema=bootloader.rnc
+X-SuSE-YaST-AutoInstClonable=true
 X-SuSE-YaST-Keywords=bootloader,GRUB,system,EFI
 
 Icon=yast-bootloader
