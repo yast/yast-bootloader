@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri May 22 10:48:35 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
+
+- s390 secure boot: enhance disk type detection to cover multipath
+  (bsc#1171821)
+- 4.2.24
+
+-------------------------------------------------------------------
 Thu Apr 23 08:53:49 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - add SLE15 SP2 only workaround for ARM to make GRUB2 works for
