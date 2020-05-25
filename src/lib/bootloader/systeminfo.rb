@@ -139,10 +139,10 @@ module Bootloader
       #
       # @return [Boolean] true if device is a SCSI device
       def scsi?(device)
-        # in lack of a better idea: check if device name starts with 'sd'
-        # alternatively: device.udev_ids.any?(/^scsi-/)
-        # or: device.udev_paths.any?(/-zfcp-/)
-        device.name.start_with?("/dev/sd")
+        # checking if device name starts with 'sd' is not enough: it could
+        # be a device mapper target (e.g. multipath)
+        # see bsc#1171821
+        device.name.start_with?("/dev/sd") || device.udev_ids.any?(/^scsi-/)
       rescue StandardError
         false
       end
