@@ -55,7 +55,7 @@ describe Bootloader::GrubInstall do
 
       it "runs grub2-install with --suse-force-signed on aarch64 with secure boot" do
         stub_arch("aarch64")
-        stub_efivars
+        stub_efivars(removable: true)
 
         expect(Yast::Execute).to receive(:on_target)
           .with([/grub2-install/, anything, "--suse-force-signed", anything, anything, anything, anything])
@@ -95,7 +95,7 @@ describe Bootloader::GrubInstall do
 
       it "runs with target arm64-efi on aarch64" do
         stub_arch("aarch64")
-        stub_efivars
+        stub_efivars(removable: true)
         expect_grub2_install("arm64-efi", removable: true)
 
         subject.execute(devices: [])
@@ -103,8 +103,7 @@ describe Bootloader::GrubInstall do
 
       it "runs twice as removable and non removable on aarch64 with efi vars (bsc#1167015)" do
         stub_arch("aarch64")
-        stub_efivars
-        allow(::File).to receive(:directory?).and_return(true)
+        stub_efivars(removable: false)
         expect_grub2_install("arm64-efi", removable: false)
         expect_grub2_install("arm64-efi", removable: true)
 
