@@ -41,7 +41,7 @@ module Bootloader
         Yast::Execute.on_target(cmd)
         # workaround for arm on SLE15 SP2 (bsc#1167015)
         # run grub2-install also non-removable if efi is there
-        if Yast::Arch.aarch64 && File.directory?("/sys/firmware/efi")
+        if Yast::Arch.aarch64 && !Dir.glob("/sys/firmware/efi/efivars/*").empty?
           cmd.delete("--no-nvram")
           cmd.delete("--removable")
           Yast::Execute.on_target(cmd)
