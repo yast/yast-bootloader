@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 27 12:07:31 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
+
+- fix detection of present of efivars causing grub2-install
+  failures on some arm boards (bsc#1172114)
+- 4.2.25
+
+-------------------------------------------------------------------
 Fri May 22 10:48:35 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
 
 - s390 secure boot: enhance disk type detection to cover multipath
