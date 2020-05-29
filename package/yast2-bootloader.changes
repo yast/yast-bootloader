@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon May 25 16:00:44 UTC 2020 - Stefan Schubert <schubi@suse.com>
+
+- AutoYaST: Cleanup/improve issue handling (bsc#1171335).
+- 4.3.3
+
+-------------------------------------------------------------------
 Mon May 25 15:00:44 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
 
 - s390 secure boot: enhance disk type detection to cover multipath

@@ -7,6 +7,7 @@ require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
 require "bootloader/exceptions"
 require "bootloader/main_dialog"
+require "bootloader/autoinst_profile/bootloader_section"
 
 Yast.import "AutoInstall"
 Yast.import "Bootloader"
@@ -38,7 +39,12 @@ module Bootloader
       rescue ::Bootloader::UnsupportedBootloader => e
         textdomain "bootloader"
         possible_values = BootloaderFactory.supported_names + [BootloaderFactory::DEFAULT_KEYWORD]
-        Yast::AutoInstall.issues_list.add(:invalid_value, "bootloader", "loader_type",
+        Yast::AutoInstall.issues_list.add(
+          ::Installation::AutoinstIssues::InvalidValue,
+          Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
+            data["bootloader"]
+          ),
+          "loader_type",
           e.bootloader_name,
           _("The selected bootloader is not supported on this architecture. Possible values: ") +
             possible_values.join(", "),
