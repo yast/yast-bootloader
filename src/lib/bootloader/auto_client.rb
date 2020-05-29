@@ -37,13 +37,13 @@ module Bootloader
       begin
         Yast::Bootloader.Import(data)
       rescue ::Bootloader::UnsupportedBootloader => e
+        # FIXME: This should go to Bootloader.rb/Import but due the
+        # exception this could be tricky.
         textdomain "bootloader"
         possible_values = BootloaderFactory.supported_names + [BootloaderFactory::DEFAULT_KEYWORD]
         Yast::AutoInstall.issues_list.add(
           ::Installation::AutoinstIssues::InvalidValue,
-          Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
-            data["bootloader"]
-          ),
+          ::Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(data),
           "loader_type",
           e.bootloader_name,
           _("The selected bootloader is not supported on this architecture. Possible values: ") +
