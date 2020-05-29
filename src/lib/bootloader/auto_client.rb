@@ -48,7 +48,8 @@ module Bootloader
           e.bootloader_name,
           _("The selected bootloader is not supported on this architecture. Possible values: ") +
             possible_values.join(", "),
-          :fatal)
+          :fatal
+        )
         # AutoInstall issues itself will abort import, so do not stop here prematurely.
         return true
       end
