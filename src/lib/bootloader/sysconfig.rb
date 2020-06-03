@@ -69,9 +69,8 @@ module Bootloader
         "## Type:\tyesno\n" \
         "## Default:\t\"no\"\n" \
         "#\n" \
-        "# Enable UEFI Secure Boot support\n" \
-        "# This setting is only relevant to UEFI which supports Secure Boot. It won't\n" \
-        "# take effect on any other firmware type.\n" \
+        "# Enable Secure Boot support\n" \
+        "# Only available on UEFI systems and IBM z15+.\n" \
         "#\n" \
         "#\n",
 
@@ -82,7 +81,7 @@ module Bootloader
         "## Default:\t\"no\"\n" \
         "#\n" \
         "# Enable Trusted Boot support\n" \
-        "# Only available for legacy (non-UEFI) boot.\n" \
+        "# Only available on hardware with a Trusted Platform Module.\n" \
         "#\n"
     }.freeze
 
