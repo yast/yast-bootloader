@@ -20,19 +20,52 @@
 # find current contact information at www.suse.com.
 
 require "installation/autoinst_profile/section_with_attributes"
+require "bootloader/autoinst_profile/global_section"
+require "bootloader/autoinst_profile/device_map_entry_section"
 
 module Bootloader
   module AutoinstProfile
     # This class represents an AutoYaST <bootloader> section
     #
     class BootloaderSection < ::Installation::AutoinstProfile::SectionWithAttributes
+      def self.attributes
+        [
+          { name: :loader_type }
+        ]
+      end
+
+      define_attr_accessors
+
       # Creates an instance based on the profile representation used by the AutoYaST modules
       # (hash with nested hashes and arrays).
       #
-      # @param _hash [Hash] Bootloader section from an AutoYaST profile
+      # @param hash [Hash] Bootloader section from an AutoYaST profile
       # @return [Bootloader]
-      def self.new_from_hashes(_hash)
-        new
+      def self.new_from_hashes(hash)
+        result = new
+        result.init_from_hashes(hash)
+        result
+      end
+
+      # @return [GlobalSection] 'global' section
+      attr_accessor :global
+      # @return [Array<DeviceMapEntrySection>] 'device_map' list
+      attr_accessor :device_map
+
+      # Constructor
+      def initialize
+        @device_map = []
+      end
+
+      # Method used by {.new_from_hashes} to populate the attributes.
+      #
+      # @param hash [Hash] see {.new_from_hashes}
+      def init_from_hashes(hash)
+        super
+        @device_map = hash.fetch("device_map", []).map do |entry|
+          DeviceMapEntrySection.new_from_hashes(entry, self)
+        end
+        @global = GlobalSection.new_from_hashes(hash["global"] || {}, self)
       end
     end
   end
