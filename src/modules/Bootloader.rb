@@ -21,6 +21,8 @@ require "bootloader/exceptions"
 require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
+require "bootloader/autoinst_profile/bootloader_section"
+require "installation/autoinst_issues/invalid_value"
 require "cfa/matcher"
 
 Yast.import "UI"
@@ -32,6 +34,7 @@ Yast.import "Progress"
 Yast.import "Report"
 Yast.import "Stage"
 Yast.import "Installation"
+Yast.import "AutoInstall"
 
 module Yast
   class BootloaderClass < Module
@@ -82,8 +85,11 @@ module Yast
     # @return [Boolean] true on success
     def Import(data)
       factory = ::Bootloader::BootloaderFactory
+      bootloader_section = ::Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(data)
 
-      imported_configuration = ::Bootloader::AutoyastConverter.import(data)
+      imported_configuration = import_bootloader(bootloader_section)
+      return false if imported_configuration.nil?
+
       factory.clear_cache
 
       proposed_configuration = factory.bootloader_by_name(imported_configuration.name)
@@ -479,6 +485,24 @@ module Yast
 
       # save initrd
       Initrd.Write
+    end
+
+    # @param section [AutoinstProfile::BootloaderSection] Bootloader section
+    def import_bootloader(section)
+      ::Bootloader::AutoyastConverter.import(section)
+    rescue ::Bootloader::UnsupportedBootloader => e
+      possible_values = ::Bootloader::BootloaderFactory.supported_names +
+        [::Bootloader::BootloaderFactory::DEFAULT_KEYWORD]
+      Yast::AutoInstall.issues_list.add(
+        ::Installation::AutoinstIssues::InvalidValue,
+        section,
+        "loader_type",
+        e.bootloader_name,
+        _("The selected bootloader is not supported on this architecture. Possible values: ") +
+        possible_values.join(", "),
+        :fatal
+      )
+      nil
     end
 
     publish :function => :Export, :type => "map ()"

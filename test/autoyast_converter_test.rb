@@ -17,33 +17,33 @@ describe Bootloader::AutoyastConverter do
     end
 
     it "create bootlaoder of passed loader_type" do
-      map = {
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
         "loader_type" => "grub2-efi"
-      }
+      )
 
-      expect(subject.import(map)).to be_a(Bootloader::Grub2EFI)
+      expect(subject.import(section)).to be_a(Bootloader::Grub2EFI)
     end
 
     it "use proposed bootloader type if loader type missing" do
-      map = {}
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes({})
 
-      expect(subject.import(map)).to be_a(Bootloader::Grub2)
+      expect(subject.import(section)).to be_a(Bootloader::Grub2)
     end
 
     it "use proposed bootloader type if loader type is \"default\"" do
-      map = {
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
         "loader_type" => "default"
-      }
+      )
 
-      expect(subject.import(map)).to be_a(Bootloader::Grub2)
+      expect(subject.import(section)).to be_a(Bootloader::Grub2)
     end
 
     it "raises exception if loader type is not supported" do
-      map = {
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
         "loader_type" => "lilo"
-      }
+      )
 
-      expect { subject.import(map) }.to raise_error(Bootloader::UnsupportedBootloader)
+      expect { subject.import(section) }.to raise_error(Bootloader::UnsupportedBootloader)
     end
 
     it "import configuration to returned bootloader" do
@@ -59,7 +59,10 @@ describe Bootloader::AutoyastConverter do
         "boot_boot"    => "true"
       }
 
-      bootloader = subject.import("global" => data)
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
+        "global" => data
+      )
+      bootloader = subject.import(section)
 
       expect(bootloader.grub_default.kernel_params.serialize).to eq "verbose nomodeset"
       expect(bootloader.grub_default.terminal).to eq [:gfxterm]
@@ -80,7 +83,8 @@ describe Bootloader::AutoyastConverter do
         ]
       }
 
-      bootloader = subject.import(data)
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(data)
+      bootloader = subject.import(section)
       expect(bootloader.device_map.system_device_for("hd0")).to eq "/dev/vda"
       expect(bootloader.device_map.system_device_for("hd1")).to eq "/dev/vdb"
     end
@@ -91,7 +95,8 @@ describe Bootloader::AutoyastConverter do
         "loader_device" => "/dev/sda1"
       }
 
-      bootloader = subject.import(data)
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(data)
+      bootloader = subject.import(section)
 
       expect(bootloader.stage1).to be_activate
       expect(bootloader.stage1).to include("/dev/sda1")

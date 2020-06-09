@@ -25,16 +25,54 @@ require "bootloader/autoinst_profile/device_map_entry_section"
 
 module Bootloader
   module AutoinstProfile
-    # This class represents an AutoYaST <bootloader> section
+    # This class represents an AutoYaST `<bootloader>` section
     #
     class BootloaderSection < ::Installation::AutoinstProfile::SectionWithAttributes
       def self.attributes
         [
-          { name: :loader_type }
+          { name: :loader_type },
+          { name: :loader_device }, # @deprecated
+          { name: :activate }, # @deprecated
+          { name: :sections }, # @deprecated
+          { name: :boot_boot_root }, # @deprecated
+          { name: :boot_boot_boot }, # @deprecated
+          { name: :boot_boot_mbr }, # @deprecated
+          { name: :boot_boot_extended } # @deprecated
         ]
       end
 
       define_attr_accessors
+
+      # @!attribute loader_type
+      #   @return [String] which boot loader to use (default, grub2, grub2-efi and none)
+      #   @see Bootloader::BootloaderFactory::SUPPORTED_BOOTLOADERS
+
+      # @!attribute loader_device
+      #   @deprecated
+
+      # @!attribute activate
+      #   @see GlobalSection#activate
+      #   @deprecated
+
+      # @!attribute sections
+      #   @deprecated
+
+      # @!attribute boot_boot_root
+      #   @deprecated
+
+      # @!attribute boot_boot_boot
+      #   @deprecated
+
+      # @!attribute boot_boot_mbr
+      #   @deprecated
+
+      # @!attribute boot_boot_extended
+      #   @deprecated
+
+      # @return [GlobalSection] 'global' section
+      attr_accessor :global
+      # @return [Array<DeviceMapEntrySection>] 'device_map' list
+      attr_accessor :device_map
 
       # Creates an instance based on the profile representation used by the AutoYaST modules
       # (hash with nested hashes and arrays).
@@ -46,11 +84,6 @@ module Bootloader
         result.init_from_hashes(hash)
         result
       end
-
-      # @return [GlobalSection] 'global' section
-      attr_accessor :global
-      # @return [Array<DeviceMapEntrySection>] 'device_map' list
-      attr_accessor :device_map
 
       # Constructor
       def initialize
