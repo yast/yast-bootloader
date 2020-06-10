@@ -180,7 +180,7 @@ module Bootloader
 
       def import_stage1_devices(data, stage1)
         STAGE1_DEVICES_MAPPING.each do |key, method|
-          next if data.global.public_send(key) != "true" && !data.public_send("boot_#{key}")
+          next if data.global.public_send(key) != "true"
 
           stage1.public_send(method).each do |dev_name|
             stage1.add_udev_device(dev_name)

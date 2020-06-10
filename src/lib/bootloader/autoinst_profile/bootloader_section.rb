@@ -31,13 +31,9 @@ module Bootloader
       def self.attributes
         [
           { name: :loader_type },
-          { name: :loader_device }, # @deprecated
-          { name: :activate }, # @deprecated
-          { name: :sections }, # @deprecated
-          { name: :boot_boot_root }, # @deprecated
-          { name: :boot_boot_boot }, # @deprecated
-          { name: :boot_boot_mbr }, # @deprecated
-          { name: :boot_boot_extended } # @deprecated
+          { name: :loader_device }, # deprecated
+          { name: :activate }, # deprecated
+          { name: :sections } # deprecated
         ]
       end
 
@@ -55,18 +51,6 @@ module Bootloader
       #   @deprecated
 
       # @!attribute sections
-      #   @deprecated
-
-      # @!attribute boot_boot_root
-      #   @deprecated
-
-      # @!attribute boot_boot_boot
-      #   @deprecated
-
-      # @!attribute boot_boot_mbr
-      #   @deprecated
-
-      # @!attribute boot_boot_extended
       #   @deprecated
 
       # @return [GlobalSection] 'global' section

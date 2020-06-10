@@ -16,7 +16,7 @@ describe Bootloader::AutoyastConverter do
       allow(Bootloader::BootloaderFactory).to receive(:proposed).and_return(Bootloader::Grub2.new)
     end
 
-    it "create bootlaoder of passed loader_type" do
+    it "create bootloader of passed loader_type" do
       section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
         "loader_type" => "grub2-efi"
       )
