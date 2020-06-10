@@ -34,7 +34,6 @@ Yast.import "Progress"
 Yast.import "Report"
 Yast.import "Stage"
 Yast.import "Installation"
-Yast.import "AutoInstall"
 
 module Yast
   class BootloaderClass < Module
@@ -491,6 +490,8 @@ module Yast
     def import_bootloader(section)
       ::Bootloader::AutoyastConverter.import(section)
     rescue ::Bootloader::UnsupportedBootloader => e
+      Yast.import "AutoInstall"
+
       possible_values = ::Bootloader::BootloaderFactory.supported_names +
         [::Bootloader::BootloaderFactory::DEFAULT_KEYWORD]
       Yast::AutoInstall.issues_list.add(
