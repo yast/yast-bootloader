@@ -9,7 +9,6 @@ require "bootloader/exceptions"
 require "bootloader/main_dialog"
 require "bootloader/autoinst_profile/bootloader_section"
 
-Yast.import "AutoInstall"
 Yast.import "Bootloader"
 Yast.import "BootStorage"
 Yast.import "Initrd"
