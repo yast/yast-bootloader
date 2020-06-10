@@ -59,6 +59,20 @@ def find_device(name)
   Y2Storage::BlkDevice.find_by_name(graph, name)
 end
 
+# stub module to prevent its Import
+# Useful for modules from different yast packages, to avoid build dependencies
+def stub_module(name, fake_class = nil)
+  fake_class = Class.new { def self.fake_method; end } if fake_class.nil?
+  Yast.const_set name.to_sym, fake_class
+end
+
+AutoInstallStub = Class.new do
+  def self.issues_list
+    []
+  end
+end
+stub_module("AutoInstall", AutoInstallStub)
+
 # stub udev mapping everywhere
 RSpec.configure do |config|
   Yast.import "BootStorage"

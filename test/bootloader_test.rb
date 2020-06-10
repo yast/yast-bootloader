@@ -84,6 +84,35 @@ describe Yast::Bootloader do
     #    end
 
     it "sets passed \"write_settings\" map"
+
+    context "when the bootloader is not supported" do
+      let(:data) do
+        { "loader_type" => "dummy" }
+      end
+
+      let(:issues_list) { double("IssuesList", add: nil) }
+
+      before do
+        allow(Yast::AutoInstall).to receive(:issues_list).and_return(issues_list)
+      end
+
+      it "returns false" do
+        expect(subject.Import(data)).to eq(false)
+      end
+
+      it "registers an issue" do
+        expect(issues_list).to receive(:add).with(
+          Installation::AutoinstIssues::InvalidValue,
+          Bootloader::AutoinstProfile::BootloaderSection,
+          "loader_type",
+          "dummy",
+          anything,
+          :fatal
+        )
+
+        subject.Import(data)
+      end
+    end
   end
 
   describe ".ReadOrProposeIfNeeded" do
