@@ -44,14 +44,14 @@ module Bootloader
       #   @see Bootloader::BootloaderFactory::SUPPORTED_BOOTLOADERS
 
       # @!attribute loader_device
-      #   @deprecated
+      #   @deprecated Replaced by `<boot_*>` elements in the `<global>` section.
 
       # @!attribute activate
       #   @see GlobalSection#activate
       #   @deprecated
 
       # @!attribute sections
-      #   @deprecated
+      #   @deprecated It still exists just to log a warning in AutoyastConverter.
 
       # @return [GlobalSection] 'global' section
       attr_accessor :global

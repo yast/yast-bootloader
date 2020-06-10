@@ -61,7 +61,8 @@ module Bootloader
 
       # @!attribute boot_boot
       #   @return [String,nil] write GRUB 2 to a separate `/boot` partition if it exists.
-      #     ("true" or "false")
+      #     If it is not given, the bootloader is written to `/`. Valid values are
+      #     "true" and "false".
 
       # @!attribute boot_custom
       #   @return [String,nil] name of device to write GRUB 2 to (e.g., "/dev/sda3").
@@ -70,8 +71,8 @@ module Bootloader
       #   @return [String,nil] write GRUB 2 to the extended partition ("true" or "false").
 
       # @!attribute boot_mbr
-      #   @return [String,nil] write GRUB 2 to the MBR of the first disk in the device map
-      #     ("true" or "false").
+      #   @return [String,nil] write GRUB 2 to the MBR of the disk which contains
+      #     the `/boot` file system. Valid values are "true" and "false".
 
       # @!attribute boot_root
       #   @return [String,nil] write GRUB 2 to root (`/`) partition ("true" or "false").
