@@ -45,6 +45,7 @@ module Bootloader
           { name: :timeout },
           { name: :trusted_boot },
           { name: :trusted_grub },
+          { name: :update_nvram },
           { name: :vgamode },
           { name: :xen_append },
           { name: :xen_kernel_append }
@@ -109,6 +110,10 @@ module Bootloader
 
       # @!attribute trusted_boot
       #   @return [String,nil] use Trusted GRUB (only for `grub2` loader type). Valid values
+      #     are "true" and "false".
+
+      # @!attribute update_nvram
+      #   @return [String,nil] Update NVRAM with entry for the installed bootloader. Valid values
       #     are "true" and "false".
 
       # @!attribute vgamode

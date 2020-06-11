@@ -53,6 +53,10 @@ module Bootloader
     #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
 
+    # @!attribute update_nvram
+    #   @return [Boolean] current update nvram setting
+    attr_accessor :update_nvram
+
     # @!attribute console
     #   @return [::Bootloader::SerialConsole] serial console or nil if none
     attr_reader :console
@@ -70,6 +74,7 @@ module Bootloader
       @sections = ::Bootloader::Sections.new
       @pmbr_action = :nothing
       @explicit_cpu_mitigations = false
+      @update_nvram = true
     end
 
     # general functions
@@ -125,6 +130,7 @@ module Bootloader
 
       self.trusted_boot = Systeminfo.trusted_boot_active?
       self.secure_boot = Systeminfo.secure_boot_active?
+      self.update_nvram = Systeminfo.update_nvram_active?
     end
 
     def write
@@ -162,6 +168,7 @@ module Bootloader
 
       self.trusted_boot = false
       self.secure_boot = Systeminfo.secure_boot_active?
+      self.update_nvram = true
     end
 
     def merge(other)
@@ -174,6 +181,7 @@ module Bootloader
 
       self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
+      self.update_nvram = other.update_nvram unless other.update_nvram.nil?
     end
 
     def enable_serial_console(console_arg_string)
@@ -398,6 +406,18 @@ module Bootloader
           "<a href=\"disable_trusted_boot\">(" + _("disable") + ")</a>"
         else
           "<a href=\"enable_trusted_boot\">(" + _("enable") + ")</a>"
+        end
+    end
+
+    # Update nvram shown in summary screen
+    #
+    # @return [String]
+    def update_nvram_summary
+      _("Update NVRAM:") + " " + (update_nvram ? _("enabled") : _("disabled")) + " " +
+        if update_nvram
+          "<a href=\"disable_update_nvram\">(" + _("disable") + ")</a>"
+        else
+          "<a href=\"enable_update_nvram\">(" + _("enable") + ")</a>"
         end
     end
   end

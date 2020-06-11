@@ -45,6 +45,15 @@ module Bootloader
         Sysconfig.from_system.trusted_boot
       end
 
+      # Check if the system is expected to have nvram - ie. update_nvram_active? makes a difference
+      def nvram_available?(bootloader_name = nil)
+        (bootloader_name ? efi_used?(bootloader_name) : efi_supported?) || Yast::Arch.ppc
+      end
+
+      def update_nvram_active?
+        Sysconfig.from_system.update_nvram
+      end
+
       # Check if trusted boot is configurable with a bootloader.
       #
       # param bootloader_name [String] bootloader name

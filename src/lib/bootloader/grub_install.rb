@@ -25,8 +25,9 @@ module Bootloader
     #   Ignored when grub2 does not need device.
     # @param secure_boot [Boolean] if secure boot variant should be used
     # @param trusted_boot [Boolean] if trusted boot variant should be used
+    # @param Update_nvram [Boolean] if bootloader entry should be added to nvram
     # @return [Array<String>] list of devices for which install failed
-    def execute(devices: [], secure_boot: false, trusted_boot: false)
+    def execute(devices: [], secure_boot: false, trusted_boot: false, update_nvram: true)
       if secure_boot && !Systeminfo.secure_boot_available?(@grub2_name)
         # There might be some secure boot setting left over when the
         # bootloader had been switched.
@@ -35,7 +36,7 @@ module Bootloader
         log.warn "Ignoring secure boot setting on this machine"
       end
 
-      cmd = basic_cmd(secure_boot, trusted_boot)
+      cmd = basic_cmd(secure_boot, trusted_boot, update_nvram)
 
       if no_device_install?
         Yast::Execute.on_target(cmd)
@@ -84,7 +85,7 @@ module Bootloader
 
     # creates basic command for grub2 install without specifying any stage1
     # locations
-    def basic_cmd(secure_boot, trusted_boot)
+    def basic_cmd(secure_boot, trusted_boot, update_nvram)
       if Systeminfo.shim_needed?(@grub2_name, secure_boot)
         cmd = ["/usr/sbin/shim-install", "--config-file=/boot/grub2/grub.cfg"]
       else
@@ -101,6 +102,7 @@ module Bootloader
       end
 
       cmd << "--removable" if removable_efi?
+      cmd << "--no-nvram" if !update_nvram
 
       cmd
     end

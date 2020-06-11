@@ -423,6 +423,35 @@ module Bootloader
     end
   end
 
+  # Represents switcher for NVRAM update
+  class UpdateNvramWidget < CWM::CheckBox
+    include Grub2Widget
+
+    def initialize
+      textdomain "bootloader"
+    end
+
+    def label
+      _("Update &NVRAM Entry")
+    end
+
+    def help
+      res = _("<p><b>Update NVRAM Entry</b> will add nvram entry for the bootloader\n" \
+          "in the firmware.\n" \
+          "This is usually desirable unless you want to preserve specific settings\n" \
+          "or need to work around firmware issues.</p>\n")
+      res
+    end
+
+    def init
+      self.value = grub2.update_nvram
+    end
+
+    def store
+      grub2.update_nvram = value
+    end
+  end
+
   # Represents grub password protection widget
   class GrubPasswordWidget < CWM::CustomWidget
     include Grub2Widget
@@ -979,6 +1008,7 @@ module Bootloader
 
       w << SecureBootWidget.new if secure_boot_widget?
       w << TrustedBootWidget.new if trusted_boot_widget?
+      w << UpdateNvramWidget.new if update_nvram_widget?
 
       w.map do |widget|
         MarginBox(horizontal_margin, 0, Left(widget))
@@ -1015,6 +1045,10 @@ module Bootloader
 
     def trusted_boot_widget?
       Systeminfo.trusted_boot_available?(grub2.name)
+    end
+
+    def update_nvram_widget?
+      Systeminfo.nvram_available?(grub2.name)
     end
 
     def pmbr_widget?

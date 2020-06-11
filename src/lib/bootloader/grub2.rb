@@ -66,7 +66,8 @@ module Bootloader
       # powernv must not call grub2-install (bnc#970582)
       unless Yast::Arch.board_powernv
         failed = @grub_install.execute(
-          devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot
+          devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot,
+          update_nvram: update_nvram
         )
         failed.each { |f| stage1.remove_device(f) }
         stage1.write
@@ -107,6 +108,7 @@ module Bootloader
 
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
       result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
+      result << update_nvram_summary if Systeminfo.nvram_available?(name)
 
       locations_val = locations
       if !locations_val.empty?
@@ -145,7 +147,8 @@ module Bootloader
     # overwrite BootloaderBase version to save trusted boot
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(
-        bootloader: name, secure_boot: secure_boot, trusted_boot: trusted_boot
+        bootloader: name, secure_boot: secure_boot, trusted_boot: trusted_boot,
+        update_nvram: update_nvram
       )
       prewrite ? sysconfig.pre_write : sysconfig.write
     end

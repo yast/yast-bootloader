@@ -18,10 +18,23 @@ describe Bootloader::Sysconfig do
       allow(Yast::SCR).to receive(:Read).with(
         Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT")
       ).and_return("no")
+      allow(Yast::SCR).to receive(:Read).with(
+        Yast::Path.new(".sysconfig.bootloader.UPDATE_NVRAM")
+      ).and_return("yes")
 
       sysconfig = Bootloader::Sysconfig.from_system
       expect(sysconfig.bootloader).to eq "grub2"
       expect(sysconfig.secure_boot).to be false
+      expect(sysconfig.update_nvram).to be true
+    end
+
+    it "defaults update_nvram to true if not set" do
+      allow(Yast::SCR).to receive(:Read).with(
+        Yast::Path.new(".sysconfig.bootloader.UPDATE_NVRAM")
+      ).and_return(nil)
+
+      sysconfig = Bootloader::Sysconfig.from_system
+      expect(sysconfig.update_nvram).to be true
     end
 
     context "x86_64" do
