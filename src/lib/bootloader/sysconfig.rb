@@ -13,7 +13,8 @@ module Bootloader
     ATTR_VALUE_MAPPING = {
       bootloader:   "LOADER_TYPE",
       secure_boot:  "SECURE_BOOT",
-      trusted_boot: "TRUSTED_BOOT"
+      trusted_boot: "TRUSTED_BOOT",
+      update_nvram: "UPDATE_NVRAM"
     }.freeze
 
     # specifies bootloader in sysconfig
@@ -22,12 +23,15 @@ module Bootloader
     attr_accessor :secure_boot
     # @return [Boolean] if trusted boot should be used
     attr_accessor :trusted_boot
+    # @return [Boolean] if nvram should be updated
+    attr_accessor :update_nvram
 
-    def initialize(bootloader: nil, secure_boot: false, trusted_boot: false)
+    def initialize(bootloader: nil, secure_boot: false, trusted_boot: false, update_nvram: true)
       @sys_agent = AGENT_PATH
       @bootloader = bootloader
       @secure_boot = secure_boot
       @trusted_boot = trusted_boot
+      @update_nvram = update_nvram
     end
 
     def self.from_system
@@ -38,7 +42,10 @@ module Bootloader
 
       trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
-      new(bootloader: bootloader, secure_boot: secure_boot, trusted_boot: trusted_boot)
+      update_nvram = Yast::SCR.Read(AGENT_PATH + "UPDATE_NVRAM") != "no"
+
+      new(bootloader: bootloader, secure_boot: secure_boot, trusted_boot: trusted_boot,
+          update_nvram: update_nvram)
     end
 
     # Specialized write before rpm install, that do not have switched SCR
@@ -82,6 +89,16 @@ module Bootloader
         "#\n" \
         "# Enable Trusted Boot support\n" \
         "# Only available on hardware with a Trusted Platform Module.\n" \
+        "#\n",
+
+      update_nvram: "\n" \
+        "## Path:\tSystem/Bootloader\n" \
+        "## Description:\tBootloader configuration\n" \
+        "## Type:\tyesno\n" \
+        "## Default:\t\"yes\"\n" \
+        "#\n" \
+        "# Update nvram boot settings (UEFI, OF)\n" \
+        "# Unset to preserve specific settings or workaround firmware issues.\n" \
         "#\n"
     }.freeze
 
@@ -95,6 +112,9 @@ module Bootloader
 
       tb = trusted_boot ? "yes" : "no"
       write_option(:trusted_boot, tb)
+
+      un = update_nvram ? "yes" : "no"
+      write_option(:update_nvram, un)
 
       # flush write
       Yast::SCR.Write(sys_agent, nil)

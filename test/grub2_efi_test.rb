@@ -21,13 +21,15 @@ describe Bootloader::Grub2EFI do
   end
 
   describe "#read" do
-    it "reads secure boot configuration from sysconfig" do
-      sysconfig = double(Bootloader::Sysconfig, secure_boot: true, trusted_boot: true)
+    it "reads bootloader flags from sysconfig" do
+      sysconfig = double(Bootloader::Sysconfig, secure_boot: true, trusted_boot: true, update_nvram: true)
       expect(Bootloader::Sysconfig).to receive(:from_system).and_return(sysconfig).at_least(:once)
 
       subject.read
 
       expect(subject.secure_boot).to eq true
+      expect(subject.trusted_boot).to eq true
+      expect(subject.update_nvram).to eq true
     end
   end
 
@@ -41,15 +43,16 @@ describe Bootloader::Grub2EFI do
       subject.write
     end
 
-    it "calls grub2-install with respective secure boot and trusted boot configuration" do
+    it "calls grub2-install with respective boot flags configuration" do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       grub_install = double(Bootloader::GrubInstall)
-      expect(grub_install).to receive(:execute).with(secure_boot: true, trusted_boot: true)
+      expect(grub_install).to receive(:execute).with(secure_boot: true, trusted_boot: true, update_nvram: false)
       allow(Bootloader::GrubInstall).to receive(:new).and_return(grub_install)
 
       subject.secure_boot = true
       subject.trusted_boot = true
+      subject.update_nvram = false
 
       subject.write
     end
@@ -64,16 +67,17 @@ describe Bootloader::Grub2EFI do
       allow(Yast::PackageSystem).to receive(:InstallAll).and_return(true)
     end
 
-    it "writes secure boot and trusted boot configuration to bootloader sysconfig" do
+    it "writes boot flags configuration to bootloader sysconfig" do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       expect(Bootloader::Sysconfig).to receive(:new)
-        .with(bootloader: "grub2-efi", secure_boot: true, trusted_boot: true)
+        .with(bootloader: "grub2-efi", secure_boot: true, trusted_boot: true, update_nvram: true)
         .and_return(sysconfig)
       expect(sysconfig).to receive(:write)
 
       subject.secure_boot = true
       subject.trusted_boot = true
+      subject.update_nvram = true
 
       subject.prepare
     end
@@ -84,6 +88,12 @@ describe Bootloader::Grub2EFI do
       subject.propose
 
       expect(subject.pmbr_action).to eq :remove
+    end
+
+    it "proposes to update nvram" do
+      subject.propose
+
+      expect(subject.update_nvram).to eq true
     end
 
     it "proposes to use secure boot for x86_64" do

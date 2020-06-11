@@ -23,9 +23,10 @@ describe Bootloader::GrubInstall do
       allow(Dir).to receive(:glob).and_return(efivardirs)
     end
 
-    def expect_grub2_install(target, device: nil, removable: false)
+    def expect_grub2_install(target, device: nil, removable: false, no_nvram: false)
       params = [/grub2-install/, "--target=#{target}", "--force", "--skip-fs-probe"]
-      params << "--no-nvram" << "--removable" if removable
+      params << "--removable" if removable
+      params << "--no-nvram" if no_nvram
       params << device if device
 
       if device
@@ -122,6 +123,14 @@ describe Bootloader::GrubInstall do
         expect_grub2_install("arm64-efi", removable: true)
 
         subject.execute
+      end
+
+      it "grub2 install asked to not update nvram" do
+        stub_arch("aarch64")
+        stub_efivars
+        expect_grub2_install("arm64-efi", no_nvram: true)
+
+        subject.execute(update_nvram: false)
       end
 
       it "passes suse-enable-tpm option when trusted boot is requested" do

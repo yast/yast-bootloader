@@ -56,6 +56,7 @@ describe Bootloader::AutoyastConverter do
         "activate"     => "true",
         "generic_mbr"  => "false",
         "trusted_grub" => "true",
+        "update_nvram" => "true",
         "boot_boot"    => "true"
       }
 
@@ -71,6 +72,7 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.stage1).to be_activate
       expect(bootloader.stage1.boot_partition?).to eq true
       expect(bootloader.trusted_boot).to eq true
+      expect(bootloader.update_nvram).to eq true
     end
 
     it "imports device map for grub2 on intel architecture" do
@@ -129,6 +131,7 @@ describe Bootloader::AutoyastConverter do
         "hiddenmenu"      => "true",
         "timeout"         => 10,
         "trusted_grub"    => "true",
+        "update_nvram"    => "true",
         "cpu_mitigations" => "manual"
       }
 
@@ -141,6 +144,10 @@ describe Bootloader::AutoyastConverter do
       it "exports secure boot key" do
         bootloader.secure_boot = true
         expect(subject.export(bootloader)["global"]["secure_boot"]).to eq "true"
+      end
+      it "exports update nvram key" do
+        bootloader.update_nvram = false
+        expect(subject.export(bootloader)["global"]["update_nvram"]).to eq "false"
       end
     end
   end
