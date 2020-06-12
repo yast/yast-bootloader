@@ -49,7 +49,7 @@ module Bootloader
         gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
         target_devices = gpt_disks.map { |d| d["device"] }
 
-        pmbr_setup(*target_devices)
+        pmbr_setup(*target_devices) unless target_devices.empty?
       end
 
       @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)
