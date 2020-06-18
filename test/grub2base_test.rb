@@ -340,20 +340,46 @@ describe Bootloader::Grub2Base do
     end
 
     context "xen hypervisor kernel parameters proposal" do
-      it "do nothing if there is no framebuffer" do
-        allow(Dir).to receive(:[]).and_return([])
-
-        subject.propose
-
-        expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq false
+      before do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
       end
 
-      it "propose vga parameter if there is framebuffer" do
-        allow(Dir).to receive(:[]).and_return(["/dev/fb0"])
+      context "with a serial console" do
+        let(:kernel_params) { "console=ttyS2,4800n8" }
 
-        subject.propose
+        it "does nothing" do
+          subject.propose
 
-        expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq "gfx-1024x768x16"
+          expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq false
+        end
+      end
+
+      context "without a serial console" do
+        let(:kernel_params) { "" }
+
+        before do
+          allow(Dir).to receive(:[]).and_return(framebuffer)
+        end
+
+        context "when there is no framebuffer" do
+          let(:framebuffer) { [] }
+
+          it "does nothing" do
+            subject.propose
+
+            expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq false
+          end
+        end
+
+        context "when there is a framebuffer" do
+          let(:framebuffer) { ["/dev/fb0"] }
+
+          it "proposes vga parameter" do
+            subject.propose
+
+            expect(subject.grub_default.xen_hypervisor_params.parameter("vga")).to eq "gfx-1024x768x16"
+          end
+        end
       end
     end
 
