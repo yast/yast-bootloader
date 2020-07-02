@@ -36,9 +36,13 @@ describe Bootloader::Grub2EFI do
         .with("/boot/efi").and_return("device" => "/dev/md1")
       allow(Bootloader::Stage1Device).to receive(:new)
         .and_return(double(real_devices: ["/dev/sda", "/dev/sdb"]))
-      allow(Yast::Storage).to receive(:GetDisk)
-        .and_return({"label" => "gpt", "device" => "/dev/sda"},
-          {"label" => "msdos", "device" => "/dev/sdb"})
+
+      disks = [
+        { "label" => "gpt", "device" => "/dev/sda" },
+        { "label" => "msdos", "device" => "/dev/sdb" }
+      ]
+
+      allow(Yast::Storage).to receive(:GetDisk).and_return(*disks)
 
       expect(subject).to receive(:pmbr_setup).with("/dev/sda")
 
