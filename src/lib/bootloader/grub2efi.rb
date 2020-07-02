@@ -43,7 +43,13 @@ module Bootloader
         # get underlaying disk as it have to be set there and not on virtual one (bnc#981977)
         device = ::Bootloader::Stage1Device.new(efi_disk)
 
-        pmbr_setup(*device.real_devices)
+        devices = device.real_devices
+        boot_discs = devices.map { |d| Yast::Storage.GetDisk(Yast::Storage.GetTargetMap, d) }
+        boot_discs.uniq!
+        gpt_disks = boot_discs.select { |d| d["label"] == "gpt" }
+        target_devices = gpt_disks.map { |d| d["device"] }
+
+        pmbr_setup(*target_devices) unless target_devices.empty?
       end
 
       @grub_install.execute(secure_boot: @secure_boot, trusted_boot: trusted_boot)
