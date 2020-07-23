@@ -40,7 +40,8 @@ module Yast
     S390_WHITELIST = [
       /net\.ifnames=\S*/,
       /fips=\S*/,
-      /mitigations=\S*/
+      /mitigations=\S*/,
+      /rd\.zdev=\S*/
     ].freeze
 
     # Get parameters for the default kernel
