@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Aug 14 10:48:15 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
+
+- add rd.zdev to allowed kernel options on s390 (bsc#1168036)
+- 4.2.26
+
+-------------------------------------------------------------------
 Wed May 27 12:07:31 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 
 - fix detection of present of efivars causing grub2-install
