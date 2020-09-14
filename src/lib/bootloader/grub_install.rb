@@ -39,6 +39,13 @@ module Bootloader
 
       if no_device_install?
         Yast::Execute.on_target(cmd)
+        # workaround for arm on SLE15 SP2 (bsc#1167015)
+        # run grub2-install also non-removable if efi is there
+        if Yast::Arch.aarch64 && !Dir.glob("/sys/firmware/efi/efivars/*").empty?
+          cmd.delete("--no-nvram")
+          cmd.delete("--removable")
+          Yast::Execute.on_target(cmd)
+        end
         []
       else
         return [] if devices.empty?
@@ -118,7 +125,8 @@ module Bootloader
       # working NVRAM, we either see no efivars at all (booted via non-EFI entry
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
-      efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?
+      # Workaround for SLE15 SP2 - run always as removable on arm (bsc#1167015)
+      Yast::Arch.aarch64 || (efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?)
     end
 
     def no_device_install?
