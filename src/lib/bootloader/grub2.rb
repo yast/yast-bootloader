@@ -106,9 +106,7 @@ module Bootloader
         )
       ]
 
-      result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
-      result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
-      result << update_nvram_summary if Systeminfo.nvram_available?(name)
+      result.concat(boot_flags_summary)
 
       locations_val = locations
       if !locations_val.empty?
@@ -258,6 +256,16 @@ module Bootloader
 
       # TRANSLATORS: title for list of location proposals
       _("Change Location: %s") % line
+    end
+
+    # summary for various boot flags
+    def boot_flags_summary
+      result = []
+      result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
+      result << update_nvram_summary if Systeminfo.nvram_available?(name)
+
+      result
     end
   end
 end

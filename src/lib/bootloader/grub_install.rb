@@ -25,7 +25,7 @@ module Bootloader
     #   Ignored when grub2 does not need device.
     # @param secure_boot [Boolean] if secure boot variant should be used
     # @param trusted_boot [Boolean] if trusted boot variant should be used
-    # @param Update_nvram [Boolean] if bootloader entry should be added to nvram
+    # @param update_nvram [Boolean] if bootloader entry should be added to nvram
     # @return [Array<String>] list of devices for which install failed
     def execute(devices: [], secure_boot: false, trusted_boot: false, update_nvram: true)
       if secure_boot && !Systeminfo.secure_boot_available?(@grub2_name)
