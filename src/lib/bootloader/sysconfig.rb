@@ -14,7 +14,7 @@ module Bootloader
       bootloader:   "LOADER_TYPE",
       secure_boot:  "SECURE_BOOT",
       trusted_boot: "TRUSTED_BOOT",
-      update_nvram: "UPDATE_NVRAM",
+      update_nvram: "UPDATE_NVRAM"
     }.freeze
 
     # specifies bootloader in sysconfig
@@ -99,7 +99,7 @@ module Bootloader
         "#\n" \
         "# Update nvram boot settings (UEFI, OF)\n" \
         "# Unset to preserve specific settings or workaround firmware issues.\n" \
-        "#\n",
+        "#\n"
     }.freeze
 
     def write
