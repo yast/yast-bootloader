@@ -130,7 +130,7 @@ describe Bootloader::GrubInstall do
         stub_efivars
         expect_grub2_install("arm64-efi", no_nvram: true, removable: true)
         # second run of grub2-install
-        expect_grub2_install("arm64-efi", no_nvram: false, removable: false)
+        expect_grub2_install("arm64-efi", no_nvram: true, removable: false)
 
         subject.execute(update_nvram: false)
       end

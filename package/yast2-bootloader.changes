@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Sep 23 12:01:59 UTC 2020 - Michal Suchanek <msuchanek@suse.com>
+
+- Add UPDATE_NVRAM in /etc/sysconfig/bootloader (bsc#1157550).
+- 4.3.10
+
+-------------------------------------------------------------------
 Mon Sep 14 12:07:31 UTC 2020 - Josef Reidinger <jreidinger@suse.com>
 - merge SLE15 SP2 changes:
 -- fix detection of present of efivars causing grub2-install
@@ -28,11 +34,6 @@ Thu Jun 18 08:37:58 UTC 2020 - José Iván López González <jlopez@suse.com>
   console.
 - Related to bsc#1172390.
 - 4.3.6
-
--------------------------------------------------------------------
-Thu Jun 11 20:01:59 UTC 2020 - Michal Suchanek <msuchanek@suse.com>
-
-- Add UPDATE_NVRAM in /etc/sysconfig/bootloader (bsc#1157550).
 
 -------------------------------------------------------------------
 Wed Jun 10 13:51:24 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
