@@ -121,23 +121,33 @@ describe Bootloader::GrubInstall do
         stub_arch("aarch64")
         stub_efivars(removable: true)
         expect_grub2_install("arm64-efi", removable: true)
+        # second run of grub2-install
+        expect_grub2_install("arm64-efi", removable: false)
 
         subject.execute
       end
 
       it "grub2 install asked to not update nvram" do
         stub_arch("aarch64")
-        stub_efivars
+        stub_efivars(removable: false)
+        expect_grub2_install("arm64-efi", no_nvram: true)
+
+        subject.execute(update_nvram: false)
+      end
+
+      it "grub2 install asked to not update nvram on non-nvram system" do
+        stub_arch("aarch64")
+        stub_efivars(removable: true)
         expect_grub2_install("arm64-efi", no_nvram: true, removable: true)
         # second run of grub2-install
-        expect_grub2_install("arm64-efi", no_nvram: false, removable: false)
+        expect_grub2_install("arm64-efi", no_nvram: true, removable: false)
 
         subject.execute(update_nvram: false)
       end
 
       it "passes suse-enable-tpm option when trusted boot is requested" do
         stub_arch("x86_64")
-        stub_efivars(removable: false)
+        stub_efivars
 
         expect(Yast::Execute).to receive(:on_target) do |arg|
           expect(arg).to include("--suse-enable-tpm")
