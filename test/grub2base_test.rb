@@ -59,6 +59,22 @@ describe Bootloader::Grub2Base do
       expect(subject.trusted_boot).to eq false
     end
 
+    it "reads update nvram configuration from sysconfig" do
+      mocked_sysconfig = ::Bootloader::Sysconfig.new(update_nvram: true)
+      allow(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
+
+      subject.read
+
+      expect(subject.update_nvram).to eq true
+
+      mocked_sysconfig = ::Bootloader::Sysconfig.new(update_nvram: false)
+      allow(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
+
+      subject.read
+
+      expect(subject.update_nvram).to eq false
+    end
+
     it "raises BrokenConfiguration if /etc/default/grub missing" do
       default = double
       allow(default).to receive(:load).and_raise(Errno::ENOENT)
@@ -405,6 +421,12 @@ describe Bootloader::Grub2Base do
       subject.propose
 
       expect(subject.trusted_boot).to eq false
+    end
+
+    it "proposes to update nvram" do
+      subject.propose
+
+      expect(subject.update_nvram).to eq true
     end
 
     context "with a serial console on the kernel command line on non-s390" do

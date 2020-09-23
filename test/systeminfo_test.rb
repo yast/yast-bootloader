@@ -360,4 +360,26 @@ describe Bootloader::Systeminfo do
       end
     end
   end
+
+  describe ".nvram_available?" do
+    context "if arch is ppc" do
+      let(:arch) { "ppc" }
+
+      it "returns true" do
+        expect(described_class.nvram_available?).to be true
+      end
+    end
+    context "if arch is ppc64" do
+      let(:arch) { "ppc64" }
+
+      it "returns true" do
+        expect(described_class.nvram_available?).to be true
+      end
+    end
+    context "if bootloader is grub2-efi" do
+      it "returns true" do
+        expect(described_class.nvram_available?("grub2-efi")).to be true
+      end
+    end
+  end
 end

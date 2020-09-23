@@ -66,6 +66,7 @@ bl_global =
       element os_prober       { STRING_BOOL }? &
       element suse_btrfs      { STRING_BOOL }? &
       element secure_boot      { STRING_BOOL }? &
+      element update_nvram      { STRING_BOOL }? &
       element xen_append        { STRING }? &
       element xen_kernel_append { STRING }? &
 

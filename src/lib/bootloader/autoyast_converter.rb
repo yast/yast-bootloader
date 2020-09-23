@@ -222,7 +222,8 @@ module Bootloader
 
       # only for grub2, not for others
       GRUB2EFI_BOOLEAN_MAPPING = {
-        "secure_boot" => :secure_boot
+        "secure_boot"  => :secure_boot,
+        "update_nvram" => :update_nvram
       }.freeze
       private_constant :GRUB2EFI_BOOLEAN_MAPPING
       def export_grub2efi(res, bootloader)
@@ -235,7 +236,8 @@ module Bootloader
       # only for grub2, not for others
       GRUB2_BOOLEAN_MAPPING = {
         "secure_boot"  => :secure_boot,
-        "trusted_grub" => :trusted_boot
+        "trusted_grub" => :trusted_boot,
+        "update_nvram" => :update_nvram
       }.freeze
       private_constant :GRUB2_BOOLEAN_MAPPING
       def export_grub2(res, bootloader)
