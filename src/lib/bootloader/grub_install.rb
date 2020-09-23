@@ -42,7 +42,6 @@ module Bootloader
         # workaround for arm on SLE15 SP2 (bsc#1167015)
         # run grub2-install also non-removable if efi is there
         if Yast::Arch.aarch64 && !Dir.glob("/sys/firmware/efi/efivars/*").empty?
-          cmd.delete("--no-nvram")
           cmd.delete("--removable")
           Yast::Execute.on_target(cmd)
         end
@@ -101,7 +100,7 @@ module Bootloader
         cmd << (efi ? "--suse-enable-tpm" : "--directory=/usr/lib/trustedgrub2/#{target}")
       end
 
-      cmd << "--no-nvram" << "--removable" if removable_efi?
+      cmd << "--removable" if removable_efi?
 
       cmd
     end

@@ -25,7 +25,7 @@ describe Bootloader::GrubInstall do
 
     def expect_grub2_install(target, device: nil, removable: false)
       params = [/grub2-install/, "--target=#{target}", "--force", "--skip-fs-probe"]
-      params << "--no-nvram" << "--removable" if removable
+      params << "--removable" if removable
       params << device if device
 
       if device
