@@ -64,7 +64,6 @@ bl_global =
       element failsafe_disabled { STRING_BOOL }? &
       element hiddenmenu      { STRING_BOOL }? &
       element os_prober       { STRING_BOOL }? &
-      element suse_btrfs      { STRING_BOOL }? &
       element secure_boot      { STRING_BOOL }? &
       element update_nvram      { STRING_BOOL }? &
       element xen_append        { STRING }? &
