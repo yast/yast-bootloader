@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Sep 29 13:05:19 UTC 2020 - Imobach Gonzalez Sosa <igonzalezsosa@suse.com>
+
+- Drop the 'suse_btrfs' element from the AutoYaST schema
+  (bsc#1176970).
+- 4.2.27
+
+-------------------------------------------------------------------
 Fri Aug 14 10:48:15 UTC 2020 - Steffen Winterfeldt <snwint@suse.com>
 
 - add rd.zdev to allowed kernel options on s390 (bsc#1168036)
