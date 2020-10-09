@@ -43,7 +43,10 @@ initrd_modules =
     LIST,
     initrd_module+
   }
-initrd_module = element initrd_module { bl_module, module_args? }
+initrd_module = element initrd_module {
+  MAP,
+  (bl_module, module_args?)
+}
 module_args = element module_args { STRING }
 bl_module = element module { STRING }
 loader_device = element loader_device { STRING }
