@@ -357,7 +357,7 @@ describe Bootloader::Grub2Base do
 
     context "xen hypervisor kernel parameters proposal" do
       before do
-        allow(Yast::Kernel).to receive(:GetCmdLine).and_return(kernel_params)
+        allow(Yast::BootArch).to receive(:DefaultKernelParams).and_return(kernel_params)
       end
 
       context "with a serial console" do
