@@ -110,8 +110,8 @@ module Bootloader
 
       locations_val = locations
       if !locations_val.empty?
-        result << Yast::Builtins.sformat(
-          _("Status Location: %1"),
+        result << format(
+          _("Write Boot Code To: %s"),
           locations_val.join(", ")
         )
       end
