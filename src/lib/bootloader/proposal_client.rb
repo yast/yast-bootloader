@@ -75,6 +75,8 @@ module Bootloader
       "disable_boot_mbr",
       "enable_boot_boot",
       "disable_boot_boot",
+      "enable_boot_extended",
+      "disable_boot_extended",
       "enable_secure_boot",
       "disable_secure_boot",
       "enable_trusted_boot",
@@ -341,15 +343,20 @@ module Bootloader
       nil
     end
 
+    CLICK_MAPPING = {
+      "boot_mbr" => :boot_disk_names,
+      "boot_boot" => :boot_partition_names,
+      "boot_extended" => :extended_boot_partitions_names
+    }
     def single_click_action(option, value)
       bootloader = ::Bootloader::BootloaderFactory.current
 
       log.info "single_click_action: option #{option}, value #{value.inspect}"
 
       case option
-      when "boot_mbr", "boot_boot"
+      when "boot_mbr", "boot_boot", "boot_extended"
         stage1 = bootloader.stage1
-        devices = (option == "boot_mbr") ? stage1.boot_disk_names : stage1.boot_partition_names
+        devices = stage1.public_send(CLICK_MAPPING[option])
         log.info "single_click_action: devices #{devices}"
         devices.each do |device|
           value ? stage1.add_udev_device(device) : stage1.remove_device(device)

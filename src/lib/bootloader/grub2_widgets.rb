@@ -843,6 +843,8 @@ module Bootloader
 
     def init
       Yast::UI.ChangeWidget(Id(:boot), :Value, stage1.boot_partition?) if locations.include?(:boot)
+      Yast::UI.ChangeWidget(Id(:logical), :Value, stage1.boot_partition?) if locations.include?(:logical)
+      Yast::UI.ChangeWidget(Id(:extended), :Value, stage1.extended_boot_partition?) if locations.include?(:extended)
       Yast::UI.ChangeWidget(Id(:mbr), :Value, stage1.mbr?) if locations.include?(:mbr)
 
       init_custom_devices(stage1.custom_devices)
@@ -854,8 +856,10 @@ module Bootloader
         next unless Yast::UI.QueryWidget(Id(id), :Value)
 
         case id
-        when :boot
+        when :boot, :logical
           stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
+        when :extended
+          stage1.extended_boot_partitions_names.each { |d| stage1.add_udev_device(d) }
         when :mbr
           stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
         end
@@ -903,6 +907,8 @@ module Bootloader
     def location_checkboxes
       checkboxes = []
       checkboxes << checkbox(:boot, _("Boo&t from Partition")) if locations.include?(:boot)
+      checkboxes << checkbox(:logical, _("Boo&t from Logical Partition")) if locations.include?(:logical)
+      checkboxes << checkbox(:extended, _("Boot from &Extended Partition")) if locations.include?(:extended)
       checkboxes << checkbox(:mbr, _("Boot from &Master Boot Record")) if locations.include?(:mbr)
 
       checkboxes.concat(custom_partition_content)

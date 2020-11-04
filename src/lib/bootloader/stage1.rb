@@ -65,7 +65,13 @@ module Bootloader
       case Yast::Arch.architecture
       when "i386", "x86_64"
         res = [:mbr]
-        res << :boot if can_use_boot?
+        if can_use_boot?
+          if logical_boot?
+            res << :logical << :extended
+          else
+            res << :boot
+          end
+        end
         res
       else
         log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
@@ -116,8 +122,31 @@ module Bootloader
       include_real_devs?(boot_disk_names)
     end
 
+    def logical_boot?
+      detect_devices
+
+      @boot_objects.any? { |p| p.is?(:partition) && p.type.is?(:logical) }
+    end
+
+    def extended_boot_partitions_names
+      @boot_objects.map do |device|
+        dev = if device.is?(:partition) && device.type.is?(:logical)
+          Yast::BootStorage.extended_for_logical(device)
+        else
+          device
+        end
+        dev.name
+      end
+    end
+
+    def extended_boot_partition?
+      return false if boot_partition_names == extended_boot_partitions_names
+
+      include_real_devs?(extended_boot_partitions_names)
+    end
+
     def custom_devices
-      known_devices = boot_disk_names + boot_partition_names
+      known_devices = boot_disk_names + boot_partition_names + extended_boot_partitions_names
       log.info "known devices #{known_devices.inspect}"
 
       devices.reject do |dev|
@@ -212,11 +241,11 @@ module Bootloader
       # check if cache is valid
       return if @cache_revision == Y2Storage::StorageManager.instance.staging_revision
 
-      devices = Yast::BootStorage.boot_partitions
-      @boot_devices = devices.map(&:name)
+      @boot_objects = Yast::BootStorage.boot_partitions
+      @boot_devices = @boot_objects.map(&:name)
 
-      devices = Yast::BootStorage.boot_disks
-      @mbr_devices = devices.map(&:name)
+      @mbr_objects = Yast::BootStorage.boot_disks
+      @mbr_devices = @mbr_objects.map(&:name)
 
       @cache_revision = Y2Storage::StorageManager.instance.staging_revision
     end

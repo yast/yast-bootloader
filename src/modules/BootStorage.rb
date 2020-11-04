@@ -176,8 +176,6 @@ module Yast
         end
       end
 
-      # now replace all logical partitions for extended
-      partitions.map! { |p| extended_for_logical(p) }
       partitions.uniq!
 
       log.info "stage1 partitions for #{device.inspect} are #{partitions.inspect}"
