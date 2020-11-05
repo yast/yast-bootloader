@@ -65,14 +65,13 @@ module Bootloader
       case Yast::Arch.architecture
       when "i386", "x86_64"
         res = [:mbr]
-        if can_use_boot?
-          if logical_boot?
-            res << :logical << :extended
-          else
-            res << :boot
-          end
+        return res unless can_use_boot?
+
+        if logical_boot?
+          res << :logical << :extended
+        else
+          res << :boot
         end
-        res
       else
         log.info "no available non-custom location for arch #{Yast::Arch.architecture}"
 

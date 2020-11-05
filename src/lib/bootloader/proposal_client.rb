@@ -344,10 +344,10 @@ module Bootloader
     end
 
     CLICK_MAPPING = {
-      "boot_mbr" => :boot_disk_names,
-      "boot_boot" => :boot_partition_names,
+      "boot_mbr"      => :boot_disk_names,
+      "boot_boot"     => :boot_partition_names,
       "boot_extended" => :extended_boot_partitions_names
-    }
+    }.freeze
     def single_click_action(option, value)
       bootloader = ::Bootloader::BootloaderFactory.current
 

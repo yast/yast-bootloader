@@ -274,18 +274,16 @@ module Bootloader
 
       # do not allow to switch on boot from partition that do not support it
       if stage1.can_use_boot?
+        line << "<li>"
         if stage1.logical_boot?
-          line << "<li>"
           line << extended_partition_line
           line << "</li>"
           line << "<li>"
           line << logical_partition_line
-          line << "</li>"
         else
-          line << "<li>"
           line << partition_line
-          line << "</li>"
         end
+        line << "</li>"
       end
 
       if stage1.devices.empty?

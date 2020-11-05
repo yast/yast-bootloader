@@ -8,7 +8,7 @@ Metrics/AbcSize:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/AbcSize:
-  Max: 30
+  Max: 35
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
