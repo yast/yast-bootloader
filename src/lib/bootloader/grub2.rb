@@ -110,8 +110,8 @@ module Bootloader
 
       locations_val = locations
       if !locations_val.empty?
-        result << Yast::Builtins.sformat(
-          _("Status Location: %1"),
+        result << format(
+          _("Write Boot Code To: %s"),
           locations_val.join(", ")
         )
       end
@@ -193,6 +193,12 @@ module Bootloader
 
       partition_location = Yast::BootStorage.boot_partitions.map(&:name).join(", ")
       locations << partition_location + _(" (/boot)") if stage1.boot_partition?
+      if stage1.extended_boot_partition?
+        partitions = Yast::BootStorage.boot_partitions.map do |partition|
+          Yast::BootStorage.extended_for_logical(partition).name
+        end
+        locations << partitions.join(", ") + _(" (/boot)")
+      end
       if stage1.mbr?
         # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
         # is used in your language, then keep it as it is.
@@ -229,6 +235,34 @@ module Bootloader
       end
     end
 
+    def logical_partition_line
+      if stage1.boot_partition?
+        _(
+          "Install boot code into a logical partition with /boot " \
+            "(<a href=\"disable_boot_boot\">do not install</a>)"
+        )
+      else
+        _(
+          "Do not install boot code into a logical partition with /boot " \
+            "(<a href=\"enable_boot_boot\">install</a>)"
+        )
+      end
+    end
+
+    def extended_partition_line
+      if stage1.extended_boot_partition?
+        _(
+          "Install boot code into a extended partition with /boot " \
+            "(<a href=\"disable_boot_extended\">do not install</a>)"
+        )
+      else
+        _(
+          "Do not install boot code into a extended partition with /boot " \
+            "(<a href=\"enable_boot_extended\">install</a>)"
+        )
+      end
+    end
+
     # FATE#303643 Enable one-click changes in bootloader proposal
     #
     #
@@ -241,7 +275,14 @@ module Bootloader
       # do not allow to switch on boot from partition that do not support it
       if stage1.can_use_boot?
         line << "<li>"
-        line << partition_line
+        if stage1.logical_boot?
+          line << extended_partition_line
+          line << "</li>"
+          line << "<li>"
+          line << logical_partition_line
+        else
+          line << partition_line
+        end
         line << "</li>"
       end
 
