@@ -22,6 +22,7 @@ Yast.import "HTML"
 Yast.import "Initrd"
 Yast.import "Kernel"
 Yast.import "Mode"
+Yast.import "UI"
 Yast.import "Pkg"
 Yast.import "Product"
 Yast.import "ProductFeatures"
@@ -389,24 +390,24 @@ module Bootloader
     #
     # @return [String]
     def secure_boot_summary
-      _("Secure Boot:") + " " + (secure_boot ? _("enabled") : _("disabled")) + " " +
+      _("Secure Boot:") + " " + unicode_flag(secure_boot) + " " +
         if secure_boot
-          "<a href=\"disable_secure_boot\">(" + _("disable") + ")</a>"
+          "<a href=\"disable_secure_boot\">"
         else
-          "<a href=\"enable_secure_boot\">(" + _("enable") + ")</a>"
-        end
+          "<a href=\"enable_secure_boot\">("
+        end + _("change") + ")</a>"
     end
 
     # Trusted boot setting shown in summary screen.
     #
     # @return [String]
     def trusted_boot_summary
-      _("Trusted Boot:") + " " + (trusted_boot ? _("enabled") : _("disabled")) + " " +
+      _("Trusted Boot:") + " " + unicode_flag(trusted_boot) + " " +
         if trusted_boot
-          "<a href=\"disable_trusted_boot\">(" + _("disable") + ")</a>"
+          "<a href=\"disable_trusted_boot\">("
         else
-          "<a href=\"enable_trusted_boot\">(" + _("enable") + ")</a>"
-        end
+          "<a href=\"enable_trusted_boot\">("
+        end + _("change") + ")</a>"
     end
 
     # Update nvram shown in summary screen
@@ -419,6 +420,14 @@ module Bootloader
         else
           "<a href=\"enable_update_nvram\">(" + _("enable") + ")</a>"
         end
+    end
+
+    def unicode_flag(value)
+      if Yast::UI.TextMode
+        value ? "[x] " : "[ ] "
+      else
+        value ? "✓" : "✗"
+      end
     end
   end
   # rubocop:enable Metrics/ClassLength
