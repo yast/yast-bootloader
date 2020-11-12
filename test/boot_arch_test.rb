@@ -18,32 +18,6 @@ describe Yast::BootArch do
     allow(Yast::Arch).to receive(:architecture).and_return(arch)
   end
 
-  describe ".ResumeAvailable" do
-    it "returns true if it is on x86_64 architecture" do
-      stub_arch("x86_64")
-
-      expect(subject.ResumeAvailable).to eq true
-    end
-
-    it "returns true if it is on i386 architecture" do
-      stub_arch("i386")
-
-      expect(subject.ResumeAvailable).to eq true
-    end
-
-    it "returns false if it is on s390 architecture" do
-      stub_arch("s390_64")
-      # see Jira#SLE-6926
-      expect(subject.ResumeAvailable).to eq false
-    end
-
-    it "it returns false otherwise" do
-      stub_arch("ppc64")
-
-      expect(subject.ResumeAvailable).to eq false
-    end
-  end
-
   describe ".DefaultKernelParams" do
     context "on x86_64 or i386" do
       before do

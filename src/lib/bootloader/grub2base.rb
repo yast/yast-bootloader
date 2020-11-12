@@ -374,7 +374,7 @@ module Bootloader
       swap_parts = Yast::BootStorage.available_swap_partitions
       largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
 
-      resume = Yast::BootArch.ResumeAvailable ? largest_swap_part : ""
+      resume = Yast::Kernel.propose_hibernation? ? largest_swap_part : ""
       # try to use label or udev id for device name... FATE #302219
       resume = UdevMapping.to_mountby_device(resume) if resume != "" && !resume.nil?
 
