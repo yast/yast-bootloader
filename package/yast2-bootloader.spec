@@ -26,7 +26,7 @@ Url:            https://github.com/yast/yast-bootloader
 
 Source0:        %{name}-%{version}.tar.bz2
 
-BuildRequires:  yast2 >= 3.1.176
+BuildRequires:  yast2 >= 4.3.41
 BuildRequires:  yast2-devtools >= 4.2.2
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
 # Y2Storage::Mountable#mount_path
@@ -41,8 +41,8 @@ BuildRequires:  update-desktop-files
 PreReq:         /bin/sed %fillup_prereq
 # Base classes for inst clients
 Requires:       parted
-# Yast::Execute class
-Requires:       yast2 >= 3.1.176
+# Kernel.propose_hibernation?
+Requires:       yast2 >= 4.3.41
 Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
