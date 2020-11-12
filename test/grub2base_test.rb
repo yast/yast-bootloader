@@ -8,6 +8,7 @@ describe Bootloader::Grub2Base do
   before do
     allow(Yast::ProductFeatures).to receive(:GetStringFeature)
       .and_return("")
+    allow(Yast::Kernel).to receive(:propose_hibernation?).and_return(true)
   end
 
   describe "#read" do
@@ -324,18 +325,6 @@ describe Bootloader::Grub2Base do
           subject.propose
 
           expect(subject.grub_default.kernel_params.serialize).to include("product_aurora=shot")
-        end
-
-        it "adds no swap partition as resume device" do
-          allow(Yast::BootStorage).to receive(:available_swap_partitions)
-            .and_return(
-              "/dev/dasda2" => 512,
-              "/dev/dasdb2" => 1024
-            )
-
-          subject.propose
-          # see Jira#SLE-6926
-          expect(subject.grub_default.kernel_params.serialize).to_not include("resume")
         end
       end
 
