@@ -210,12 +210,12 @@ module Bootloader
       # TRANSLATORS: summary line where %s is disk specified, can be more disks, separated by comma
       res = if stage1.mbr?
         _(
-          "Write into MBR of %s (<a href=\"disable_boot_mbr\">do not write</a>)"
+          "Write it into MBR of %s (<a href=\"disable_boot_mbr\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is disk specified, can be more disks, separated by comma
       else
         _(
-          "Do not write into MBR of %s (<a href=\"enable_boot_mbr\">write</a>)"
+          "Do not write it into MBR of %s (<a href=\"enable_boot_mbr\">write</a>)"
         )
       end
 
@@ -227,14 +227,14 @@ module Bootloader
       # separated by comma
       res = if stage1.boot_partition?
         _(
-          "Write into a partition with /boot - %s" \
+          "Write it into partition with /boot - %s" \
             "(<a href=\"disable_boot_boot\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is partition specified, can be more disks,
       # separated by comma
       else
         _(
-          "Do not write into a partition with /boot - %s" \
+          "Do not write it into partition with /boot - %s" \
             "(<a href=\"enable_boot_boot\">write</a>)"
         )
       end
@@ -246,14 +246,14 @@ module Bootloader
       # separated by comma
       res = if stage1.boot_partition?
         _(
-          "Write into a logical partition with /boot - %s" \
+          "Write it into logical partition with /boot - %s" \
             "(<a href=\"disable_boot_boot\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is partition specified, can be more disks,
       # separated by comma
       else
         _(
-          "Do not write into a logical partition with /boot - %s" \
+          "Do not write it into logical partition with /boot - %s" \
             "(<a href=\"enable_boot_boot\">write</a>)"
         )
       end
@@ -265,14 +265,14 @@ module Bootloader
       # separated by comma
       res = if stage1.extended_boot_partition?
         _(
-          "Write into an extended partition with /boot - %s" \
+          "Write it into extended partition with /boot - %s" \
             "(<a href=\"disable_boot_extended\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is partition specified, can be more disks,
       # separated by comma
       else
         _(
-          "Do not into an extended partition with /boot - %s" \
+          "Do not write it into extended partition with /boot - %s" \
             "(<a href=\"enable_boot_extended\">write</a>)"
         )
       end
