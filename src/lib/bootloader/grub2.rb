@@ -188,7 +188,7 @@ module Bootloader
       )
     end
 
-    # Gets all location where stage1 will be written
+    # Gets all locations where stage1 will be written
     def locations
       locations = []
 
