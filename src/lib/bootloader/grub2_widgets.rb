@@ -324,13 +324,13 @@ module Bootloader
     end
 
     def label
-      _("Enable &Secure Boot Support")
+      _("&Secure Boot Support")
     end
 
     def help
       if Yast::Arch.s390
         _(
-          "<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
+          "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
           "This does not turn on secure booting. " \
           "It only switches to the new secure-boot enabled boot data format. " \
           "Note that this new format works only on z15 or later and only for zFCP disks. " \
@@ -338,7 +338,7 @@ module Bootloader
         )
       else
         _(
-          "<p><b>Enable Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
+          "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
           "This does not turn on secure booting. " \
           "It only sets up the boot loader in a way that supports secure booting. " \
           "You still have to enable Secure Boot in the UEFI Firmware.</p> "
@@ -379,7 +379,7 @@ module Bootloader
     end
 
     def label
-      _("Enable &Trusted Boot Support")
+      _("&Trusted Boot Support")
     end
 
     def help
@@ -595,10 +595,10 @@ module Bootloader
     def help
       # Translators: do not translate the quoted parts like "unit"
       _(
-        "<p><b>Use graphical console</b> when checked it allows to use various " \
+        "<p><b>Graphical console</b> when checked it allows to use various " \
         "display resolutions. The <tt>auto</tt> option tries to find " \
         "the best one when booting starts.</p>\n" \
-        "<p><b>Use serial console</b> when checked it redirects the boot output " \
+        "<p><b>Serial console</b> when checked it redirects the boot output " \
         "to a serial device like <tt>ttyS0</tt>. " \
         "At least the <tt>--unit</tt> option has to be specified, " \
         "and the complete syntax is <tt>%s</tt>. " \
@@ -713,7 +713,7 @@ module Bootloader
     def graphical_console_frame
       CheckBoxFrame(
         Id(:gfxterm_frame),
-        _("Use &graphical console"),
+        _("&Graphical console"),
         true,
         HBox(
           HSpacing(2),
@@ -762,7 +762,7 @@ module Bootloader
     def serial_console_frame
       CheckBoxFrame(
         Id(:console_frame),
-        _("Use &serial console"),
+        _("&Serial console"),
         true,
         HBox(
           HSpacing(2),
@@ -821,7 +821,7 @@ module Bootloader
 
       VBox(
         Frame(
-          _("Boot Loader Location"),
+          _("Boot Code Location"),
           HBox(
             HSpacing(1),
             VBox(*location_checkboxes),
@@ -910,20 +910,25 @@ module Bootloader
 
     def location_checkboxes
       checkboxes = []
-      checkboxes << checkbox(:boot, _("Boo&t from Partition")) if locations.include?(:boot)
-      if locations.include?(:logical)
-        checkboxes << checkbox(:logical, _("Boo&t from Logical Partition"))
-      end
-      if locations.include?(:extended)
-        checkboxes << checkbox(:extended, _("Boot from &Extended Partition"))
-      end
-      checkboxes << checkbox(:mbr, _("Boot from &Master Boot Record")) if locations.include?(:mbr)
+      # TRANSLATORS: %s is used to specify exact devices
+      add_checkbox(checkboxes, :boot,
+        format(_("Wri&te to Partition (%s)"), stage1.boot_partition_names.join(", ")))
+      # TRANSLATORS: %s is used to specify exact devices
+      add_checkbox(checkboxes, :logical,
+        format(_("Wri&te to Logical Partition (%s)"), stage1.boot_partition_names.join(", ")))
+      # TRANSLATORS: %s is used to specify exact devices
+      add_checkbox(checkboxes, :extended,
+        format(_("Write to &Extended Partition (%s)"),
+          stage1.extended_boot_partitions_names.join(", ")))
+      # TRANSLATORS: %s is used to specify exact devices
+      add_checkbox(checkboxes, :mbr,
+        format(_("Write to &Master Boot Record (%s)"), stage1.boot_disk_names.join(", ")))
 
       checkboxes.concat(custom_partition_content)
     end
 
-    def checkbox(id, title)
-      Left(CheckBox(Id(id), title))
+    def add_checkbox(checkboxes, id, title)
+      checkboxes << Left(CheckBox(Id(id), title)) if locations.include?(id)
     end
 
     def custom_partition_content

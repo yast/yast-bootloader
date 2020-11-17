@@ -188,79 +188,99 @@ module Bootloader
       )
     end
 
+    # Gets all locations where stage1 will be written
     def locations
       locations = []
 
       partition_location = Yast::BootStorage.boot_partitions.map(&:name).join(", ")
-      locations << partition_location + _(" (/boot)") if stage1.boot_partition?
+      locations << partition_location if stage1.boot_partition?
       if stage1.extended_boot_partition?
         partitions = Yast::BootStorage.boot_partitions.map do |partition|
           Yast::BootStorage.extended_for_logical(partition).name
         end
-        locations << partitions.join(", ") + _(" (/boot)")
+        locations << partitions.join(", ")
       end
-      if stage1.mbr?
-        # TRANSLATORS: MBR is acronym for Master Boot Record, if nothing locally specific
-        # is used in your language, then keep it as it is.
-        locations << Yast::BootStorage.boot_disks.map(&:name).join(", ") + _(" (MBR)")
-      end
+      locations << Yast::BootStorage.boot_disks.map(&:name).join(", ") if stage1.mbr?
       locations << stage1.custom_devices if !stage1.custom_devices.empty?
 
       locations
     end
 
     def mbr_line
-      if stage1.mbr?
+      # TRANSLATORS: summary line where %s is disk specified, can be more disks, separated by comma
+      res = if stage1.mbr?
         _(
-          "Install bootcode into MBR (<a href=\"disable_boot_mbr\">do not install</a>)"
+          "Write it into MBR of %s (<a href=\"disable_boot_mbr\">do not write</a>)"
         )
+      # TRANSLATORS: summary line where %s is disk specified, can be more disks, separated by comma
       else
         _(
-          "Do not install bootcode into MBR (<a href=\"enable_boot_mbr\">install</a>)"
+          "Do not write it into MBR of %s (<a href=\"enable_boot_mbr\">write</a>)"
         )
       end
+
+      format(res, Yast::BootStorage.boot_disks.map(&:name).join(", "))
     end
 
     def partition_line
-      if stage1.boot_partition?
+      # TRANSLATORS: summary line where %s is partition specified, can be more disks,
+      # separated by comma
+      res = if stage1.boot_partition?
         _(
-          "Install boot code into a partition with /boot " \
-            "(<a href=\"disable_boot_boot\">do not install</a>)"
+          "Write it into partition with /boot - %s " \
+            "(<a href=\"disable_boot_boot\">do not write</a>)"
         )
+      # TRANSLATORS: summary line where %s is partition specified, can be more disks,
+      # separated by comma
       else
         _(
-          "Do not install boot code into a partition with /boot " \
-            "(<a href=\"enable_boot_boot\">install</a>)"
+          "Do not write it into partition with /boot - %s " \
+            "(<a href=\"enable_boot_boot\">write</a>)"
         )
       end
+      format(res, Yast::BootStorage.boot_partitions.map(&:name).join(", "))
     end
 
     def logical_partition_line
-      if stage1.boot_partition?
+      # TRANSLATORS: summary line where %s is partition specified, can be more disks,
+      # separated by comma
+      res = if stage1.boot_partition?
         _(
-          "Install boot code into a logical partition with /boot " \
-            "(<a href=\"disable_boot_boot\">do not install</a>)"
+          "Write it into logical partition with /boot - %s " \
+            "(<a href=\"disable_boot_boot\">do not write</a>)"
         )
+      # TRANSLATORS: summary line where %s is partition specified, can be more disks,
+      # separated by comma
       else
         _(
-          "Do not install boot code into a logical partition with /boot " \
-            "(<a href=\"enable_boot_boot\">install</a>)"
+          "Do not write it into logical partition with /boot - %s " \
+            "(<a href=\"enable_boot_boot\">write</a>)"
         )
       end
+      format(res, Yast::BootStorage.boot_partitions.map(&:name).join(", "))
     end
 
     def extended_partition_line
-      if stage1.extended_boot_partition?
+      # TRANSLATORS: summary line where %s is partition specified, can be more disks,
+      # separated by comma
+      res = if stage1.extended_boot_partition?
         _(
-          "Install boot code into a extended partition with /boot " \
-            "(<a href=\"disable_boot_extended\">do not install</a>)"
+          "Write it into extended partition with /boot - %s " \
+            "(<a href=\"disable_boot_extended\">do not write</a>)"
         )
+      # TRANSLATORS: summary line where %s is partition specified, can be more disks,
+      # separated by comma
       else
         _(
-          "Do not install boot code into a extended partition with /boot " \
-            "(<a href=\"enable_boot_extended\">install</a>)"
+          "Do not write it into extended partition with /boot - %s " \
+            "(<a href=\"enable_boot_extended\">write</a>)"
         )
       end
+
+      partitions = Yast::BootStorage.boot_partitions.map do |partition|
+        Yast::BootStorage.extended_for_logical(partition).name
+      end
+      format(res, partitions.join(", "))
     end
 
     # FATE#303643 Enable one-click changes in bootloader proposal
@@ -268,7 +288,7 @@ module Bootloader
     #
     def url_location_summary
       log.info "Prepare url summary for GRUB2"
-      line = +"<ul>\n<li>"
+      line = +"<ul><li>"
       line << mbr_line
       line << "</li>\n"
 
@@ -288,7 +308,7 @@ module Bootloader
 
       if stage1.devices.empty?
         # no location chosen, so warn user that it is problem unless he is sure
-        msg = _("Warning: No location for bootloader stage1 selected." \
+        msg = _("Warning: No location for boot code selected." \
           "Unless you know what you are doing please select above location.")
         line << "<li>" << Yast::HTML.Colorize(msg, "red") << "</li>"
       end
@@ -296,7 +316,7 @@ module Bootloader
       line << "</ul>"
 
       # TRANSLATORS: title for list of location proposals
-      _("Change Location: %s") % line
+      _("Boot Code: %s") % line
     end
 
     # summary for various boot flags
