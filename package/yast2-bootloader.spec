@@ -29,8 +29,8 @@ Source0:        %{name}-%{version}.tar.bz2
 BuildRequires:  yast2 >= 4.3.41
 BuildRequires:  yast2-devtools >= 4.2.2
 BuildRequires:  yast2-ruby-bindings >= 1.0.0
-# Y2Storage::Mountable#mount_path
-BuildRequires:  yast2-storage-ng >= 4.0.90
+# BlkDevice#preferred_name and Filesystems::BlkFilesystem#preferred_name
+BuildRequires:  yast2-storage-ng >= 4.3.36
 # lenses needed also for tests
 BuildRequires:  augeas-lenses
 BuildRequires:  rubygem(%rb_default_ruby_abi:cfa_grub2) >= 1.0.1
@@ -46,8 +46,8 @@ Requires:       yast2 >= 4.3.41
 Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
-# Y2Storage::Mountable#mount_path
-Requires:       yast2-storage-ng >= 4.0.90
+# BlkDevice#preferred_name and Filesystems::BlkFilesystem#preferred_name
+Requires:       yast2-storage-ng >= 4.3.36
 # Support for multiple values in GRUB_TERMINAL
 Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 1.0.1
 # lenses are needed as cfa_grub2 depends only on augeas bindings, but also
