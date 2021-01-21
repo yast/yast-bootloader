@@ -54,6 +54,11 @@ describe Bootloader::UdevMapping do
       # find by name creates always new instance, so to make mocking easier, mock it to
       # return always same instance
       allow(Y2Storage::BlkDevice).to receive(:find_by_name).and_return(device)
+
+      # The preferred device name depends on the default mount_by, and such default value
+      # depends on the architecture. Setting the default mount_by here to make the tests
+      # architecture independent (bsc#1181175).
+      storage_conf.default_mount_by = Y2Storage::Filesystems::MountByType::UUID
     end
 
     let(:device) { find_device("/dev/sda3") }
