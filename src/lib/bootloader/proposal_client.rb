@@ -131,13 +131,15 @@ module Bootloader
 
     # make proposal without handling of exceptions
     def make_proposal_raising(attrs)
+      force_reset = attrs["force_reset"]
+      storage_read = Yast::BootStorage.storage_read?
+      storage_changed = Yast::BootStorage.storage_changed?
+
       if Yast::BootStorage.boot_filesystem.is?(:nfs)
         ::Bootloader::BootloaderFactory.current_name = "none"
         return construct_proposal_map
       end
-      force_reset = attrs["force_reset"]
-      storage_read = Yast::BootStorage.storage_read?
-      storage_changed = Yast::BootStorage.storage_changed?
+
       log.info "Storage changed: #{storage_changed} force_reset #{force_reset}."
       log.info "Storage read previously #{storage_read.inspect}"
       # clear storage-ng devices cache otherwise it crashes (bsc#1071931)
