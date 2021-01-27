@@ -248,6 +248,8 @@ describe Bootloader::Grub2Base do
       context "on x86_64" do
         before do
           allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+          # RAM 1024 KiB
+          allow(Y2Storage::StorageManager.instance.arch).to receive(:ram_size).and_return(1024 * 1024)
         end
 
         it "proposes kernel parameters used in installation" do
@@ -257,18 +259,6 @@ describe Bootloader::Grub2Base do
           subject.propose
 
           expect(subject.grub_default.kernel_params.serialize).to include(kernel_params)
-        end
-
-        it "adds the biggest available swap partition as resume device" do
-          allow(Yast::BootStorage).to receive(:available_swap_partitions)
-            .and_return(
-              "/dev/sda2" => 512,
-              "/dev/sdb2" => 1024
-            )
-
-          subject.propose
-
-          expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/sdb2")
         end
 
         it "adds additional kernel parameters for given product" do
@@ -285,6 +275,54 @@ describe Bootloader::Grub2Base do
           subject.propose
 
           expect(subject.grub_default.kernel_params.serialize).to include("quiet")
+        end
+
+        context "when the largest swap is bigger than the RAM size" do
+          before do
+            allow(Yast::BootStorage).to receive(:available_swap_partitions)
+              .and_return(
+                "/dev/sda2" => 512,
+                "/dev/sdb2" => 2048
+              )
+          end
+
+          it "adds the largest available swap partition as resume device" do
+            subject.propose
+
+            expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/sdb2")
+          end
+        end
+
+        context "when the largest swap is equal to the RAM size" do
+          before do
+            allow(Yast::BootStorage).to receive(:available_swap_partitions)
+              .and_return(
+                "/dev/sda2" => 512,
+                "/dev/sdb2" => 1024
+              )
+          end
+
+          it "adds the largest available swap partition as resume device" do
+            subject.propose
+
+            expect(subject.grub_default.kernel_params.serialize).to include("resume=/dev/sdb2")
+          end
+        end
+
+        context "when the largest swap is smaller than the RAM size" do
+          before do
+            allow(Yast::BootStorage).to receive(:available_swap_partitions)
+              .and_return(
+                "/dev/sda2" => 512,
+                "/dev/sdb2" => 512
+              )
+          end
+
+          it "does not add the resume parameter" do
+            subject.propose
+
+            expect(subject.grub_default.kernel_params.serialize).to_not include("resume=")
+          end
         end
       end
 
