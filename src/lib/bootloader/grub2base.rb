@@ -372,13 +372,20 @@ module Bootloader
 
     def propose_resume
       swap_parts = Yast::BootStorage.available_swap_partitions
-      largest_swap_part = (swap_parts.max_by { |_part, size| size } || [""]).first
+      largest_swap_name, lagest_swap_size = (swap_parts.max_by { |_part, size| size } || [])
 
-      resume = Yast::Kernel.propose_hibernation? ? largest_swap_part : ""
+      propose = Yast::Kernel.propose_hibernation? && largest_swap_name
+
+      return "" unless propose
+
+      if lagest_swap_size < Yast::BootStorage.ram_size
+        log.info "resume parameter is not added because swap (#{largest_swap_name}) is too small"
+
+        return ""
+      end
+
       # try to use label or udev id for device name... FATE #302219
-      resume = UdevMapping.to_mountby_device(resume) if resume != "" && !resume.nil?
-
-      resume
+      UdevMapping.to_mountby_device(largest_swap_name)
     end
 
     def propose_encrypted
