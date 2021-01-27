@@ -133,6 +133,9 @@ module Bootloader
     def make_proposal_raising(attrs)
       force_reset = attrs["force_reset"]
       storage_read = Yast::BootStorage.storage_read?
+      # This must be checked at the beginning because the call to BootStorage.boot_filesystem
+      # below can trigger a re-read and change the result of BootStorage.storage_changed?
+      # See bsc#1180218 and bsc#1180976.
       storage_changed = Yast::BootStorage.storage_changed?
 
       if Yast::BootStorage.boot_filesystem.is?(:nfs)
