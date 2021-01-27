@@ -196,11 +196,27 @@ describe Bootloader::ProposalClient do
       subject.make_proposal({})
     end
 
-    it "always resets if storage changed" do
-      expect(Yast::Bootloader).to receive(:Reset)
-      allow(Yast::BootStorage).to receive(:storage_changed?).and_return(true)
+    it "does not reset the configuration if the user already changed it" do
+      # Run a first proposal
+      subject.make_proposal({})
+      # The user edits (or simply visualizes) the configuration
+      Yast::Bootloader.proposed_cfg_changed = true
 
-      subject.make_proposal("force_reset" => true)
+      expect(Yast::Bootloader).to_not receive(:Reset)
+      subject.make_proposal("force_reset" => false)
+    end
+
+    # Regression test for bsc#1180218 and bsc#1180976
+    it "resets the configuration if storage changed" do
+      # Run a first proposal
+      subject.make_proposal({})
+      # The user edits (or simply visualizes) the configuration
+      Yast::Bootloader.proposed_cfg_changed = true
+
+      Y2Storage::StorageManager.instance.increase_staging_revision
+      expect(Yast::Bootloader).to receive(:Reset)
+
+      subject.make_proposal("force_reset" => false)
     end
 
     it "resets configuration if not automode and force_reset passed" do
@@ -209,7 +225,7 @@ describe Bootloader::ProposalClient do
       subject.make_proposal("force_reset" => true)
     end
 
-    it "do not resets configuration in automode and even if force_reset passed" do
+    it "does not reset configuration in automode and even if force_reset passed" do
       allow(Yast::Mode).to receive(:autoinst).and_return(true)
       expect(Yast::Bootloader).to_not receive(:Reset)
 
