@@ -126,6 +126,13 @@ module Yast
       ret
     end
 
+    # Ram size in KiB
+    #
+    # @return [Intenger]
+    def ram_size
+      Y2Storage::StorageManager.instance.arch.ram_size / 1024
+    end
+
     def encrypted_boot?
       fs = boot_filesystem
       log.info "boot mp = #{fs.inspect}"
