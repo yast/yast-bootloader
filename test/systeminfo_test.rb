@@ -245,8 +245,8 @@ describe Bootloader::Systeminfo do
       let(:arch) { "aarch64" }
 
       context "and secure boot is enabled" do
-        it "returns false" do
-          expect(described_class.shim_needed?("grub2-efi", true)).to be false
+        it "returns true" do
+          expect(described_class.shim_needed?("grub2-efi", true)).to be true
         end
       end
 
