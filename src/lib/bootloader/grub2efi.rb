@@ -100,6 +100,7 @@ module Bootloader
         res << "grub2-arm-efi"
       when "aarch64"
         res << "grub2-arm64-efi"
+        res << "shim" << "mokutil" if secure_boot
       else
         log.warn "Unknown architecture #{Yast::Arch.architecture} for EFI"
       end

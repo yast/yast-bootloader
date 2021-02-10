@@ -93,7 +93,8 @@ module Bootloader
       # param secure_boot [Boolean] secure boot setting
       # @return [Boolean] true if shim has to be used
       def shim_needed?(bootloader_name, secure_boot)
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && secure_boot && efi_used?(bootloader_name)
+        (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64) &&
+          secure_boot && efi_used?(bootloader_name)
       end
 
       # Check if secure boot is (in principle) available on an s390 machine.
