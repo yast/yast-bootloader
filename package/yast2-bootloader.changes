@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 15 14:49:00 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
+
+- Adapted unit test to recent changes in Yast::Report (related to
+  bsc#1179893).
+- 4.3.22
+
+-------------------------------------------------------------------
 Tue Feb  9 15:44:42 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - use shim for secure boot also on aarch64 (jsc#SLE-15020) 
