@@ -25,6 +25,8 @@ describe Bootloader::MBRUpdate do
     before do
       # by default common architecture"
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+      # do not crash in report if some script failed
+      allow(Yast::Report).to receive(:Error)
     end
 
     # FIXME: get reason for it
