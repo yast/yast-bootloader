@@ -92,5 +92,11 @@ RSpec.configure do |config|
     allow(::Bootloader::UdevMapping).to receive(:to_mountby_device) { |d| d }
     allow(::Bootloader::UdevMapping).to receive(:to_kernel_device) { |d| d }
     devicegraph_stub("trivial.yaml")
+
+    # mock all system operations
+    allow(Yast::Execute).to receive(:on_target)
+    # mock getting default section
+    allow(Yast::Execute).to receive(:on_target)
+      .with("/usr/bin/grub2-editenv", "list", anything).and_return("")
   end
 end

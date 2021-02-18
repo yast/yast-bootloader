@@ -17,7 +17,6 @@ describe Bootloader::Grub2 do
     allow(Bootloader::Sections).to receive(:new).and_return(double("Sections").as_null_object)
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
     allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(false)
-    allow(Yast::Report).to receive(:Error)
   end
 
   describe "#read" do

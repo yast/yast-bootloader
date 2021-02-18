@@ -18,7 +18,6 @@ describe Bootloader::Grub2EFI do
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
     allow(Bootloader::GrubInstall).to receive(:new).and_return(double.as_null_object)
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-    allow(Yast::Report).to receive(:Error) # do not fail if any script failed and wants to open popup
   end
 
   describe "#read" do

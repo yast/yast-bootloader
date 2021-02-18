@@ -8,10 +8,6 @@ require "cwm/rspec"
 def assign_bootloader(name = "grub2")
   Bootloader::BootloaderFactory.clear_cache
   Bootloader::BootloaderFactory.current_name = name
-
-  # mock here also Report as bootloader runs some scripts to fill up e.g. sections
-  # and it fails without root or without grub2 installed
-  allow(Yast::Report).to receive(:Error)
 end
 
 def bootloader
