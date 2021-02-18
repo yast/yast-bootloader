@@ -16,6 +16,11 @@ describe Bootloader::Sections do
     Bootloader::Sections.new(grub_cfg)
   end
 
+  before do
+    # do not crash in report that grub2-env is not in test env
+    allow(Yast::Report).to receive(:Error)
+  end
+
   describe "#all" do
     it "returns list of all available sections" do
       expect(subject.all).to eq(["linux", "windows"])

@@ -9,6 +9,7 @@ describe Bootloader::Grub2Base do
     allow(Yast::ProductFeatures).to receive(:GetStringFeature)
       .and_return("")
     allow(Yast::Kernel).to receive(:propose_hibernation?).and_return(true)
+    allow(Yast::Report).to receive(:Error) # do not fail to show popup
   end
 
   describe "#read" do
