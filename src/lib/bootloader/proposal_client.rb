@@ -79,6 +79,8 @@ module Bootloader
       "disable_boot_extended",
       "enable_secure_boot",
       "disable_secure_boot",
+      "enable_update_nvram",
+      "disable_update_nvram",
       "enable_trusted_boot",
       "disable_trusted_boot"
     ].freeze
@@ -368,6 +370,8 @@ module Bootloader
         end
       when "trusted_boot"
         bootloader.trusted_boot = value
+      when "update_nvram"
+        bootloader.update_nvram = value
       when "secure_boot"
         bootloader.secure_boot = value
         if value && Yast::Arch.s390

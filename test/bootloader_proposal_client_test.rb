@@ -57,6 +57,15 @@ describe Bootloader::ProposalClient do
 
         expect(Yast::Bootloader.proposed_cfg_changed).to be true
       end
+
+      it "works with update_nvram" do
+        bootloader = ::Bootloader::BootloaderFactory.current
+        bootloader.update_nvram = false
+
+        expect { subject.ask_user("chosen_id" => "enable_update_nvram") }
+          .to change { bootloader.update_nvram }.from(false).to(true)
+
+      end
     end
 
     context "gui id is passed" do
