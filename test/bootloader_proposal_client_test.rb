@@ -62,8 +62,8 @@ describe Bootloader::ProposalClient do
         bootloader = ::Bootloader::BootloaderFactory.current
         bootloader.update_nvram = false
 
-        expect{subject.ask_user("chosen_id" => "enable_update_nvram")}
-          .to change{bootloader.update_nvram}.from(false).to(true)
+        expect { subject.ask_user("chosen_id" => "enable_update_nvram") }
+          .to change { bootloader.update_nvram }.from(false).to(true)
 
       end
     end
