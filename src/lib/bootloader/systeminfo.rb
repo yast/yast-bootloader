@@ -148,7 +148,6 @@ module Bootloader
         false
       end
 
-
       # Checks if efivars exists and can be written
       # @see https://bugzilla.suse.com/show_bug.cgi?id=1174111#c37
       #
@@ -159,14 +158,15 @@ module Bootloader
 
         # check if efivars are ro
         mounts = Yast::Execute.locally!("/usr/bin/mount", stdout: :capture)
-        # target line looks like `efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)`
+        # target line looks like:
+        # efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
         efivars = mounts.lines.grep(/type\s+efivarfs/)
         efivars = efivars.first
         return false unless efivars
 
         efivars.match?(/[\(,]rw[,\)]/)
       rescue Cheetah::ExecutionFailed
-        return false
+        false
       end
     end
   end
