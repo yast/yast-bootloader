@@ -42,7 +42,7 @@ module Bootloader
         Yast::Execute.on_target(cmd)
         # workaround for arm on SLE15 SP2 (bsc#1167015)
         # run grub2-install also non-removable if efi is there
-        if Yast::Arch.aarch64 && !Dir.glob("/sys/firmware/efi/efivars/*").empty?
+        if Yast::Arch.aarch64 && Systeminfo.writable_efivars?
           cmd.delete("--removable")
           Yast::Execute.on_target(cmd)
         end
@@ -125,7 +125,7 @@ module Bootloader
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
       # Workaround for SLE15 SP2 - run always as removable on arm (bsc#1167015)
-      Yast::Arch.aarch64 || (efi && Dir.glob("/sys/firmware/efi/efivars/*").empty?)
+      Yast::Arch.aarch64 || (efi && !Systeminfo.writable_efivars?)
     end
 
     def no_device_install?
