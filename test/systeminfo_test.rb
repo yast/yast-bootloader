@@ -382,4 +382,44 @@ describe Bootloader::Systeminfo do
       end
     end
   end
+
+  describe ".writable_efivars?" do
+    before do
+      allow(Dir).to receive(:glob).and_return(["BootCurrent-8be4df61-93ca-11d2-aa0d-00e098032b8c"])
+      allow(Yast::Execute).to receive(:locally!).and_return(
+        "pstore on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)
+        efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
+        none on /sys/fs/bpf type bpf (rw,nosuid,nodev,noexec,relatime)"
+      )
+    end
+
+    it "returns false if there are no efivars in /sys" do
+      allow(Dir).to receive(:glob).and_return([])
+
+      expect(described_class.writable_efivars?).to eq false
+    end
+
+    it "returns false if there are no efivars in mount" do
+      allow(Yast::Execute).to receive(:locally!).and_return(
+        "pstore on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)
+        none on /sys/fs/bpf type bpf (rw,nosuid,nodev,noexec,relatime)"
+      )
+
+      expect(described_class.writable_efivars?).to eq false
+    end
+
+    it "returns false if efivars are mounted read only" do
+      allow(Yast::Execute).to receive(:locally!).and_return(
+        "pstore on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)
+        efivarfs on /sys/firmware/efi/efivars type efivarfs (ro,nosuid,nodev,noexec,relatime)
+        none on /sys/fs/bpf type bpf (rw,nosuid,nodev,noexec,relatime)"
+      )
+
+      expect(described_class.writable_efivars?).to eq false
+    end
+
+    it "returns true if efivars are writable" do
+      expect(described_class.writable_efivars?).to eq true
+    end
+  end
 end

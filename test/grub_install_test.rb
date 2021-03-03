@@ -12,15 +12,7 @@ describe Bootloader::GrubInstall do
     end
 
     def stub_efivars(removable: false)
-      efivardirs = if removable
-        []
-      else
-        ["Boot0000-8be4df61-93ca-11d2-aa0d-00e098032b8c",
-         "BootCurrent-8be4df61-93ca-11d2-aa0d-00e098032b8c",
-         "BootOrder-8be4df61-93ca-11d2-aa0d-00e098032b8c"]
-      end
-
-      allow(Dir).to receive(:glob).and_return(efivardirs)
+      allow(Bootloader::Systeminfo).to receive(:writable_efivars?).and_return(!removable)
     end
 
     def expect_grub2_install(target, device: nil, removable: false, no_nvram: false)
