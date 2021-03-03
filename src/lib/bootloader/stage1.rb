@@ -114,11 +114,17 @@ module Bootloader
     end
 
     def boot_partition?
-      include_real_devs?(boot_partition_names)
+      names = boot_partition_names
+      return false if names.empty?
+
+      include_real_devs?(names)
     end
 
     def mbr?
-      include_real_devs?(boot_disk_names)
+      names = boot_disk_names
+      return false if names.empty?
+
+      include_real_devs?(names)
     end
 
     def logical_boot?
@@ -139,9 +145,11 @@ module Bootloader
     end
 
     def extended_boot_partition?
-      return false if boot_partition_names == extended_boot_partitions_names
+      names = extended_boot_partitions_names
+      return false if names.empty?
+      return false if boot_partition_names == names
 
-      include_real_devs?(extended_boot_partitions_names)
+      include_real_devs?(names)
     end
 
     def custom_devices
