@@ -217,12 +217,15 @@ module Bootloader
     end
 
     def refresh_buttons
+      # by default enable delete and later disable if there are no disks
+      Yast::UI.ChangeWidget(Id(:delete), :Enabled, true)
       pos = selected_disk_index
       if !pos # nothing selected
         disk_to_select = disks.first
         # there is no disks
         if !disk_to_select
           up_down_enablement(false, false)
+          Yast::UI.ChangeWidget(Id(:delete), :Enabled, false)
           return
         end
         Yast::UI.ChangeWidget(Id(:disks), :CurrentItem, disk_to_select)
