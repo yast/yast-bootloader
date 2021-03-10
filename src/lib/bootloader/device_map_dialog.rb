@@ -63,6 +63,7 @@ module Bootloader
           end
           max_dev = Bootloader::DeviceMap::BIOS_LIMIT
           if disks.size > max_dev
+            # TRANSLATORS: an error message where %i is the number of devices.
             Yast::Popup.Error(_("Device map can have at maximum %i devices") % max_dev)
             next
           end
