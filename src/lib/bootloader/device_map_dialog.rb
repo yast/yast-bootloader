@@ -61,6 +61,12 @@ module Bootloader
             Yast::Popup.Error(_("Device map must contain at least one device"))
             next
           end
+          max_dev = Bootloader::DeviceMap::BIOS_LIMIT
+          if disks.size > max_dev
+            # TRANSLATORS: an error message where %i is the number of devices.
+            Yast::Popup.Error(_("Device map can have at maximum %i devices") % max_dev)
+            next
+          end
           store_order
           return :back # we just go back to original dialog
         when :cancel
@@ -212,12 +218,15 @@ module Bootloader
     end
 
     def refresh_buttons
+      # by default enable delete and later disable if there are no disks
+      Yast::UI.ChangeWidget(Id(:delete), :Enabled, true)
       pos = selected_disk_index
       if !pos # nothing selected
         disk_to_select = disks.first
         # there is no disks
         if !disk_to_select
           up_down_enablement(false, false)
+          Yast::UI.ChangeWidget(Id(:delete), :Enabled, false)
           return
         end
         Yast::UI.ChangeWidget(Id(:disks), :CurrentItem, disk_to_select)
