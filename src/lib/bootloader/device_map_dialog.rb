@@ -61,6 +61,11 @@ module Bootloader
             Yast::Popup.Error(_("Device map must contain at least one device"))
             next
           end
+          max_dev = Bootloader::DeviceMap::BIOS_LIMIT
+          if disks.size > max_dev
+            Yast::Popup.Error(_("Device map can have at maximum %i devices") % max_dev)
+            next
+          end
           store_order
           return :back # we just go back to original dialog
         when :cancel
