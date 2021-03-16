@@ -3,6 +3,7 @@
 require "yast"
 require "bootloader/bootloader_factory"
 require "bootloader/sysconfig"
+require "yast2/execute"
 
 Yast.import "Arch"
 
@@ -144,6 +145,27 @@ module Bootloader
         # see bsc#1171821
         device.name.start_with?("/dev/sd") || device.udev_ids.any?(/^scsi-/)
       rescue StandardError
+        false
+      end
+
+      # Checks if efivars exists and can be written
+      # @see https://bugzilla.suse.com/show_bug.cgi?id=1174111#c37
+      #
+      # @return [Boolean] true if efivars are writable
+      def writable_efivars?
+        # quick check if there are no efivars at all
+        return false if Dir.glob("/sys/firmware/efi/efivars/*").empty?
+
+        # check if efivars are ro
+        mounts = Yast::Execute.locally!("/usr/bin/mount", stdout: :capture)
+        # target line looks like:
+        # efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
+        efivars = mounts.lines.grep(/type\s+efivarfs/)
+        efivars = efivars.first
+        return false unless efivars
+
+        efivars.match?(/[\(,]rw[,\)]/)
+      rescue Cheetah::ExecutionFailed
         false
       end
     end
