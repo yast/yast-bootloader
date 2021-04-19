@@ -162,7 +162,8 @@ module Bootloader
       if grub2.respond_to?(:cpu_mitigations)
         self.value = grub2.cpu_mitigations.value.to_s
       else
-        # do not crash when use no bootloader. This widget is also used in security dialog. (bsc#1184968)
+        # do not crash when use no bootloader. This widget is also used in security dialog.
+        # (bsc#1184968)
         disable
       end
     end
