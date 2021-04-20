@@ -102,6 +102,38 @@ describe Bootloader::TimeoutWidget do
   end
 end
 
+describe Bootloader::CpuMitigationsWidget do
+  before do
+    assign_bootloader
+  end
+
+  it_behaves_like "labeled widget"
+  it_behaves_like "CWM::ComboBox"
+
+  context "when none bootloader is selected" do
+    before do
+      assign_bootloader("none")
+    end
+
+    describe "#init" do
+      it "disables widget" do
+        expect(subject).to receive(:disable)
+
+        subject.init
+      end
+    end
+
+    describe "#store" do
+      it "does nothing on disabled widget" do
+        expect(subject).to receive(:enabled?).and_return(false)
+        expect(subject).to_not receive(:value)
+
+        subject.store
+      end
+    end
+  end
+end
+
 describe Bootloader::ActivateWidget do
   before do
     assign_bootloader

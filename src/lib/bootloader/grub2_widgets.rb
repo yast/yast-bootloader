@@ -129,7 +129,7 @@ module Bootloader
 
     def items
       ::Bootloader::CpuMitigations::ALL.map do |m|
-        [m.value, m.to_human_string]
+        [m.value.to_s, m.to_human_string]
       end
     end
 
@@ -159,11 +159,17 @@ module Bootloader
     end
 
     def init
-      self.value = grub2.cpu_mitigations.value
+      if grub2.respond_to?(:cpu_mitigations)
+        self.value = grub2.cpu_mitigations.value.to_s
+      else
+        # do not crash when use no bootloader. This widget is also used in security dialog.
+        # (bsc#1184968)
+        disable
+      end
     end
 
     def store
-      grub2.cpu_mitigations = ::Bootloader::CpuMitigations.new(value)
+      grub2.cpu_mitigations = ::Bootloader::CpuMitigations.new(value.to_sym) if enabled?
     end
   end
 
