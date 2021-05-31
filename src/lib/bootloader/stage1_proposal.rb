@@ -220,6 +220,6 @@ module Bootloader
       "ppc"     => PPC,
       "ppc64"   => PPC
     }
-    AVAILABLE_PROPOSALS.default_proc = lambda { |_h, k| raise "unsuported architecture #{k}" }
+    AVAILABLE_PROPOSALS.default_proc = lambda { |_h, k| raise "unsupported architecture #{k}" }
   end
 end
