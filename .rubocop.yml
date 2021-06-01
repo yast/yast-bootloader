@@ -90,7 +90,7 @@ Metrics/PerceivedComplexity:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
 Metrics/PerceivedComplexity:
-  Max: 10
+  Max: 11
   Include:
     - 'src/lib/**/*.rb' # be more strict for new code in lib
 
