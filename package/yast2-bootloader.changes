@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed May 12 12:23:31 UTC 2021 - Guillaume GARDET <guillaume.gardet@opensuse.org>
+
+- arm can boot on uefi (boo#1183795)
+- 4.3.27
+
+-------------------------------------------------------------------
 Mon Apr 19 18:21:58 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - Fix crash when bootloader is not managed by yast and security
