@@ -85,7 +85,7 @@ module Bootloader
       #
       # @return [Boolean] true if system can (in principle) boot via UEFI
       def efi_supported?
-        Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64
+        Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64 || Yast::Arch.arm
       end
 
       # Check if shim-install should be used instead of grub2-install.
