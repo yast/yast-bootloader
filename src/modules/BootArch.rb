@@ -55,7 +55,7 @@ module Yast
       )
       kernel_cmdline = Kernel.GetCmdLine.dup
 
-      if Arch.i386 || Arch.x86_64 || Arch.aarch64 || Arch.ppc
+      if Arch.i386 || Arch.x86_64 || Arch.aarch64 || Arch.arm || Arch.ppc
         ret = kernel_cmdline
         ret << " resume=#{resume}" unless resume.empty?
         ret << " #{features}" unless features.empty?
