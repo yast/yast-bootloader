@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jun  7 08:59:45 UTC 2021 - Guillaume GARDET <guillaume.gardet@opensuse.org>
+
+- Fixes for 'arm can boot on uefi' (boo#1183795)
+- 4.3.28
+
+-------------------------------------------------------------------
 Wed May 12 12:23:31 UTC 2021 - Guillaume GARDET <guillaume.gardet@opensuse.org>
 
 - arm can boot on uefi (boo#1183795)

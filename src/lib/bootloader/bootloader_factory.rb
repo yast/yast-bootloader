@@ -95,7 +95,7 @@ module Bootloader
       end
 
       def proposed_name
-        return "grub2-efi" if Yast::Arch.aarch64
+        return "grub2-efi" if Yast::Arch.aarch64 || Yast::Arch.arm
 
         return "grub2-efi" if Yast::Arch.x86_64 && boot_efi?
 
