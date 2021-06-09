@@ -59,7 +59,9 @@ module Bootloader
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove
 
-      grub_default.generic_set("GRUB_USE_LINUXEFI", Yast::Arch.aarch64 ? "false" : "true")
+      # linuxefi/initrdefi are available on x86 only
+      grub_default.generic_set("GRUB_USE_LINUXEFI",
+        (Yast::Arch.x86_64 || Yast::Arch.i386) ? "true" : "false")
     end
 
     def merge(other)
