@@ -59,8 +59,9 @@ module Bootloader
           system_bl = nil
         end
         ret = system_bl ? [system.name] : [] # use current as first
-        ret << "grub2" unless Yast::Arch.aarch64 # grub2 everywhere except aarch64
-        ret << "grub2-efi" if Yast::Arch.x86_64 || Yast::Arch.aarch64
+        # grub2 everywhere except aarch64 or riscv64
+        ret << "grub2" unless Systeminfo.efi_mandatory?
+        ret << "grub2-efi" if Systeminfo.efi_supported?
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
@@ -95,7 +96,7 @@ module Bootloader
       end
 
       def proposed_name
-        return "grub2-efi" if Yast::Arch.aarch64 || Yast::Arch.arm
+        return "grub2-efi" if Systeminfo.efi_mandatory?
 
         return "grub2-efi" if Yast::Arch.x86_64 && boot_efi?
 

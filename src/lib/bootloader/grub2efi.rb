@@ -103,6 +103,8 @@ module Bootloader
       when "aarch64"
         res << "grub2-arm64-efi"
         res << "shim" << "mokutil" if secure_boot
+      when "riscv64"
+        res << "grub2-riscv64-efi"
       else
         log.warn "Unknown architecture #{Yast::Arch.architecture} for EFI"
       end
