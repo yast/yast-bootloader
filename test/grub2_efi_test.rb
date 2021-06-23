@@ -109,6 +109,13 @@ describe Bootloader::Grub2EFI do
 
       expect(subject.secure_boot).to eq true
     end
+
+    it "proposes to use secure boot for riscv64" do
+      allow(Yast::Arch).to receive(:architecture).and_return("riscv64")
+      subject.propose
+
+      expect(subject.secure_boot).to eq true
+    end
   end
 
   describe "#packages" do
@@ -134,6 +141,12 @@ describe Bootloader::Grub2EFI do
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
 
       expect(subject.packages).to include("grub2-x86_64-efi")
+    end
+
+    it "adds to list grub2-riscv64-efi on riscv64" do
+      allow(Yast::Arch).to receive(:architecture).and_return("riscv64")
+
+      expect(subject.packages).to include("grub2-riscv64-efi")
     end
 
     it "adds to list shim and mokutil on x86_64 with secure boot" do

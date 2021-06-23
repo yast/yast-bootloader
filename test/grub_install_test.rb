@@ -84,6 +84,14 @@ describe Bootloader::GrubInstall do
         subject.execute(devices: [])
       end
 
+      it "runs with target riscv64-efi on riscv64" do
+        stub_arch("riscv64")
+        stub_efivars(removable: true)
+        expect_grub2_install("riscv64-efi", removable: true)
+
+        subject.execute(devices: [])
+      end
+
       it "runs twice as removable and non removable on aarch64 with efi vars (bsc#1167015)" do
         stub_arch("aarch64")
         stub_efivars(removable: false)

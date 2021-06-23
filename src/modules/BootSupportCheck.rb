@@ -79,11 +79,11 @@ module Yast
       return true if type == "none"
 
       # grub2 is sooo cool...
-      return true if type == "grub2" && !Arch.aarch64 && !Arch.arm
+      return true if type == "grub2" && !::Bootloader::Systeminfo.efi_mandatory?
 
       return true if (Arch.i386 || Arch.x86_64) && type == "grub2-efi" && efi?
 
-      return true if type == "grub2-efi" && (Arch.aarch64 || Arch.arm)
+      return true if type == "grub2-efi" && ::Bootloader::Systeminfo.efi_mandatory?
 
       log.error "Unsupported combination of hardware platform #{Arch.architecture} and bootloader #{type}"
       add_new_problem(
