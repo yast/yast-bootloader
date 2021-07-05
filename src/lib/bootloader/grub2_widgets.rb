@@ -7,6 +7,7 @@ require "bootloader/device_map_dialog"
 require "bootloader/serial_console"
 require "bootloader/cpu_mitigations"
 require "bootloader/systeminfo"
+require "bootloader/os_prober"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -1103,7 +1104,7 @@ module Bootloader
           TimeoutWidget.new(hiden_menu_widget),
           HSpacing(1),
           VBox(
-            Left(Yast::Arch.s390 ? CWM::Empty.new("os_prober") : OSProberWidget.new),
+            os_prober_widget,
             VSpacing(1),
             Left(hiden_menu_widget)
           ),
@@ -1114,6 +1115,16 @@ module Bootloader
         MarginBox(1, 1, GrubPasswordWidget.new),
         VStretch()
       )
+    end
+
+  private
+
+    def os_prober_widget
+      if OsProber.available? # Checks !Arch.s390 and if package is available
+        Left(OSProberWidget.new)
+      else
+        CWM::Empty.new("os_prober")
+      end
     end
   end
 end
