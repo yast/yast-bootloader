@@ -227,20 +227,12 @@ describe Bootloader::Grub2 do
       end
 
       context "if the os-prober package is available" do
-        # before do
-        #   allow(Yast::Package).to receive(:Available).and_return(false)
-        # end
-
         it "contains the os-prober package" do
           expect(subject.packages).to include("os-prober")
         end
       end
 
       context "if the os-prober package is not available" do
-        # before do
-        #   allow(Yast::Package).to receive(:Available).and_return(false)
-        # end
-
         it "does not contain the os-prober package" do
           expect(subject.packages).to include("os-prober")
         end

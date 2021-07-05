@@ -8,7 +8,6 @@ require "bootloader/device_map"
 require "bootloader/stage1"
 require "bootloader/grub_install"
 require "bootloader/systeminfo"
-require "bootloader/os_prober"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
@@ -139,7 +138,6 @@ module Bootloader
       res << "grub2"
       res << "syslinux" if include_syslinux_package?
       res << "trustedgrub2" << "trustedgrub2-i386-pc" if include_trustedgrub2_packages?
-      res << OsProber.package_name if OsProber.available?
       res
     end
 
