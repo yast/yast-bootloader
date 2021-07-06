@@ -151,6 +151,7 @@ describe Bootloader::Grub2 do
     before do
       allow(Yast::Stage).to receive(:initial).and_return(initial_stage)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
+      allow(Yast::Package).to receive(:Available).and_return(true)
     end
 
     it "contains grub2 package" do
@@ -214,9 +215,37 @@ describe Bootloader::Grub2 do
         allow(subject).to receive(:trusted_boot).and_return(false)
       end
 
-      it "does not contain the trusged grub packages" do
+      it "does not contain the trusted grub packages" do
         expect(subject.packages).to_not include("trustedgrub2")
         expect(subject.packages).to_not include("trustedgrub2-i386-pc")
+      end
+    end
+
+    context "on non-s390 architectures" do
+      before do
+        allow(Yast::Arch).to receive(:s390).and_return(false)
+      end
+
+      context "if the os-prober package is available" do
+        it "contains the os-prober package" do
+          expect(subject.packages).to include("os-prober")
+        end
+      end
+
+      context "if the os-prober package is not available" do
+        it "does not contain the os-prober package" do
+          expect(subject.packages).to include("os-prober")
+        end
+      end
+    end
+
+    context "on the s390 architecture" do
+      before do
+        allow(Yast::Arch).to receive(:s390_64).and_return(true)
+      end
+
+      it "does not contain the os-prober package" do
+        expect(subject.packages).to_not include("os-prober")
       end
     end
   end

@@ -818,6 +818,7 @@ end
 
 describe Bootloader::BootloaderTab do
   before do
+    allow(Yast::Package).to receive(:Available).and_return(true)
     assign_bootloader
   end
 
