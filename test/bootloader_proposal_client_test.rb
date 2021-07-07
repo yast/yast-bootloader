@@ -15,6 +15,7 @@ describe Bootloader::ProposalClient do
     Bootloader::BootloaderFactory.clear_cache
 
     allow(Yast::Bootloader).to receive(:Reset)
+    allow(Yast::Package).to receive(:Available).and_return(true)
   end
 
   describe "#description" do

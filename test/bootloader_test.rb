@@ -29,6 +29,7 @@ describe Yast::Bootloader do
       before do
         allow(Yast::PackageSystem).to receive(:InstallAll).and_return(false)
         allow(Yast2::Popup).to receive(:show)
+        allow(Yast::Package).to receive(:Available).and_return(true)
       end
 
       it "shows an information message" do
