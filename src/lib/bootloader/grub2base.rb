@@ -10,6 +10,7 @@ require "bootloader/grub2pwd"
 require "bootloader/udev_mapping"
 require "bootloader/serial_console"
 require "bootloader/language"
+require "bootloader/os_prober"
 require "cfa/grub2/default"
 require "cfa/grub2/grub_cfg"
 require "cfa/matcher"
@@ -182,6 +183,23 @@ module Bootloader
       self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
       self.update_nvram = other.update_nvram unless other.update_nvram.nil?
+    end
+
+    def packages
+      res = super
+      res << OsProber.package_name if include_os_prober_package?
+      res
+    end
+
+    # Checks if the os-prober package should be included.
+    #
+    # This default implementation checks if os-prober is supported on the
+    # current architecture (all except s/390) and if the package is available
+    # (not all products include it).
+    #
+    # @return [Boolean] true if the os-prober package should be included; false otherwise.
+    def include_os_prober_package?
+      OsProber.available?
     end
 
     def enable_serial_console(console_arg_string)

@@ -29,6 +29,7 @@ describe Bootloader::AutoClient do
 
     before do
       allow(Yast::Bootloader).to receive(:Import).and_return(imported)
+      allow(Yast::Package).to receive(:Available).and_return(true)
     end
 
     it "imports the configuration" do
