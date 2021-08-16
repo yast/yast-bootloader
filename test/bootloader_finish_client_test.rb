@@ -66,8 +66,8 @@ describe Bootloader::FinishClient do
       expect(Yast::Misc.boot_msg).to match(/will now shut down/)
     end
 
-    it "runs mkinitrd" do
-      expect(Yast::Execute).to receive(:on_target).with("/sbin/mkinitrd")
+    it "runs dracut" do
+      expect(Yast::Execute).to receive(:on_target).with("/usr/bin/dracut", "--force")
 
       subject.write
     end
