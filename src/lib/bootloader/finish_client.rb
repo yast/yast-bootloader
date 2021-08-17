@@ -72,11 +72,11 @@ module Bootloader
         log.info "Installation started with kexec_reboot set 0"
       end
 
-      # call mkinitrd to ensure initrd is properly set, it is especially needed
+      # call dracut to ensure initrd is properly set, it is especially needed
       # in live system install ( where it is just copyied ) and image based
       # installation where post install script is not executed
-      # (bnc#979719,bnc#977656)
-      Yast::Execute.on_target("/sbin/mkinitrd")
+      # (bnc#979719,bnc#977656, bsc#1189374)
+      Yast::Execute.on_target("/usr/bin/dracut", "--force")
 
       true
     end
