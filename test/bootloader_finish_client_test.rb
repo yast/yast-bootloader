@@ -67,7 +67,7 @@ describe Bootloader::FinishClient do
     end
 
     it "runs dracut" do
-      expect(Yast::Execute).to receive(:on_target).with("/usr/bin/dracut", "--force")
+      expect(Yast::Execute).to receive(:on_target).with("/usr/bin/dracut", "--force", "--regenerate-all")
 
       subject.write
     end
