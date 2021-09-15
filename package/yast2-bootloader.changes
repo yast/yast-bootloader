@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Sep 10 08:11:16 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
+
+- Fix calling dracut to regenerate all initrds (bsc#1189915)
+- 4.4.7
+
+-------------------------------------------------------------------
 Mon Aug 16 14:16:16 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - Replace mkinitrd with dracut (bsc#1189374, jsc#SLE-20347)

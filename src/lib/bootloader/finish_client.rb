@@ -76,7 +76,8 @@ module Bootloader
       # in live system install ( where it is just copyied ) and image based
       # installation where post install script is not executed
       # (bnc#979719,bnc#977656, bsc#1189374)
-      Yast::Execute.on_target("/usr/bin/dracut", "--force")
+      # --regenerate-all is needed for generating initrd image for all kernels (bsc#1189915)
+      Yast::Execute.on_target("/usr/bin/dracut", "--force", "--regenerate-all")
 
       true
     end
