@@ -8,6 +8,7 @@ require "bootloader/serial_console"
 require "bootloader/cpu_mitigations"
 require "bootloader/systeminfo"
 require "bootloader/os_prober"
+require "bootloader/device_path"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -880,8 +881,7 @@ module Bootloader
 
       devs = Yast::UI.QueryWidget(:custom_list, :Value)
       devs.split(",").each do |dev|
-        # Add it exactly as specified by the user
-        stage1.add_device(dev.strip)
+        stage1.add_device(DevicePath.new(dev).path)
       end
     end
 
@@ -889,7 +889,12 @@ module Bootloader
       if Yast::UI.QueryWidget(:custom, :Value)
         devs = Yast::UI.QueryWidget(:custom_list, :Value)
         if devs.strip.empty?
-          Yast::Report.Error(_("Custom boot device have to be specied if checked"))
+          Yast::Report.Error(_("Custom boot device has to be specified if checked"))
+          Yast::UI.SetFocus(Id(:custom_list))
+          return false
+        end
+        if !valid_custom_devices?(devs)
+          Yast::Report.Error(_("A custom device is wrong"))
           Yast::UI.SetFocus(Id(:custom_list))
           return false
         end
@@ -909,6 +914,13 @@ module Bootloader
         Yast::UI.ChangeWidget(:custom_list, :Enabled, true)
         Yast::UI.ChangeWidget(:custom_list, :Value, custom_devices.join(","))
       end
+    end
+
+    # Validates list of devices
+    #
+    # @param devs_list[String] comma separated list of device definitions
+    def valid_custom_devices?(devs_list)
+      devs_list.split(",").all? { |d| DevicePath.new(d).valid? }
     end
 
     def locations
