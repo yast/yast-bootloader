@@ -32,7 +32,7 @@ module Bootloader
       File.exists?(path)
     end
 
-    alias :valid? :exists?
+    alias_method :valid? :exists?
 
   private
 
