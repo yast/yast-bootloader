@@ -9,6 +9,8 @@ module Bootloader
   #   dev = DevicePath.new("UUID=\"0000-00-00\"")
   #   dev.path -> "/dev/disk/by-uuid/0000-00-00"
   class DevicePath
+    Yast.import "Mode"
+
     attr_reader :path
 
     # Performs initialization
@@ -17,10 +19,10 @@ module Bootloader
     def initialize(dev)
       @path =  if dev_by_uuid?(dev)
         # if defined by uuid, convert it
-        File.realpath(dev.gsub(/UUID="([-a-zA-Z0-9]*)"/, '/dev/disk/by-uuid/\1'))
+        File.realpath(dev.sub(/UUID="([-a-zA-Z0-9]*)"/, '/dev/disk/by-uuid/\1'))
       elsif dev_by_label?(dev)
         # as well for label
-        File.realpath(dev.gsub(/LABEL="(.*)"/, '/dev/disk/by-label/\1'))
+        File.realpath(dev.sub(/LABEL="(.*)"/, '/dev/disk/by-label/\1'))
       else
         # add it exactly (but whitespaces) as specified by the user
         dev.strip
@@ -29,6 +31,11 @@ module Bootloader
 
     # @return [Boolean] true if the @path exists in the system
     def exists?
+      # almost any byte sequence is potentially valid path in unix like systems
+      # AY profile can be generated for whatever system so we cannot decite if
+      # particular byte sequence is valid or not
+      return true if Mode.config
+
       File.exists?(path)
     end
 
