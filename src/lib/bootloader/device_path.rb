@@ -19,10 +19,10 @@ module Bootloader
     def initialize(dev)
       @path =  if dev_by_uuid?(dev)
         # if defined by uuid, convert it
-        File.realpath(dev.sub(/UUID="([-a-zA-Z0-9]*)"/, '/dev/disk/by-uuid/\1'))
+        dev.sub(/UUID="([-a-zA-Z0-9]*)"/, '/dev/disk/by-uuid/\1')
       elsif dev_by_label?(dev)
         # as well for label
-        File.realpath(dev.sub(/LABEL="(.*)"/, '/dev/disk/by-label/\1'))
+        dev.sub(/LABEL="(.*)"/, '/dev/disk/by-label/\1')
       else
         # add it exactly (but whitespaces) as specified by the user
         dev.strip
