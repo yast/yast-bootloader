@@ -6,6 +6,10 @@ require "bootloader/device_path"
 
 describe Bootloader::DevicePath do
   subject(:dev_path) { Bootloader::DevicePath.new(param) }
+  let(:storage_manager) { double(Y2Storage::StorageManager, system: device_graph) }
+
+  before do
+  end
 
   context "When activated with path for device file" do
     let(:param) { "/dev/sda1" }
@@ -15,14 +19,32 @@ describe Bootloader::DevicePath do
     end
 
     describe "#exists?" do
-      it "succeedes for existing device" do
-        allow(File).to receive(:exists?).with(param).and_return(true)
-        expect(dev_path.exists?).to be true
+      context "when the path exists" do
+        let(:device_graph) do
+          double(Y2Storage::Devicegraph, find_by_any_name: double(Y2Storage::Device))
+        end
+
+        it "succeedes" do
+          allow(Y2Storage::StorageManager)
+            .to receive(:instance)
+            .and_return(storage_manager)
+
+          expect(dev_path.exists?).to be true
+        end
       end
 
-      it "fails for non existing device" do
-        allow(File).to receive(:exists?).and_return(false)
-        expect(Bootloader::DevicePath.new("/nonsense").exists?).to be false
+      context "when the path doesn't exist" do
+        let(:device_graph) do
+          double(Y2Storage::Devicegraph, find_by_any_name: nil)
+        end
+
+        it "fails" do
+          allow(Y2Storage::StorageManager)
+            .to receive(:instance)
+            .and_return(storage_manager)
+
+          expect(Bootloader::DevicePath.new("/nonsense").exists?).to be false
+        end
       end
     end
 
@@ -49,9 +71,18 @@ describe Bootloader::DevicePath do
     end
 
     describe "#exists?" do
-      it "succeedes for existing device" do
-        allow(File).to receive(:exists?).with(fs_path).and_return(true)
-        expect(dev_path.exists?).to be true
+      context "when the path exists" do
+        let(:device_graph) do
+          double(Y2Storage::Devicegraph, find_by_any_name: double(Y2Storage::Device))
+        end
+
+        it "succeedes" do
+          allow(Y2Storage::StorageManager)
+            .to receive(:instance)
+            .and_return(storage_manager)
+
+          expect(dev_path.exists?).to be true
+        end
       end
     end
 
@@ -68,7 +99,7 @@ describe Bootloader::DevicePath do
     end
   end
 
-  context "When activated with UUID" do
+  context "When activated with LABEL" do
     let(:label) { "OpenSUSE" }
     let(:param) { "LABEL=\"#{label}\"" }
     let(:fs_path) { "/dev/disk/by-label/#{label}" }
@@ -78,9 +109,18 @@ describe Bootloader::DevicePath do
     end
 
     describe "#exists?" do
-      it "succeedes for existing device" do
-        allow(File).to receive(:exists?).with(fs_path).and_return(true)
-        expect(dev_path.exists?).to be true
+      context "when the path exists" do
+        let(:device_graph) do
+          double(Y2Storage::Devicegraph, find_by_any_name: double(Y2Storage::Device))
+        end
+
+        it "succeedes for existing device" do
+          allow(Y2Storage::StorageManager)
+            .to receive(:instance)
+            .and_return(storage_manager)
+
+          expect(dev_path.exists?).to be true
+        end
       end
     end
 

@@ -933,7 +933,7 @@ module Bootloader
         if Yast::Mode.installation
           # uuids are generated later by mkfs, so not known in time of installation
           # so whatever can be true
-          dev_path.uuid? || dev_path.label?
+          dev_path.uuid? || dev_path.label? || dev_path.valid?
         else
           dev_path.valid?
         end
