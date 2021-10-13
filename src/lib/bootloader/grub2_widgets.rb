@@ -822,6 +822,8 @@ module Bootloader
 
   # Represents stage1 location for bootloader
   class LoaderLocationWidget < CWM::CustomWidget
+    Yast.import "Mode"
+
     include Grub2Widget
 
     def contents
@@ -894,7 +896,7 @@ module Bootloader
           return false
         end
         if !valid_custom_devices?(devs)
-          Yast::Report.Error(_("A custom device is wrong"))
+          Yast::Report.Error(_("One of custom partitions is invalid"))
           Yast::UI.SetFocus(Id(:custom_list))
           return false
         end
@@ -920,7 +922,22 @@ module Bootloader
     #
     # @param devs_list[String] comma separated list of device definitions
     def valid_custom_devices?(devs_list)
-      devs_list.split(",").all? { |d| DevicePath.new(d).valid? }
+      # almost any byte sequence is potentially valid path in unix like systems
+      # AY profile can be generated for whatever system so we cannot decite if
+      # particular byte sequence is valid or not
+      return true if Mode.config
+
+      devs_list.split(",").all? do |d|
+        dev_path = DevicePath.new(d)
+
+        if Yast::Mode.installation
+          # uuids are generated later by mkfs, so not known in time of installation
+          # so whatever can be true
+          dev_path.uuid? || dev_path.label?
+        else
+          dev_path.valid?
+        end
+      end
     end
 
     def locations
