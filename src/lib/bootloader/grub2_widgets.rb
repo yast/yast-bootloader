@@ -888,15 +888,27 @@ module Bootloader
     end
 
     def validate
-      if Yast::UI.QueryWidget(:custom, :Value)
-        devs = Yast::UI.QueryWidget(:custom_list, :Value)
-        if devs.strip.empty?
-          Yast::Report.Error(_("Custom boot device has to be specified if checked"))
-          Yast::UI.SetFocus(Id(:custom_list))
-          return false
-        end
-        if !valid_custom_devices?(devs)
-          Yast::Report.Error(_("One of custom partitions is invalid"))
+      return true if !Yast::UI.QueryWidget(:custom, :Value)
+
+      devs = Yast::UI.QueryWidget(:custom_list, :Value)
+
+      if devs.strip.empty?
+        Yast::Report.Error(_("Custom boot device has to be specified if checked"))
+        Yast::UI.SetFocus(Id(:custom_list))
+        return false
+      end
+
+      invalid_devs = invalid_custom_devices(devs)
+      if !invalid_devs.empty?
+        ret = Yast::Popup.ContinueCancel(
+          _(
+            "These custom devices can be invalid: #{invalid_devs.join(",")}" \
+            "Please check if exist and spelled correctly" \
+            "Do you want to continue?"
+          )
+        )
+
+        if !ret
           Yast::UI.SetFocus(Id(:custom_list))
           return false
         end
@@ -918,16 +930,18 @@ module Bootloader
       end
     end
 
-    # Validates list of devices
+    # Checks list of custom devices
     #
     # @param devs_list[String] comma separated list of device definitions
-    def valid_custom_devices?(devs_list)
+    #
+    # @return [Array<String>] devices which didn't pass validation
+    def invalid_custom_devices(devs_list)
       # almost any byte sequence is potentially valid path in unix like systems
       # AY profile can be generated for whatever system so we cannot decite if
       # particular byte sequence is valid or not
-      return true if Mode.config
+      return [] if Mode.config
 
-      devs_list.split(",").all? do |d|
+      devs_list.split(",").reject do |d|
         dev_path = DevicePath.new(d)
 
         if Yast::Mode.installation
