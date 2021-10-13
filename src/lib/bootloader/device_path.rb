@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yast"
 
 module Bootloader
@@ -29,7 +31,7 @@ module Bootloader
 
     # @return [Boolean] true if the @path exists in the system
     def exists?
-      File.exists?(path)
+      File.exist?(path)
     end
 
     alias_method :valid?, :exists?
