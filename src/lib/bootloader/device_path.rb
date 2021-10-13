@@ -36,10 +36,14 @@ module Bootloader
       # particular byte sequence is valid or not
       return true if Mode.config
 
+      # uuids are generated later by mkfs, so not known in time of installation
+      # so whatever can be true
+      return true if Mode.installation && (uuid? || label?)
+
       File.exists?(path)
     end
 
-    alias_method :valid? :exists?
+    alias_method :valid?, :exists?
 
   private
 
@@ -47,8 +51,16 @@ module Bootloader
       dev =~ /UUID=".+"/
     end
 
+    def uuid?
+      path =~ /by-uuid/
+    end
+
     def dev_by_label?(dev)
       dev =~ /LABEL=".+"/
+    end
+
+    def label?
+      path =~ /by-label/
     end
   end
 end
