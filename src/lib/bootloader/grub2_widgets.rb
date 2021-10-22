@@ -822,8 +822,6 @@ module Bootloader
 
   # Represents stage1 location for bootloader
   class LoaderLocationWidget < CWM::CustomWidget
-    Yast.import "Mode"
-
     include Grub2Widget
 
     def contents
@@ -902,10 +900,10 @@ module Bootloader
       if !invalid_devs.empty?
         ret = Yast::Popup.ContinueCancel(
           _(
-            "These custom devices can be invalid: #{invalid_devs.join(",")}" \
-            "Please check if exist and spelled correctly" \
+            "These custom devices can be invalid: %s." \
+            "Please check if exist and spelled correctly." \
             "Do you want to continue?"
-          )
+          ) % [invalid_devs.join(", ")]
         )
 
         if !ret
@@ -947,7 +945,7 @@ module Bootloader
         if Yast::Mode.installation
           # uuids are generated later by mkfs, so not known in time of installation
           # so whatever can be true
-          dev_path.uuid? || dev_path.label? || dev_path.valid?
+          dev_path.uuid? || dev_path.valid?
         else
           dev_path.valid?
         end
