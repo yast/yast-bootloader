@@ -899,11 +899,14 @@ module Bootloader
       invalid_devs = invalid_custom_devices(devs)
       if !invalid_devs.empty?
         ret = Yast::Popup.ContinueCancel(
-          _(
-            "These custom devices can be invalid: %s." \
-            "Please check if exist and spelled correctly." \
-            "Do you want to continue?"
-          ) % [invalid_devs.join(", ")]
+          format(
+            _(
+              "These custom devices can be invalid: %s." \
+              "Please check if exist and spelled correctly." \
+              "Do you want to continue?"
+            ),
+            invalid_devs.join(", ")
+          )
         )
 
         if !ret
