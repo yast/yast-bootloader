@@ -157,7 +157,15 @@ module Bootloader
       log.info "known devices #{known_devices.inspect}"
 
       devices.reject do |dev|
-        kernel_dev = Bootloader::UdevMapping.to_kernel_device(dev)
+        dev_path = DevicePath.new(dev)
+
+        # in installation do not care of uuids - not know at this time
+        kernel_dev = if dev_path.uuid?
+          dev
+        else
+          Bootloader::UdevMapping.to_kernel_device(dev)
+        end
+
         log.info "stage1 devices for #{dev} is #{kernel_dev.inspect}"
         known_devices.include?(kernel_dev)
       end

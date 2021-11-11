@@ -940,7 +940,7 @@ module Bootloader
       # almost any byte sequence is potentially valid path in unix like systems
       # AY profile can be generated for whatever system so we cannot decite if
       # particular byte sequence is valid or not
-      return [] if Mode.config
+      return [] if Yast::Mode.config
 
       devs_list.split(",").reject do |d|
         dev_path = DevicePath.new(d)
