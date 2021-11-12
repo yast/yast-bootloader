@@ -8,6 +8,7 @@ require "bootloader/serial_console"
 require "bootloader/cpu_mitigations"
 require "bootloader/systeminfo"
 require "bootloader/os_prober"
+require "bootloader/device_path"
 require "cfa/matcher"
 
 Yast.import "BootStorage"
@@ -880,16 +881,35 @@ module Bootloader
 
       devs = Yast::UI.QueryWidget(:custom_list, :Value)
       devs.split(",").each do |dev|
-        # Add it exactly as specified by the user
-        stage1.add_device(dev.strip)
+        stage1.add_device(DevicePath.new(dev).path)
       end
     end
 
     def validate
-      if Yast::UI.QueryWidget(:custom, :Value)
-        devs = Yast::UI.QueryWidget(:custom_list, :Value)
-        if devs.strip.empty?
-          Yast::Report.Error(_("Custom boot device have to be specied if checked"))
+      return true if !Yast::UI.QueryWidget(:custom, :Value)
+
+      devs = Yast::UI.QueryWidget(:custom_list, :Value)
+
+      if devs.strip.empty?
+        Yast::Report.Error(_("Custom boot device has to be specified if checked"))
+        Yast::UI.SetFocus(Id(:custom_list))
+        return false
+      end
+
+      invalid_devs = invalid_custom_devices(devs)
+      if !invalid_devs.empty?
+        ret = Yast::Popup.ContinueCancel(
+          format(
+            _(
+              "These custom devices can be invalid: %s." \
+              "Please check if exist and spelled correctly." \
+              "Do you want to continue?"
+            ),
+            invalid_devs.join(", ")
+          )
+        )
+
+        if !ret
           Yast::UI.SetFocus(Id(:custom_list))
           return false
         end
@@ -908,6 +928,30 @@ module Bootloader
         Yast::UI.ChangeWidget(:custom, :Value, true)
         Yast::UI.ChangeWidget(:custom_list, :Enabled, true)
         Yast::UI.ChangeWidget(:custom_list, :Value, custom_devices.join(","))
+      end
+    end
+
+    # Checks list of custom devices
+    #
+    # @param devs_list[String] comma separated list of device definitions
+    #
+    # @return [Array<String>] devices which didn't pass validation
+    def invalid_custom_devices(devs_list)
+      # almost any byte sequence is potentially valid path in unix like systems
+      # AY profile can be generated for whatever system so we cannot decite if
+      # particular byte sequence is valid or not
+      return [] if Yast::Mode.config
+
+      devs_list.split(",").reject do |d|
+        dev_path = DevicePath.new(d)
+
+        if Yast::Mode.installation
+          # uuids are generated later by mkfs, so not known in time of installation
+          # so whatever can be true
+          dev_path.uuid? || dev_path.valid?
+        else
+          dev_path.valid?
+        end
       end
     end
 

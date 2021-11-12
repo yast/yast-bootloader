@@ -58,8 +58,12 @@ module Bootloader
     end
 
     def udev_to_kernel(dev)
+      dev_path = DevicePath.new(dev)
+
       # in mode config if not found, then return itself
       return dev if Yast::Mode.config
+      # in installation do not care of uuids - not know at this time
+      return dev if Yast::Mode.installation && dev_path.uuid?
 
       device = staging.find_by_any_name(dev)
 
