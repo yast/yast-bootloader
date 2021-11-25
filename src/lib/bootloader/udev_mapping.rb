@@ -4,6 +4,7 @@ require "yast"
 require "singleton"
 
 require "bootloader/exceptions"
+require "bootloader/device_path"
 require "y2storage"
 
 Yast.import "Mode"
