@@ -9,7 +9,6 @@ require "bootloader/exceptions"
 
 Yast.import "Arch"
 Yast.import "Mode"
-Yast.import "Linuxrc"
 
 module Bootloader
   # Factory to get instance of bootloader
@@ -87,12 +86,7 @@ module Bootloader
     private
 
       def boot_efi?
-        if Yast::Mode.live_installation
-          Yast::Execute.locally("modprobe", "efivars")
-          ::File.exist?("/sys/firmware/efi/systab")
-        else
-          Yast::Linuxrc.InstallInf("EFI") == "1"
-        end
+        Systeminfo.efi?
       end
 
       def proposed_name

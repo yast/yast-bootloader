@@ -132,9 +132,7 @@ module Yast
 
     # Check if EFI is needed
     def efi?
-      cmd = "/usr/sbin/modprobe efivars 2>/dev/null"
-      SCR.Execute(path(".target.bash_output"), cmd)
-      FileUtils.Exists("/sys/firmware/efi/systab")
+      ::Bootloader::Systeminfo.efi?
     end
 
     def check_activate_partition
