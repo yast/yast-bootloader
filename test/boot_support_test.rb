@@ -35,9 +35,9 @@ describe Yast::BootSupportCheck do
         Bootloader::BootloaderFactory.current_name = "grub2"
       end
 
-      it "returns false if grub2-efi is used and efi not supported" do
+      it "returns false if grub2-efi is used and UEFI is not supported" do
         Bootloader::BootloaderFactory.current_name = "grub2-efi"
-        allow(Yast::FileUtils).to receive(:Exists).and_return(false)
+        allow(subject).to receive(:efi?).and_return(false)
 
         expect(subject.SystemSupported).to eq false
       end

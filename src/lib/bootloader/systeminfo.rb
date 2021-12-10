@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "yast"
+require "y2storage"
 require "bootloader/bootloader_factory"
 require "bootloader/sysconfig"
 require "yast2/execute"
@@ -164,25 +165,20 @@ module Bootloader
         false
       end
 
+      def efi?
+        Y2Storage::Arch.new.efiboot?
+      end
+
       # Checks if efivars exists and can be written
       # @see https://bugzilla.suse.com/show_bug.cgi?id=1174111#c37
       #
+      # The point here is that without writable UEFI variables the UEFI boot
+      # manager cannot (and must not) be updated.
+      #
       # @return [Boolean] true if efivars are writable
       def writable_efivars?
-        # quick check if there are no efivars at all
-        return false if Dir.glob("/sys/firmware/efi/efivars/*").empty?
-
-        # check if efivars are ro
-        mounts = Yast::Execute.locally!("/usr/bin/mount", stdout: :capture)
-        # target line looks like:
-        # efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
-        efivars = mounts.lines.grep(/type\s+efivarfs/)
-        efivars = efivars.first
-        return false unless efivars
-
-        efivars.match?(/[\(,]rw[,\)]/)
-      rescue Cheetah::ExecutionFailed
-        false
+        storage_arch = Y2Storage::Arch.new
+        storage_arch.efiboot? && storage_arch.efibootmgr?
       end
     end
   end
