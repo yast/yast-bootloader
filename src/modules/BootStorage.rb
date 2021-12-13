@@ -55,7 +55,7 @@ module Yast
     end
 
     def staging
-      Y2Storage::StorageManager.instance.staging
+      Y2Storage::StorageManager.instance.staging!
     end
 
     def storage_read?
