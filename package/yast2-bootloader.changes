@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec 15 08:31:38 UTC 2021 - David Diaz <dgonzalez@suse.com>
+
+- Honors the user decision when aborting after reporting
+  probing issues (bsc#1193749).
+- 4.4.10
+
+-------------------------------------------------------------------
 Thu Nov 25 08:29:34 UTC 2021 - Michal Filka <mfilka@suse.com>
 
 - bnc#1193016
