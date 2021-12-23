@@ -117,6 +117,18 @@ describe Bootloader::Systeminfo do
   end
 
   describe ".trusted_boot_available?" do
+    before do
+      allow(File).to receive(:exist?).with("/dev/tpm0").and_return(true)
+    end
+
+    context "when tpm device does not exist" do
+      it "returns false" do
+        allow(File).to receive(:exist?).with("/dev/tpm0").and_return(false)
+        expect(described_class.trusted_boot_available?("grub2-efi")).to be false
+        expect(described_class.trusted_boot_available?("grub2")).to be false
+      end
+    end
+
     context "if bootloader is grub2" do
       context "and arch is x86_64" do
         let(:arch) { "x86_64" }
@@ -152,18 +164,8 @@ describe Bootloader::Systeminfo do
     end
 
     context "if bootloader is grub2-efi" do
-      context "and a tpm device exists" do
-        it "returns true" do
-          allow(File).to receive(:exist?).with("/dev/tpm0").and_return(true)
-          expect(described_class.trusted_boot_available?("grub2-efi")).to be true
-        end
-      end
-
-      context "and a tpm device does not exist" do
-        it "returns false" do
-          allow(File).to receive(:exist?).with("/dev/tpm0").and_return(false)
-          expect(described_class.trusted_boot_available?("grub2-efi")).to be false
-        end
+      it "returns true" do
+        expect(described_class.trusted_boot_available?("grub2-efi")).to be true
       end
     end
   end

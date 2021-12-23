@@ -61,14 +61,14 @@ module Bootloader
       # param bootloader_name [String] bootloader name
       # @return [Boolean] true if trusted boot setting is available with this bootloader
       def trusted_boot_available?(bootloader_name)
+        # TPM availability is must have
+        return false unless File.exist?("/dev/tpm0")
+
         # for details about grub2 efi trusted boot support see FATE#315831
         (
           bootloader_name == "grub2" &&
           (Yast::Arch.x86_64 || Yast::Arch.i386)
-        ) || (
-          bootloader_name == "grub2-efi" &&
-          File.exist?("/dev/tpm0")
-        )
+        ) || bootloader_name == "grub2-efi"
       end
 
       # Check if UEFI will be used.
