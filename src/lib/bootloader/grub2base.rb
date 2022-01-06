@@ -414,36 +414,39 @@ module Bootloader
     #
     # @return [String]
     def secure_boot_summary
-      _("Secure Boot:") + " " + (secure_boot ? _("enabled") : _("disabled")) + " " +
-        if secure_boot
-          "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
-        else
-          "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
-        end
+      link = if secure_boot
+        "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Secure Boot:")} #{secure_boot ? _("enabled") : _("disabled")} #{link}"
     end
 
     # Trusted boot setting shown in summary screen.
     #
     # @return [String]
     def trusted_boot_summary
-      _("Trusted Boot:") + " " + (trusted_boot ? _("enabled") : _("disabled")) + " " +
-        if trusted_boot
-          "<a href=\"disable_trusted_boot\">(#{_("disable")})</a>"
-        else
-          "<a href=\"enable_trusted_boot\">(#{_("enable")})</a>"
-        end
+      link = if trusted_boot
+        "<a href=\"disable_trusted_boot\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_trusted_boot\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Trusted Boot:")} #{trusted_boot ? _("enabled") : _("disabled")} #{link}"
     end
 
     # Update nvram shown in summary screen
     #
     # @return [String]
     def update_nvram_summary
-      _("Update NVRAM:") + " " + (update_nvram ? _("enabled") : _("disabled")) + " " +
-        if update_nvram
-          "<a href=\"disable_update_nvram\">(#{_("disable")})</a>"
-        else
-          "<a href=\"enable_update_nvram\">(#{_("enable")})</a>"
-        end
+      link = if update_nvram
+        "<a href=\"disable_update_nvram\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_update_nvram\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Update NVRAM:")} #{update_nvram ? _("enabled") : _("disabled")} #{link}"
     end
   end
   # rubocop:enable Metrics/ClassLength
