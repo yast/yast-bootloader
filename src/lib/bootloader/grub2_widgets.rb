@@ -50,7 +50,7 @@ module Bootloader
     def initialize(hidden_menu_widget)
       textdomain "bootloader"
 
-      super
+      super()
 
       @minimum = -1
       @maximum = 600
