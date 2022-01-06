@@ -35,14 +35,14 @@ module Bootloader
     end
 
     def self.from_system
-      bootloader = Yast::SCR.Read("#{AGENT_PATH}LOADER_TYPE")
+      bootloader = Yast::SCR.Read(AGENT_PATH + "LOADER_TYPE")
       # propose secure boot always to true (bnc#872054), otherwise respect user choice
       # but only on architectures that support it
-      secure_boot = Yast::SCR.Read("#{AGENT_PATH}SECURE_BOOT") != "no"
+      secure_boot = Yast::SCR.Read(AGENT_PATH + "SECURE_BOOT") != "no"
 
-      trusted_boot = Yast::SCR.Read("#{AGENT_PATH}TRUSTED_BOOT") == "yes"
+      trusted_boot = Yast::SCR.Read(AGENT_PATH + "TRUSTED_BOOT") == "yes"
 
-      update_nvram = Yast::SCR.Read("#{AGENT_PATH}UPDATE_NVRAM") != "no"
+      update_nvram = Yast::SCR.Read(AGENT_PATH + "UPDATE_NVRAM") != "no"
 
       new(bootloader: bootloader, secure_boot: secure_boot, trusted_boot: trusted_boot,
         update_nvram: update_nvram)
@@ -165,7 +165,7 @@ module Bootloader
 
     def write_option(option, value)
       file_path_option = sys_agent + ATTR_VALUE_MAPPING[option]
-      comment_path = "#{file_path_option}comment"
+      comment_path = file_path_option + "comment"
       comment_exist = Yast::SCR.Read(comment_path)
 
       # write value of option
