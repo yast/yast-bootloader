@@ -4,6 +4,8 @@ require_relative "test_helper"
 
 require "bootloader/grub2base"
 
+TERMINAL_DEFINITION = [:console, :serial].freeze
+
 describe Bootloader::Grub2Base do
   before do
     allow(Yast::ProductFeatures).to receive(:GetStringFeature)
@@ -570,8 +572,6 @@ describe Bootloader::Grub2Base do
     end
 
     it "use terminal configuration specified in the merged object" do
-      TERMINAL_DEFINITION = [:console, :serial].freeze
-
       allow(other.grub_default).to receive(:terminal).and_return(TERMINAL_DEFINITION)
 
       subject.merge(other)

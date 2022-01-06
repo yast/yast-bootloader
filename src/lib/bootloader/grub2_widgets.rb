@@ -892,18 +892,7 @@ module Bootloader
 
     def store
       stage1.clear_devices
-      locations.each do |id|
-        next unless Yast::UI.QueryWidget(Id(id), :Value)
-
-        case id
-        when :boot, :logical
-          stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
-        when :extended
-          stage1.extended_boot_partitions_names.each { |d| stage1.add_udev_device(d) }
-        when :mbr
-          stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
-        end
-      end
+      locations.each { |l| add_location(l) }
 
       return unless Yast::UI.QueryWidget(:custom, :Value)
 
@@ -947,6 +936,19 @@ module Bootloader
     end
 
   private
+
+    def add_location(id)
+      return unless Yast::UI.QueryWidget(Id(id), :Value)
+
+      case id
+      when :boot, :logical
+        stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
+      when :extended
+        stage1.extended_boot_partitions_names.each { |d| stage1.add_udev_device(d) }
+      when :mbr
+        stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
+      end
+    end
 
     def init_custom_devices(custom_devices)
       if custom_devices.empty?
