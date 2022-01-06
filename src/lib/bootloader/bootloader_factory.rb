@@ -79,6 +79,8 @@ module Bootloader
         when String
           raise UnsupportedBootloader, name
         else
+          log.error "Factory receive nil name"
+
           nil # in other cases it means that read failed
         end
       end
