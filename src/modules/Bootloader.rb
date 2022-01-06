@@ -418,7 +418,6 @@ module Yast
 
           case value
           when false then next # already done
-          when true then param.add_parameter(key, value)
           when Array
             value.each { |val| param.add_parameter(key, val) }
           else
