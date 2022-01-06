@@ -420,7 +420,7 @@ module Bootloader
         "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
       end
 
-      "#{_("Secure Boot:")} #{secure_boot ? _("enabled") : _("disabled")} #{link}"
+      "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
     end
 
     # Trusted boot setting shown in summary screen.
@@ -433,7 +433,7 @@ module Bootloader
         "<a href=\"enable_trusted_boot\">(#{_("enable")})</a>"
       end
 
-      "#{_("Trusted Boot:")} #{trusted_boot ? _("enabled") : _("disabled")} #{link}"
+      "#{_("Trusted Boot:")} #{status_string(trusted_boot)} #{link}"
     end
 
     # Update nvram shown in summary screen
@@ -446,7 +446,15 @@ module Bootloader
         "<a href=\"enable_update_nvram\">(#{_("enable")})</a>"
       end
 
-      "#{_("Update NVRAM:")} #{update_nvram ? _("enabled") : _("disabled")} #{link}"
+      "#{_("Update NVRAM:")} #{status_string(update_nvram)} #{link}"
+    end
+
+    def status_string(status)
+      if status
+        _("enabled")
+      else
+        _("disabled")
+      end
     end
   end
   # rubocop:enable Metrics/ClassLength
