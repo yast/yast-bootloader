@@ -23,6 +23,8 @@ module Bootloader
     DEFAULT_KEYWORD = "default"
 
     class << self
+      include Yast::Logger
+
       attr_writer :current
 
       def proposed
