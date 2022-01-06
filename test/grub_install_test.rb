@@ -164,7 +164,9 @@ describe Bootloader::GrubInstall do
         expect_grub2_install("i386-pc", device: "/dev/sdb")
 
         allow(Yast::Execute).to receive(:on_target!) do |arg|
-          raise Cheetah::ExecutionFailed.new([], nil, nil, nil) if (arg & ["/dev/sda", "/dev/sdc"]).any?
+          if (arg & ["/dev/sda", "/dev/sdc"]).any?
+            raise Cheetah::ExecutionFailed.new([], nil, nil, nil)
+          end
         end
 
         expect(subject.execute(devices: ["/dev/sda", "/dev/sdb", "/dev/sdc"])).to contain_exactly("/dev/sda", "/dev/sdc")

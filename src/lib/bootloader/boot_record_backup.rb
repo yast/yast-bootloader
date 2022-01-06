@@ -92,7 +92,7 @@ module Bootloader
       Yast::SCR.Execute(
         BASH_PATH,
         "/bin/dd if=#{device.shellescape} of=#{target_path.shellescape} " \
-          "bs=#{block_size.to_s.shellescape} count=1 2>&1"
+        "bs=#{block_size.to_s.shellescape} count=1 2>&1"
       )
     end
 

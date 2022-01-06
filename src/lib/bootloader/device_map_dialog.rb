@@ -30,7 +30,7 @@ module Bootloader
       return unless create_dialog
 
       begin
-        return controller_loop
+        controller_loop
       ensure
         close_dialog
       end

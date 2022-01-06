@@ -110,9 +110,9 @@ module Bootloader
         Yast::Misc.boot_msg = Yast::Builtins.sformat(
           _(
             "\n" \
-              "Your system will now shut down.%1\n" \
-              "For details, read the related chapter \n" \
-              "in the documentation. \n"
+            "Your system will now shut down.%1\n" \
+            "For details, read the related chapter \n" \
+            "in the documentation. \n"
           ),
           ipl_msg
         )

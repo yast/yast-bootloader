@@ -228,14 +228,14 @@ module Bootloader
       res = if stage1.boot_partition?
         _(
           "Write it into partition with /boot - %s " \
-            "(<a href=\"disable_boot_boot\">do not write</a>)"
+          "(<a href=\"disable_boot_boot\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is partition specified, can be more disks,
       # separated by comma
       else
         _(
           "Do not write it into partition with /boot - %s " \
-            "(<a href=\"enable_boot_boot\">write</a>)"
+          "(<a href=\"enable_boot_boot\">write</a>)"
         )
       end
       format(res, Yast::BootStorage.boot_partitions.map(&:name).join(", "))
@@ -247,14 +247,14 @@ module Bootloader
       res = if stage1.boot_partition?
         _(
           "Write it into logical partition with /boot - %s " \
-            "(<a href=\"disable_boot_boot\">do not write</a>)"
+          "(<a href=\"disable_boot_boot\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is partition specified, can be more disks,
       # separated by comma
       else
         _(
           "Do not write it into logical partition with /boot - %s " \
-            "(<a href=\"enable_boot_boot\">write</a>)"
+          "(<a href=\"enable_boot_boot\">write</a>)"
         )
       end
       format(res, Yast::BootStorage.boot_partitions.map(&:name).join(", "))
@@ -266,14 +266,14 @@ module Bootloader
       res = if stage1.extended_boot_partition?
         _(
           "Write it into extended partition with /boot - %s " \
-            "(<a href=\"disable_boot_extended\">do not write</a>)"
+          "(<a href=\"disable_boot_extended\">do not write</a>)"
         )
       # TRANSLATORS: summary line where %s is partition specified, can be more disks,
       # separated by comma
       else
         _(
           "Do not write it into extended partition with /boot - %s " \
-            "(<a href=\"enable_boot_extended\">write</a>)"
+          "(<a href=\"enable_boot_extended\">write</a>)"
         )
       end
 
@@ -309,7 +309,7 @@ module Bootloader
       if stage1.devices.empty?
         # no location chosen, so warn user that it is problem unless he is sure
         msg = _("Warning: No location for boot code selected." \
-          "Unless you know what you are doing please select above location.")
+                "Unless you know what you are doing please select above location.")
         line << "<li>" << Yast::HTML.Colorize(msg, "red") << "</li>"
       end
 

@@ -179,7 +179,7 @@ describe Bootloader::Grub2Base do
 
         context "with TERM=\"linux\"" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("linux")
+            allow(ENV).to receive(:[]).with("TERM").and_return("linux")
           end
 
           it "proposes to use serial terminal" do
@@ -191,7 +191,7 @@ describe Bootloader::Grub2Base do
 
         context "on other TERM" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("xterm")
+            allow(ENV).to receive(:[]).with("TERM").and_return("xterm")
           end
 
           it "proposes to use console terminal" do
@@ -334,7 +334,7 @@ describe Bootloader::Grub2Base do
 
         context "with TERM=\"linux\"" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("linux")
+            allow(ENV).to receive(:[]).with("TERM").and_return("linux")
           end
 
           it "proposes to use serial console with \"TERM=linux console=ttyS0 console=ttyS1\"" do
@@ -346,7 +346,7 @@ describe Bootloader::Grub2Base do
 
         context "on other TERM" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("xterm")
+            allow(ENV).to receive(:[]).with("TERM").and_return("xterm")
           end
 
           it "proposes dumb term and sets 8 iuvc terminals" do

@@ -76,14 +76,14 @@ module Bootloader
         PWD_ENCRYPTION_FILE
       )
 
-      unrestricted_lines = content.lines.grep(/unrestricted_menu\s*=\s*\"y\"\s*/)
+      unrestricted_lines = content.lines.grep(/unrestricted_menu\s*=\s*"y"\s*/)
       @unrestricted = !unrestricted_lines.empty?
 
       pwd_line = content.lines.grep(/password_pbkdf2 root/).first
 
       if !pwd_line
         raise "Cannot find encrypted password. " \
-          "YaST2 password generator in /etc/grub.d is probably modified."
+              "YaST2 password generator in /etc/grub.d is probably modified."
       end
 
       @encrypted_password = pwd_line[/password_pbkdf2 root (\S+)/, 1]
@@ -101,15 +101,15 @@ module Bootloader
       # The files in /etc/grub.d are programs that write GRUB 2 programs on their stdout.
       # So 'exec tail' is a way of saying "just echo the rest of this program as its output".
       file_content = "#! /bin/sh\n" \
-        "exec tail -n +3 $0\n" \
-        "# File created by YaST and next YaST run probably overwrite it\n" \
-        "set superusers=\"root\"\n" \
-        "password_pbkdf2 root #{@encrypted_password}\n" \
-        "export superusers\n"
+                     "exec tail -n +3 $0\n" \
+                     "# File created by YaST and next YaST run probably overwrite it\n" \
+                     "set superusers=\"root\"\n" \
+                     "password_pbkdf2 root #{@encrypted_password}\n" \
+                     "export superusers\n"
 
       if @unrestricted
         file_content += "set unrestricted_menu=\"y\"\n" \
-          "export unrestricted_menu\n"
+                        "export unrestricted_menu\n"
       end
 
       Yast::SCR.Write(

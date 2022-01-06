@@ -23,7 +23,7 @@ module Bootloader
 
       _(
         "<P><BIG><B>Boot Loader Configuration Tool</B></BIG><BR>\n" \
-          "Reading current configuration...</P>"
+        "Reading current configuration...</P>"
       )
     end
   end

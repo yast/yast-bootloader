@@ -79,7 +79,7 @@ module Bootloader
         when String
           raise UnsupportedBootloader, name
         else
-          return nil # in other cases it means that read failed
+          nil # in other cases it means that read failed
         end
       end
 

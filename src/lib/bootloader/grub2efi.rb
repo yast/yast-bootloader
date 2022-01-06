@@ -48,7 +48,7 @@ module Bootloader
       end
 
       @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,
-                            update_nvram: update_nvram)
+        update_nvram: update_nvram)
 
       true
     end
