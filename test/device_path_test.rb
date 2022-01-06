@@ -8,9 +8,6 @@ describe Bootloader::DevicePath do
   subject(:dev_path) { Bootloader::DevicePath.new(param) }
   let(:storage_manager) { double(Y2Storage::StorageManager, system: device_graph) }
 
-  before do
-  end
-
   context "When activated with path for device file" do
     let(:param) { "/dev/sda1" }
 

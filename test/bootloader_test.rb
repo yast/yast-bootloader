@@ -51,9 +51,6 @@ describe Yast::Bootloader do
   end
 
   describe ".Import" do
-    before do
-    end
-
     it "resets configuration"
 
     it "marks that configuration is read"
