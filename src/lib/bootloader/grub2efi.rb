@@ -22,11 +22,6 @@ module Bootloader
       @grub_install = GrubInstall.new(efi: true)
     end
 
-    # Read settings from disk overwritting already set values
-    def read
-      super
-    end
-
     # Write bootloader settings to disk
     def write
       # super have to called as first as grub install require some config written in ancestor
@@ -62,10 +57,6 @@ module Bootloader
       # linuxefi/initrdefi are available on x86 only
       grub_default.generic_set("GRUB_USE_LINUXEFI",
         (Yast::Arch.x86_64 || Yast::Arch.i386) ? "true" : "false")
-    end
-
-    def merge(other)
-      super
     end
 
     # Display bootloader summary

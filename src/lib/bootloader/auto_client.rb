@@ -44,7 +44,7 @@ module Bootloader
     def summary
       formatted_summary = Yast::Bootloader.Summary.map { |l| "<LI>#{l}</LI>" }
 
-      "<UL>" + formatted_summary.join("\n") + "</UL>"
+      "<UL>#{formatted_summary.join("\n")}</UL>"
     end
 
     def modified?

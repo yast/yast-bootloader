@@ -292,7 +292,7 @@ module Bootloader
       # prevent double cpu_mitigations params
       default_serialize.gsub!(/mitigations=\S+/, "") if other_params.parameter("mitigations")
 
-      new_kernel_params = default_serialize + " " + other_params.serialize
+      new_kernel_params = "#{default_serialize} #{other_params.serialize}"
       # deduplicate identicatel parameter. Keep always the last one ( so reverse is needed ).
       new_params = new_kernel_params.split.reverse.uniq.reverse.join(" ")
 
@@ -304,13 +304,13 @@ module Bootloader
       [:serial_console, :timeout, :hidden_timeout, :distributor,
        :gfxmode, :theme, :default].each do |attr|
         val = other.public_send(attr)
-        default.public_send((attr.to_s + "=").to_sym, val) if val
+        default.public_send("#{attr}=".to_sym, val) if val
       end
 
       # array attributes with multiple values allowed
       [:terminal].each do |attr|
         val = other.public_send(attr)
-        default.public_send((attr.to_s + "=").to_sym, val) if val
+        default.public_send("#{attr}=".to_sym, val) if val
       end
 
       # specific attributes that are not part of cfa
@@ -416,9 +416,9 @@ module Bootloader
     def secure_boot_summary
       _("Secure Boot:") + " " + (secure_boot ? _("enabled") : _("disabled")) + " " +
         if secure_boot
-          "<a href=\"disable_secure_boot\">(" + _("disable") + ")</a>"
+          "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
         else
-          "<a href=\"enable_secure_boot\">(" + _("enable") + ")</a>"
+          "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
         end
     end
 
@@ -428,9 +428,9 @@ module Bootloader
     def trusted_boot_summary
       _("Trusted Boot:") + " " + (trusted_boot ? _("enabled") : _("disabled")) + " " +
         if trusted_boot
-          "<a href=\"disable_trusted_boot\">(" + _("disable") + ")</a>"
+          "<a href=\"disable_trusted_boot\">(#{_("disable")})</a>"
         else
-          "<a href=\"enable_trusted_boot\">(" + _("enable") + ")</a>"
+          "<a href=\"enable_trusted_boot\">(#{_("enable")})</a>"
         end
     end
 
@@ -440,9 +440,9 @@ module Bootloader
     def update_nvram_summary
       _("Update NVRAM:") + " " + (update_nvram ? _("enabled") : _("disabled")) + " " +
         if update_nvram
-          "<a href=\"disable_update_nvram\">(" + _("disable") + ")</a>"
+          "<a href=\"disable_update_nvram\">(#{_("disable")})</a>"
         else
-          "<a href=\"enable_update_nvram\">(" + _("enable") + ")</a>"
+          "<a href=\"enable_update_nvram\">(#{_("enable")})</a>"
         end
     end
   end

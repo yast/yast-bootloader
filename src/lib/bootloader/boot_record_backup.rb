@@ -48,7 +48,7 @@ module Bootloader
       copy_br(device, device_file_path)
 
       # save MBR to yast2 log directory
-      logs_path = "/var/log/YaST2/" + device_file
+      logs_path = "/var/log/YaST2/#{device_file}"
       copy_br(device, logs_path)
     end
 

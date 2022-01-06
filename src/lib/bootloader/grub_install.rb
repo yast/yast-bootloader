@@ -15,7 +15,7 @@ module Bootloader
 
     def initialize(efi: false)
       @efi = efi
-      @grub2_name = "grub2" + (@efi ? "-efi" : "")
+      @grub2_name = "grub2#{@efi ? "-efi" : ""}"
       textdomain "bootloader"
     end
 
