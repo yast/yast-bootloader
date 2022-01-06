@@ -57,9 +57,11 @@ module Bootloader
     include Yast::Logger
 
     def initialize
-      Yast.import "UI"
       textdomain "bootloader"
 
+      super
+
+      Yast.import "UI"
       Yast.import "Arch"
       Yast.import "BootStorage"
       Yast.import "Bootloader"

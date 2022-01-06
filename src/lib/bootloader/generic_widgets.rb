@@ -14,6 +14,8 @@ module Bootloader
   class LoaderTypeWidget < CWM::ComboBox
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label

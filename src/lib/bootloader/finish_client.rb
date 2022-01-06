@@ -19,6 +19,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def steps

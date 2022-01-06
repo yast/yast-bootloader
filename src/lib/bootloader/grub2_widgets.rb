@@ -50,6 +50,8 @@ module Bootloader
     def initialize(hidden_menu_widget)
       textdomain "bootloader"
 
+      super
+
       @minimum = -1
       @maximum = 600
       @hidden_menu_widget = hidden_menu_widget
@@ -91,6 +93,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -123,6 +127,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -181,6 +187,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -210,6 +218,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -233,6 +243,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -261,6 +273,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -289,6 +303,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -329,6 +345,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -384,6 +402,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -438,6 +458,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -466,6 +488,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     MASKED_PASSWORD = "**********"
@@ -591,6 +615,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def contents
@@ -791,6 +817,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
