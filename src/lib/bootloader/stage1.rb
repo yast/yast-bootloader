@@ -20,6 +20,7 @@ module Bootloader
     include Yast::Logger
 
     attr_reader :model
+
     def_delegators :@model, :generic_mbr?, :generic_mbr=, :activate?, :activate=, :devices,
       :add_device
 

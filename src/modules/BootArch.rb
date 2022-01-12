@@ -61,7 +61,7 @@ module Yast
         ret << " #{features}" unless features.empty?
         ret << propose_cpu_mitigations
         ret << " quiet"
-        return ret
+        ret
       elsif Arch.s390
         termparm = if ENV["TERM"] == "linux"
           "TERM=linux console=ttyS0 console=ttyS1"
@@ -76,10 +76,10 @@ module Yast
 
         parameters << propose_cpu_mitigations
         parameters << " resume=#{resume}" unless resume.empty?
-        return parameters
+        parameters
       else
         log.warn "Default kernel parameters not defined"
-        return kernel_cmdline + propose_cpu_mitigations
+        kernel_cmdline + propose_cpu_mitigations
       end
     end
 

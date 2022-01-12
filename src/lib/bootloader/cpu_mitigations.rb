@@ -34,7 +34,7 @@ module Bootloader
       @value = value
     end
 
-    # Note: order of ALL is used also in UI as order of combobox.
+    # NOTE: order of ALL is used also in UI as order of combobox.
     ALL = KERNEL_MAPPING.keys.map { |k| CpuMitigations.new(k) }
     DEFAULT = CpuMitigations.new(:auto)
 
@@ -47,7 +47,7 @@ module Bootloader
 
       if !reverse_mapping.key?(param)
         raise "Unknown mitigations value #{param.inspect} in the kernel command line, " \
-          "supported values are: #{KERNEL_MAPPING.values.compact.map(&:inspect).join(", ")}."
+              "supported values are: #{KERNEL_MAPPING.values.compact.map(&:inspect).join(", ")}."
       end
 
       new(reverse_mapping[param])

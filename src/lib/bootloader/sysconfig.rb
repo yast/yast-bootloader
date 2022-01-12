@@ -45,7 +45,7 @@ module Bootloader
       update_nvram = Yast::SCR.Read(AGENT_PATH + "UPDATE_NVRAM") != "no"
 
       new(bootloader: bootloader, secure_boot: secure_boot, trusted_boot: trusted_boot,
-          update_nvram: update_nvram)
+        update_nvram: update_nvram)
     end
 
     # Specialized write before rpm install, that do not have switched SCR
@@ -59,47 +59,47 @@ module Bootloader
 
     PROPOSED_COMMENTS = {
       bootloader:   "\n" \
-        "## Path:\tSystem/Bootloader\n" \
-        "## Description:\tBootloader configuration\n" \
-        "## Type:\tlist(grub,grub2,grub2-efi,none)\n" \
-        "## Default:\tgrub2\n" \
-        "#\n" \
-        "# Type of bootloader in use.\n" \
-        "# For making the change effect run bootloader configuration tool\n" \
-        "# and configure newly selected bootloader\n" \
-        "#\n" \
-        "#\n",
+                    "## Path:\tSystem/Bootloader\n" \
+                    "## Description:\tBootloader configuration\n" \
+                    "## Type:\tlist(grub,grub2,grub2-efi,none)\n" \
+                    "## Default:\tgrub2\n" \
+                    "#\n" \
+                    "# Type of bootloader in use.\n" \
+                    "# For making the change effect run bootloader configuration tool\n" \
+                    "# and configure newly selected bootloader\n" \
+                    "#\n" \
+                    "#\n",
 
       secure_boot:  "\n" \
-        "## Path:\tSystem/Bootloader\n" \
-        "## Description:\tBootloader configuration\n" \
-        "## Type:\tyesno\n" \
-        "## Default:\t\"no\"\n" \
-        "#\n" \
-        "# Enable Secure Boot support\n" \
-        "# Only available on UEFI systems and IBM z15+.\n" \
-        "#\n" \
-        "#\n",
+                    "## Path:\tSystem/Bootloader\n" \
+                    "## Description:\tBootloader configuration\n" \
+                    "## Type:\tyesno\n" \
+                    "## Default:\t\"no\"\n" \
+                    "#\n" \
+                    "# Enable Secure Boot support\n" \
+                    "# Only available on UEFI systems and IBM z15+.\n" \
+                    "#\n" \
+                    "#\n",
 
       trusted_boot: "\n" \
-        "## Path:\tSystem/Bootloader\n" \
-        "## Description:\tBootloader configuration\n" \
-        "## Type:\tyesno\n" \
-        "## Default:\t\"no\"\n" \
-        "#\n" \
-        "# Enable Trusted Boot support\n" \
-        "# Only available on hardware with a Trusted Platform Module.\n" \
-        "#\n",
+                    "## Path:\tSystem/Bootloader\n" \
+                    "## Description:\tBootloader configuration\n" \
+                    "## Type:\tyesno\n" \
+                    "## Default:\t\"no\"\n" \
+                    "#\n" \
+                    "# Enable Trusted Boot support\n" \
+                    "# Only available on hardware with a Trusted Platform Module.\n" \
+                    "#\n",
 
       update_nvram: "\n" \
-        "## Path:\tSystem/Bootloader\n" \
-        "## Description:\tBootloader configuration\n" \
-        "## Type:\tyesno\n" \
-        "## Default:\t\"yes\"\n" \
-        "#\n" \
-        "# Update nvram boot settings (UEFI, OF)\n" \
-        "# Unset to preserve specific settings or workaround firmware issues.\n" \
-        "#\n"
+                    "## Path:\tSystem/Bootloader\n" \
+                    "## Description:\tBootloader configuration\n" \
+                    "## Type:\tyesno\n" \
+                    "## Default:\t\"yes\"\n" \
+                    "#\n" \
+                    "# Update nvram boot settings (UEFI, OF)\n" \
+                    "# Unset to preserve specific settings or workaround firmware issues.\n" \
+                    "#\n"
     }.freeze
 
     def write

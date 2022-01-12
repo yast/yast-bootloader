@@ -175,7 +175,7 @@ module Bootloader
             Yast::Arch.board_powernv
           stage1.activate = false
           stage1.generic_mbr = false
-          return
+          nil
         else
           raise "there is no prep partition"
         end

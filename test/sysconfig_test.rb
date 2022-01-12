@@ -12,13 +12,13 @@ describe Bootloader::Sysconfig do
 
   describe ".from_system" do
     it "reads value from file on system" do
-      allow(Yast::SCR).to receive(:Read).with(
+      expect(Yast::SCR).to receive(:Read).with(
         Yast::Path.new(".sysconfig.bootloader.LOADER_TYPE")
       ).and_return("grub2")
-      allow(Yast::SCR).to receive(:Read).with(
+      expect(Yast::SCR).to receive(:Read).with(
         Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT")
       ).and_return("no")
-      allow(Yast::SCR).to receive(:Read).with(
+      expect(Yast::SCR).to receive(:Read).with(
         Yast::Path.new(".sysconfig.bootloader.UPDATE_NVRAM")
       ).and_return("yes")
 

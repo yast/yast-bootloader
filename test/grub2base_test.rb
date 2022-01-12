@@ -4,6 +4,8 @@ require_relative "test_helper"
 
 require "bootloader/grub2base"
 
+TERMINAL_DEFINITION = [:console, :serial].freeze
+
 describe Bootloader::Grub2Base do
   before do
     allow(Yast::ProductFeatures).to receive(:GetStringFeature)
@@ -179,7 +181,7 @@ describe Bootloader::Grub2Base do
 
         context "with TERM=\"linux\"" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("linux")
+            allow(ENV).to receive(:[]).with("TERM").and_return("linux")
           end
 
           it "proposes to use serial terminal" do
@@ -191,7 +193,7 @@ describe Bootloader::Grub2Base do
 
         context "on other TERM" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("xterm")
+            allow(ENV).to receive(:[]).with("TERM").and_return("xterm")
           end
 
           it "proposes to use console terminal" do
@@ -334,7 +336,7 @@ describe Bootloader::Grub2Base do
 
         context "with TERM=\"linux\"" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("linux")
+            allow(ENV).to receive(:[]).with("TERM").and_return("linux")
           end
 
           it "proposes to use serial console with \"TERM=linux console=ttyS0 console=ttyS1\"" do
@@ -346,7 +348,7 @@ describe Bootloader::Grub2Base do
 
         context "on other TERM" do
           before do
-            allow(ENV).to receive(:"[]").with("TERM").and_return("xterm")
+            allow(ENV).to receive(:[]).with("TERM").and_return("xterm")
           end
 
           it "proposes dumb term and sets 8 iuvc terminals" do
@@ -570,8 +572,6 @@ describe Bootloader::Grub2Base do
     end
 
     it "use terminal configuration specified in the merged object" do
-      TERMINAL_DEFINITION = [:console, :serial].freeze
-
       allow(other.grub_default).to receive(:terminal).and_return(TERMINAL_DEFINITION)
 
       subject.merge(other)

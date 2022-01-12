@@ -50,6 +50,8 @@ module Bootloader
     def initialize(hidden_menu_widget)
       textdomain "bootloader"
 
+      super()
+
       @minimum = -1
       @maximum = 600
       @hidden_menu_widget = hidden_menu_widget
@@ -91,6 +93,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -100,11 +104,11 @@ module Bootloader
     def help
       _(
         "<p><b>Set Active Flag in Partition Table for Boot Partition</b>\n" \
-          "specifies whether the partition containing " \
-          "the boot loader will have the \"active\" flag." \
-          " The generic MBR code will then\n" \
-          "boot the active partition. Older BIOSes require one partition to be active even\n" \
-          "if the boot loader is installed in the MBR.</p>"
+        "specifies whether the partition containing " \
+        "the boot loader will have the \"active\" flag." \
+        " The generic MBR code will then\n" \
+        "boot the active partition. Older BIOSes require one partition to be active even\n" \
+        "if the boot loader is installed in the MBR.</p>"
       )
     end
 
@@ -123,6 +127,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -138,25 +144,25 @@ module Bootloader
     def help
       _(
         "<p><b>CPU Mitigations</b><br>\n" \
-          "The option selects which default settings should be used for CPU \n" \
-          "side channels mitigations. A highlevel description is on our Technical Information \n" \
-          "Document TID 7023836. Following options are available:<ul>\n" \
-          "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. \n" \
-          "This setting can impact performance to some degree, depending on CPU model and \n" \
-          "workload. It provides all security mitigations, but it does not protect against \n" \
-          "cross-CPU thread attacks.</li>\n" \
-          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \n" \
-          "\"Auto\", and also disables Simultaneous Multithreading to avoid \n" \
-          "side channel attacks across multiple CPU threads. This setting can \n" \
-          "further impact performance, depending on your \n" \
-          "workload. This setting provides the full set of available security mitigations.</li>\n" \
-          "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
-          "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
-          "model.</li>\n" \
-          "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves \n" \
-          "this to be the kernel default. The administrator can add other mitigations options \n" \
-          "in the <i>kernel command line</i> widget.\n" \
-          "All CPU mitigation specific options can be set manually.</li></ul></p>"
+        "The option selects which default settings should be used for CPU \n" \
+        "side channels mitigations. A highlevel description is on our Technical Information \n" \
+        "Document TID 7023836. Following options are available:<ul>\n" \
+        "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. \n" \
+        "This setting can impact performance to some degree, depending on CPU model and \n" \
+        "workload. It provides all security mitigations, but it does not protect against \n" \
+        "cross-CPU thread attacks.</li>\n" \
+        "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \n" \
+        "\"Auto\", and also disables Simultaneous Multithreading to avoid \n" \
+        "side channel attacks across multiple CPU threads. This setting can \n" \
+        "further impact performance, depending on your \n" \
+        "workload. This setting provides the full set of available security mitigations.</li>\n" \
+        "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
+        "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
+        "model.</li>\n" \
+        "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves \n" \
+        "this to be the kernel default. The administrator can add other mitigations options \n" \
+        "in the <i>kernel command line</i> widget.\n" \
+        "All CPU mitigation specific options can be set manually.</li></ul></p>"
       )
     end
 
@@ -181,6 +187,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -210,6 +218,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -233,6 +243,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -242,7 +254,7 @@ module Bootloader
     def help
       _(
         "<p><b>Probe Foreign OS</b> by means of os-prober for multiboot with " \
-          "other foreign distribution </p>"
+        "other foreign distribution </p>"
       )
     end
 
@@ -261,6 +273,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -270,7 +284,7 @@ module Bootloader
     def help
       _(
         "<p><b>Optional Kernel Command Line Parameter</b> lets you define " \
-          "additional parameters to pass to the kernel.</p>"
+        "additional parameters to pass to the kernel.</p>"
       )
     end
 
@@ -289,6 +303,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -329,6 +345,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -384,6 +402,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -393,13 +413,13 @@ module Bootloader
     def help
       # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
       res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
-          "instead of regular GRUB2.\n" \
-          "It means measuring the integrity of the boot process,\n" \
-          "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
-          "chip).\n")
+              "instead of regular GRUB2.\n" \
+              "It means measuring the integrity of the boot process,\n" \
+              "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
+              "chip).\n")
       if grub2.name == "grub2"
         res += _("First you need to make sure Trusted Boot is enabled in the BIOS\n" \
-          "setup (the setting may be named \"Security Chip\", for example).\n")
+                 "setup (the setting may be named \"Security Chip\", for example).\n")
       end
 
       res += "</p>"
@@ -419,12 +439,13 @@ module Bootloader
       return true if Yast::Mode.config || !value || grub2.name == "grub2-efi"
 
       tpm_files = Dir.glob("/sys/**/pcrs")
-      if !tpm_files.empty?
+      if !tpm_files.empty? && !File.read(tpm_files[0], 1).nil?
         # check for file size does not work, since FS reports it 4096
         # even if the file is in fact empty and a single byte cannot
         # be read, therefore testing real reading (details: bsc#994556)
-        return true unless File.read(tpm_files[0], 1).nil?
+        return true
       end
+
       Yast::Popup.ContinueCancel(_("Trusted Platform Module not found.\n" \
                                    "Make sure it is enabled in BIOS.\n" \
                                    "The system will not boot otherwise."))
@@ -437,6 +458,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -444,11 +467,10 @@ module Bootloader
     end
 
     def help
-      res = _("<p><b>Update NVRAM Entry</b> will add nvram entry for the bootloader\n" \
-          "in the firmware.\n" \
-          "This is usually desirable unless you want to preserve specific settings\n" \
-          "or need to work around firmware issues.</p>\n")
-      res
+      _("<p><b>Update NVRAM Entry</b> will add nvram entry for the bootloader\n" \
+        "in the firmware.\n" \
+        "This is usually desirable unless you want to preserve specific settings\n" \
+        "or need to work around firmware issues.</p>\n")
     end
 
     def init
@@ -466,6 +488,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     MASKED_PASSWORD = "**********"
@@ -564,16 +588,16 @@ module Bootloader
     def help
       _(
         "<p><b>Protect Boot Loader with Password</b>\n" \
-          "at boot time, modifying or even booting any entry will require the" \
-          " password. If <b>Protect Entry Modification Only</b> is checked then " \
-          "booting any entry is not restricted but modifying entries requires " \
-          "the password (which is the way GRUB 1 behaved). As side-effect of " \
-          "this option, rd.shell=0 is added to kernel parameters, to prevent " \
-          "an unauthorized access to the initrd shell. " \
-          "YaST will only accept the password if you repeat it in " \
-          "<b>Retype Password</b>. The password applies to the GRUB2 user 'root' " \
-          "which is distinct from the Linux 'root'. YaST currently does not support " \
-          "other GRUB2 users. If you need them, use a separate GRUB2 script.</p>"
+        "at boot time, modifying or even booting any entry will require the" \
+        " password. If <b>Protect Entry Modification Only</b> is checked then " \
+        "booting any entry is not restricted but modifying entries requires " \
+        "the password (which is the way GRUB 1 behaved). As side-effect of " \
+        "this option, rd.shell=0 is added to kernel parameters, to prevent " \
+        "an unauthorized access to the initrd shell. " \
+        "YaST will only accept the password if you repeat it in " \
+        "<b>Retype Password</b>. The password applies to the GRUB2 user 'root' " \
+        "which is distinct from the Linux 'root'. YaST currently does not support " \
+        "other GRUB2 users. If you need them, use a separate GRUB2 script.</p>"
       )
     end
   end
@@ -591,6 +615,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def contents
@@ -638,7 +664,7 @@ module Bootloader
         if ::Bootloader::SerialConsole.load_from_console_args(console_value).nil?
           # Translators: do not translate "unit"
           msg = _("To enable the serial console you must provide the corresponding arguments.\n" \
-          "The \"unit\" argument is required, the complete syntax is:\n%s") % syntax
+                  "The \"unit\" argument is required, the complete syntax is:\n%s") % syntax
           Yast::Report.Error(msg)
           Yast::UI.SetFocus(Id(:console_args))
           return false
@@ -791,6 +817,8 @@ module Bootloader
 
     def initialize
       textdomain "bootloader"
+
+      super
     end
 
     def label
@@ -864,18 +892,7 @@ module Bootloader
 
     def store
       stage1.clear_devices
-      locations.each do |id|
-        next unless Yast::UI.QueryWidget(Id(id), :Value)
-
-        case id
-        when :boot, :logical
-          stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
-        when :extended
-          stage1.extended_boot_partitions_names.each { |d| stage1.add_udev_device(d) }
-        when :mbr
-          stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
-        end
-      end
+      locations.each { |l| add_location(l) }
 
       return unless Yast::UI.QueryWidget(:custom, :Value)
 
@@ -919,6 +936,19 @@ module Bootloader
     end
 
   private
+
+    def add_location(id)
+      return unless Yast::UI.QueryWidget(Id(id), :Value)
+
+      case id
+      when :boot, :logical
+        stage1.boot_partition_names.each { |d| stage1.add_udev_device(d) }
+      when :extended
+        stage1.extended_boot_partitions_names.each { |d| stage1.add_udev_device(d) }
+      when :mbr
+        stage1.boot_disk_names.each { |d| stage1.add_udev_device(d) }
+      end
+    end
 
     def init_custom_devices(custom_devices)
       if custom_devices.empty?
@@ -1005,10 +1035,10 @@ module Bootloader
 
       _(
         "<p><b>Edit Disk Boot Order</b>\n" \
-          "allows to specify the order of the disks according to the order in BIOS. Use\n" \
-          "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
-          "To add a disk, push <b>Add</b>.\n" \
-          "To remove a disk, push <b>Remove</b>.</p>"
+        "allows to specify the order of the disks according to the order in BIOS. Use\n" \
+        "the <b>Up</b> and <b>Down</b> buttons to reorder the disks.\n" \
+        "To add a disk, push <b>Add</b>.\n" \
+        "To remove a disk, push <b>Remove</b>.</p>"
       )
     end
 

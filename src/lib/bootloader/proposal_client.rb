@@ -44,10 +44,10 @@ module Bootloader
         # TRANSLATORS: keep %{} intact. It will be replaced by kind of boot
         format(_(
                  "Cannot upgrade the bootloader because of a mismatch of the boot technology. " \
-       "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
-       "has been booted using <i>%{new_boot}</i>.<br><br>" \
-       "This scenario is not supported, the upgraded system may not boot " \
-       "or the upgrade process can fail later."
+                 "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
+                 "has been booted using <i>%{new_boot}</i>.<br><br>" \
+                 "This scenario is not supported, the upgraded system may not boot " \
+                 "or the upgrade process can fail later."
                ),
           old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
       end
@@ -57,9 +57,11 @@ module Bootloader
     include Yast::Logger
 
     def initialize
-      Yast.import "UI"
       textdomain "bootloader"
 
+      super
+
+      Yast.import "UI"
       Yast.import "Arch"
       Yast.import "BootStorage"
       Yast.import "Bootloader"
@@ -182,7 +184,7 @@ module Bootloader
     # But if storage changed, always repropose as it can be very wrong.
     def reset_needed?(force_reset, storage_changed)
       log.info "reset_needed? force_reset: #{force_reset} storage_changed: #{storage_changed}" \
-        "auto mode: #{Yast::Mode.auto} cfg_changed #{Yast::Bootloader.proposed_cfg_changed}"
+               "auto mode: #{Yast::Mode.auto} cfg_changed #{Yast::Bootloader.proposed_cfg_changed}"
       return true if storage_changed
       return false if Yast::Mode.autoinst || Yast::Mode.autoupgrade
       return true if force_reset

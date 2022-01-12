@@ -71,6 +71,8 @@ module Bootloader
 
       # Constructor
       def initialize
+        super
+
         @device_map = []
       end
 

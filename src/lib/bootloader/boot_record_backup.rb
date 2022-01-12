@@ -48,7 +48,7 @@ module Bootloader
       copy_br(device, device_file_path)
 
       # save MBR to yast2 log directory
-      logs_path = "/var/log/YaST2/" + device_file
+      logs_path = "/var/log/YaST2/#{device_file}"
       copy_br(device, logs_path)
     end
 
@@ -92,7 +92,7 @@ module Bootloader
       Yast::SCR.Execute(
         BASH_PATH,
         "/bin/dd if=#{device.shellescape} of=#{target_path.shellescape} " \
-          "bs=#{block_size.to_s.shellescape} count=1 2>&1"
+        "bs=#{block_size.to_s.shellescape} count=1 2>&1"
       )
     end
 

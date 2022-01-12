@@ -23,6 +23,8 @@ module Bootloader
     DEFAULT_KEYWORD = "default"
 
     class << self
+      include Yast::Logger
+
       attr_writer :current
 
       def proposed
@@ -79,7 +81,9 @@ module Bootloader
         when String
           raise UnsupportedBootloader, name
         else
-          return nil # in other cases it means that read failed
+          log.error "Factory receive nil name"
+
+          nil # in other cases it means that read failed
         end
       end
 

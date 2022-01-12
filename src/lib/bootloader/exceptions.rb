@@ -6,6 +6,7 @@ module Bootloader
   # Represents error when during read it found bootloader name that is not supported.
   class UnsupportedBootloader < RuntimeError
     attr_reader :bootloader_name
+
     def initialize(bootloader_name)
       super "Uninitialized bootlader '#{bootloader_name}'"
       @bootloader_name = bootloader_name
@@ -24,7 +25,7 @@ module Bootloader
 
       # TRANSLATORS: %s is translated description of error
       super _("Error reading the bootloader configuration files. " \
-        "Please use YaST2 bootloader to fix it. Details: %s") % msg
+              "Please use YaST2 bootloader to fix it. Details: %s") % msg
     end
   end
 
@@ -40,12 +41,12 @@ module Bootloader
 
       # TRANSLATORS: %s is the device name
       super _("Error reading the bootloader configuration files:\n" \
-        "Invalid device name %s\n" \
-        "\n" \
-        "This by-path device name may have changed after a reboot\n" \
-        "if the hardware or kernel parameters changed.\n" \
-        "\n" \
-        "Please use YaST2 bootloader to fix this.\n") % dev_name
+              "Invalid device name %s\n" \
+              "\n" \
+              "This by-path device name may have changed after a reboot\n" \
+              "if the hardware or kernel parameters changed.\n" \
+              "\n" \
+              "Please use YaST2 bootloader to fix this.\n") % dev_name
     end
   end
 
@@ -61,8 +62,8 @@ module Bootloader
 
       # TRANSLATORS: %s is name of option that has unsupported value
       super _("Option '%s' contains an unrecognized value.\nYaST Bootloader cannot handle it.\n" \
-        "Either the whole bootloader configuration needs to be proposed again\n" \
-        "or YaST must quit and you can edit it manually.") % option
+              "Either the whole bootloader configuration needs to be proposed again\n" \
+              "or YaST must quit and you can edit it manually.") % option
     end
   end
 
