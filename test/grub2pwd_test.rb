@@ -103,6 +103,10 @@ describe Bootloader::GRUB2Pwd do
           expect(subject.password?).to eq true
         end
 
+        it "sets unencrypted password value" do
+          expect(subject.encrypted_password).to eq ENCRYPTED_PASSWORD
+        end
+
         it "sets restricted mode as is specified in file" do
           allow(Yast::SCR).to receive(:Read)
             .with(path(".target.string"), described_class::PWD_ENCRYPTION_FILE)

@@ -17,7 +17,11 @@ module Bootloader
     #   @see https://www.gnu.org/software/grub/manual/grub.html#Security
     #   @return [Boolean] specifies if unrestricted password protection should
     #      be used (see fate#318574)
-    attr_accessor :used, :unrestricted
+    #
+    # @!attribute encrypted_password
+    #   Encrypted value of password
+    #   @return [String,nil] specifies value of password after encryption. Nil if not set
+    attr_accessor :used, :unrestricted, :encrypted_password
     alias_method :used?, :used
     alias_method :unrestricted?, :unrestricted
 
