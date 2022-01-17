@@ -15,7 +15,8 @@ describe Bootloader::GrubInstall do
       allow(Bootloader::Systeminfo).to receive(:writable_efivars?).and_return(!removable)
     end
 
-    def expect_grub2_install(target, device: nil, removable: false, no_nvram: false, extra:nil)
+    # rubocop:disable Metrics/ParameterLists lets keep it simple for test mocking
+    def expect_grub2_install(target, device: nil, removable: false, no_nvram: false, extra: nil)
       params = [/grub2-install/, "--target=#{target}", "--force", "--skip-fs-probe"]
       params << "--removable" if removable
       params << "--no-nvram" if no_nvram
@@ -30,6 +31,7 @@ describe Bootloader::GrubInstall do
           .with(params)
       end
     end
+    # rubocop:enable Metrics/ParameterLists
 
     before do
       allow(::File).to receive(:directory?).and_return(false)
