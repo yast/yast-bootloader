@@ -57,7 +57,12 @@ describe Bootloader::AutoyastConverter do
         "generic_mbr"  => "false",
         "trusted_grub" => "true",
         "update_nvram" => "true",
-        "boot_boot"    => "true"
+        "boot_boot"    => "true",
+        "password"     => {
+          "value"        => "test",
+          "encrypted"    => "true", # if changed to false, then also mock grub2-mkpasswd
+          "unrestricted" => "true"
+        }
       }
 
       section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
@@ -73,6 +78,8 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.stage1.boot_partition?).to eq true
       expect(bootloader.trusted_boot).to eq true
       expect(bootloader.update_nvram).to eq true
+      expect(bootloader.password.used?).to eq true
+      expect(bootloader.password.unrestricted?).to eq true
     end
 
     it "imports device map for grub2 on intel architecture" do
@@ -123,6 +130,9 @@ describe Bootloader::AutoyastConverter do
       bootloader.grub_default.hidden_timeout = "10"
       bootloader.stage1.activate = true
       bootloader.trusted_boot = true
+      bootloader.password.unrestricted = false
+      bootloader.password.used = true
+      bootloader.password.encrypted_password = "blabla"
 
       expected_export = {
         "append"          => "verbose nomodeset",
@@ -132,7 +142,12 @@ describe Bootloader::AutoyastConverter do
         "timeout"         => 10,
         "trusted_grub"    => "true",
         "update_nvram"    => "true",
-        "cpu_mitigations" => "manual"
+        "cpu_mitigations" => "manual",
+        "password"        => {
+          "unrestricted" => "false",
+          "value"        => "blabla",
+          "encrypted"    => "true"
+        }
       }
 
       expect(subject.export(bootloader)["global"]).to eq expected_export

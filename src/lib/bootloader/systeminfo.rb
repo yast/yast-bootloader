@@ -112,6 +112,7 @@ module Bootloader
       def s390_secure_boot_available?
         # see jsc#SLE-9425
         return false unless Yast::Arch.s390
+
         File.read("/sys/firmware/ipl/has_secure", 1) == "1"
       rescue StandardError
         false
@@ -125,6 +126,7 @@ module Bootloader
       #   supported with the current setup
       def s390_secure_boot_supported?
         return false unless Yast::Arch.s390
+
         s390_secure_boot_available? && scsi?(zipl_device)
       end
 
@@ -135,6 +137,7 @@ module Bootloader
       # @return [Boolean] true if 390x machine has secure boot enabled
       def s390_secure_boot_active?
         return false unless Yast::Arch.s390
+
         # see jsc#SLE-9425
         File.read("/sys/firmware/ipl/secure", 1) == "1"
       rescue StandardError
@@ -151,13 +154,14 @@ module Bootloader
         # see bsc#1192764
         result = nil
         return nil unless Yast::Arch.ppc
+
         begin
           result = File.read("/proc/device-tree/ibm,secure-boot")
-          result = result.unpack("N")[0]
-        rescue
+          result = result.unpack1("N")
+        rescue StandardError
           result = nil
         end
-        return result
+        result
       end
 
       # Check if secure boot is (in principle) available on an ppc machine.
@@ -165,7 +169,7 @@ module Bootloader
       # @return [Boolean] true if this is an ppc machine and it has secure boot support
       def ppc_secure_boot_available?
         # see bsc#1192764
-        return ppc_secure_boot != nil
+        !ppc_secure_boot.nil?
       end
 
       # Check if secure boot is supported with the current setup.
@@ -183,7 +187,7 @@ module Bootloader
       # @return [Boolean] true if ppc machine has secure boot enabled
       def ppc_secure_boot_active?
         # see bsc#1192764
-        return ppc_secure_boot.to_i > 0
+        ppc_secure_boot.to_i > 0
       end
 
       # The partition where zipl is installed.

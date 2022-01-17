@@ -21,6 +21,7 @@ module Bootloader
   end
 
   # Converter between internal configuration model and autoyast serialization of configuration.
+  # rubocop:disable Metrics/ClassLength converting autoyast profiles is just a lot of data
   class AutoyastConverter
     class << self
       include Yast::Logger
@@ -37,6 +38,7 @@ module Bootloader
         import_stage1(data, bootloader)
         import_default(data, bootloader.grub_default)
         import_device_map(data, bootloader)
+        import_password(data, bootloader)
         # always nil pmbr as autoyast does not support it yet,
         # so use nil to always use proposed value (bsc#1081967)
         bootloader.pmbr_action = nil
@@ -63,6 +65,7 @@ module Bootloader
         export_grub2(global, config) if config.name == "grub2"
         export_grub2efi(global, config) if config.name == "grub2-efi"
         export_default(global, config.grub_default)
+        export_password(global, config.password)
         res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
@@ -93,6 +96,23 @@ module Bootloader
 
           bootloader.public_send(:"#{method}=", val == "true")
         end
+      end
+
+      def import_password(data, bootloader)
+        password = data.global.password
+        return unless password
+
+        pwd_object = bootloader.password
+        pwd_object.used = true
+        # default for encrypted is false, so use it only when exacly true
+        if password.encrypted == "true"
+          pwd_object.encrypted_password = password.value
+        else
+          pwd_object.password = password.value
+        end
+
+        # default for unrestricted is true, so disable it only when exactly false
+        pwd_object.unrestricted = password.unrestricted != "false"
       end
 
       def import_default(data, default)
@@ -293,6 +313,16 @@ module Bootloader
         export_timeout(res, default)
       end
 
+      def export_password(res, password)
+        return unless password.used?
+
+        res["password"] = {
+          "unrestricted" => password.unrestricted? ? "true" : "false",
+          "encrypted"    => "true",
+          "value"        => password.encrypted_password
+        }
+      end
+
       def export_timeout(res, default)
         if default.hidden_timeout.to_s.to_i > 0
           res["hiddenmenu"] = "true"
@@ -304,4 +334,5 @@ module Bootloader
       end
     end
   end
+  # rubocop:enable Metrics/ClassLength
 end

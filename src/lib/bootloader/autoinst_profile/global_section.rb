@@ -20,6 +20,7 @@
 # find current contact information at www.suse.com.
 
 require "installation/autoinst_profile/section_with_attributes"
+require "bootloader/autoinst_profile/password_section"
 
 module Bootloader
   module AutoinstProfile
@@ -126,6 +127,19 @@ module Bootloader
       # @!attribute xen_kernel_append
       #   @return [String,nil] kernel parameters to add at the end of boot entries for Xen
       #     kernels on the VM host server (e.g., "dom0_mem=768").
+
+      # @return [PasswordSection, nil] password section or nil if not set
+      attr_accessor :password
+
+      # Method used by {.new_from_hashes} to populate the attributes.
+      #
+      # @param hash [Hash] see {.new_from_hashes}
+      def init_from_hashes(hash)
+        super
+        return unless hash["password"].is_a?(Hash)
+
+        @password = PasswordSection.new_from_hashes(hash["password"], self)
+      end
     end
   end
 end
