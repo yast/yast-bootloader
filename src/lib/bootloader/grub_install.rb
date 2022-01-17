@@ -101,6 +101,14 @@ module Bootloader
       cmd << "--removable" if removable_efi?
       cmd << "--no-nvram" if !update_nvram
 
+      if target == "powerpc-ieee1275" then
+        if secure_boot then
+          cmd << "--suse-force-signed"
+        else
+          cmd << "--suse-inhibit-signed"
+        end
+      end
+
       cmd
     end
 

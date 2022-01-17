@@ -57,6 +57,28 @@ describe Bootloader::Systeminfo do
         end
       end
     end
+
+    context "if arch is ppc64" do
+      let(:arch) { "ppc64" }
+
+      context "if SECURE_BOOT is 'yes' in sysconfig" do
+        it "returns true" do
+          allow(Yast::SCR).to receive(:Read).with(
+            Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT")
+          ).and_return("yes")
+          expect(described_class.secure_boot_active?).to be false
+        end
+      end
+
+      context "if SECURE_BOOT is 'no' in sysconfig" do
+        it "returns false" do
+          allow(Yast::SCR).to receive(:Read).with(
+            Yast::Path.new(".sysconfig.bootloader.SECURE_BOOT")
+          ).and_return("no")
+          expect(described_class.secure_boot_active?).to be false
+        end
+      end
+    end
   end
 
   describe ".secure_boot_available?" do
@@ -72,7 +94,38 @@ describe Bootloader::Systeminfo do
         let(:arch) { "s390_64" }
         it "returns true" do
           allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return("1")
+          allow(File).to receive(:read).with("/proc/device-tree/ibm,secure-boot").and_return(nil)
           expect(described_class.secure_boot_available?("grub2")).to be true
+        end
+      end
+
+      context "and ibm,secure-boot is not available on arch ppc64le " do
+        let(:arch) { "ppc64" }
+        it "returns false and secure_boot_active? returns false" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return(false)
+          allow(File).to receive(:read).with("/proc/device-tree/ibm,secure-boot").and_return(nil)
+          expect(described_class.secure_boot_available?("grub2")).to be false
+          expect(described_class.secure_boot_active?).to be false
+        end
+      end
+
+      context "and ibm,secure-boot is not enabled on arch ppc64le " do
+        let(:arch) { "ppc64" }
+        it "returns false and secure_boot_active? returns false" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return(false)
+          allow(File).to receive(:read).with("/proc/device-tree/ibm,secure-boot").and_return("\0\0\0\0")
+          expect(described_class.secure_boot_available?("grub2")).to be true
+          expect(described_class.secure_boot_active?).to be false
+        end
+      end
+
+      context "and ibm,secure-boot is enforcing on arch ppc64le " do
+        let(:arch) { "ppc64" }
+        it "returns true and secure_boot_active? returns true" do
+          allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return(false)
+          allow(File).to receive(:read).with("/proc/device-tree/ibm,secure-boot").and_return("\0\0\0\2")
+          expect(described_class.secure_boot_available?("grub2")).to be true
+          expect(described_class.secure_boot_active?).to be true
         end
       end
     end
