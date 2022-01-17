@@ -15,10 +15,11 @@ describe Bootloader::GrubInstall do
       allow(Bootloader::Systeminfo).to receive(:writable_efivars?).and_return(!removable)
     end
 
-    def expect_grub2_install(target, device: nil, removable: false, no_nvram: false)
+    def expect_grub2_install(target, device: nil, removable: false, no_nvram: false, extra:nil)
       params = [/grub2-install/, "--target=#{target}", "--force", "--skip-fs-probe"]
       params << "--removable" if removable
       params << "--no-nvram" if no_nvram
+      params << extra if extra
       params << device if device
 
       if device
@@ -200,9 +201,16 @@ describe Bootloader::GrubInstall do
 
       it "runs with target powerpc-ieee1275 on ppc64" do
         stub_arch("ppc64")
-        expect_grub2_install("powerpc-ieee1275", device: "/dev/sda")
+        expect_grub2_install("powerpc-ieee1275", device: "/dev/sda1", extra: "--suse-inhibit-signed")
 
-        subject.execute(devices: ["/dev/sda"])
+        subject.execute(devices: ["/dev/sda1"])
+      end
+
+      it "runs with target powerpc-ieee1275 on ppc64 with secure boot" do
+        stub_arch("ppc64")
+        expect_grub2_install("powerpc-ieee1275", device: "/dev/sda1", extra: "--suse-force-signed")
+
+        subject.execute(devices: ["/dev/sda1"], secure_boot: true)
       end
 
       it "runs with target s390x-emu on s390" do
