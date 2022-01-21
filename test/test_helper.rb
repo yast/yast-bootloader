@@ -69,17 +69,7 @@ end
 
 # stub module to prevent its Import
 # Useful for modules from different yast packages, to avoid build dependencies
-def stub_module(name, fake_class = nil)
-  fake_class = Class.new { def self.fake_method; end } if fake_class.nil?
-  Yast.const_set name.to_sym, fake_class
-end
-
-AutoInstallStub = Class.new do
-  def self.issues_list
-    []
-  end
-end
-stub_module("AutoInstall", AutoInstallStub)
+Yast::RSpec::Helpers.define_yast_module("AutoInstall", methods: [:issues_list])
 
 # stub udev mapping everywhere
 RSpec.configure do |config|
