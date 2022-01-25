@@ -27,7 +27,7 @@ describe Yast::Bootloader do
   describe ".Write" do
     context "when user cancels the installation of required packages" do
       before do
-        allow(Yast::PackageSystem).to receive(:InstallAll).and_return(false)
+        allow(Yast::Package).to receive(:InstallAll).and_return(false)
         allow(Yast2::Popup).to receive(:show)
         allow(Yast::Package).to receive(:Available).and_return(true)
       end

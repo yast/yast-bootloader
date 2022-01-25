@@ -65,7 +65,7 @@ describe Bootloader::Grub2EFI do
 
     before do
       allow(Bootloader::Sysconfig).to receive(:from_system)
-      allow(Yast::PackageSystem).to receive(:InstallAll).and_return(true)
+      allow(Yast::Package).to receive(:InstallAll).and_return(true)
     end
 
     it "writes boot flags configuration to bootloader sysconfig" do

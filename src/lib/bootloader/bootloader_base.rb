@@ -6,7 +6,7 @@ require "bootloader/sysconfig"
 Yast.import "BootStorage"
 Yast.import "Linuxrc"
 Yast.import "Mode"
-Yast.import "PackageSystem"
+Yast.import "Package"
 
 module Bootloader
   # Represents base for all kinds of bootloaders
@@ -28,7 +28,7 @@ module Bootloader
       write_sysconfig
 
       return true unless Yast::Mode.normal
-      return true if Yast::PackageSystem.InstallAll(packages)
+      return true if Yast::Package.InstallAll(packages)
 
       restore_initial_sysconfig
 

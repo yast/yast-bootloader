@@ -7,7 +7,7 @@ require "yast2/execute"
 require "y2storage"
 
 Yast.import "Arch"
-Yast.import "PackageSystem"
+Yast.import "Package"
 Yast.import "BootStorage"
 
 module Bootloader
@@ -61,7 +61,7 @@ module Bootloader
     end
 
     def install_generic_mbr
-      Yast::PackageSystem.Install("syslinux") unless Yast::Stage.initial
+      Yast::Package.Install("syslinux") unless Yast::Stage.initial
 
       disks_to_rewrite.each do |disk|
         log.info "Copying generic MBR code to #{disk}"
