@@ -17,7 +17,7 @@ describe Bootloader::BootloaderBase do
       allow(Bootloader::Sysconfig).to receive(:new).and_return(new_sysconfig)
       allow(Bootloader::Sysconfig).to receive(:from_system).and_return(initial_sysconfig)
 
-      allow(Yast::PackageSystem).to receive(:InstallAll)
+      allow(Yast::Package).to receive(:InstallAll)
 
       allow(Yast2::Popup).to receive(:show).and_return(true)
 
@@ -42,14 +42,14 @@ describe Bootloader::BootloaderBase do
       let(:normal_mode) { true }
 
       it "tries to install required packages" do
-        expect(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"])
+        expect(Yast::Package).to receive(:InstallAll).with(["kexec-tools"])
 
         subject.prepare
       end
 
       context "and the user accepts the installation" do
         before do
-          allow(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"]).and_return(true)
+          allow(Yast::Package).to receive(:InstallAll).with(["kexec-tools"]).and_return(true)
         end
 
         it "returns true" do
@@ -63,7 +63,7 @@ describe Bootloader::BootloaderBase do
 
       context "and the user does not accept the installation" do
         before do
-          allow(Yast::PackageSystem).to receive(:InstallAll).with(["kexec-tools"]).and_return(false)
+          allow(Yast::Package).to receive(:InstallAll).with(["kexec-tools"]).and_return(false)
         end
 
         it "restores the initial sysconfig" do

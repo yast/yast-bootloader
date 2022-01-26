@@ -69,7 +69,7 @@ describe Bootloader::MBRUpdate do
     context "when generic mbr is enabled" do
       before do
         allow(Yast::Stage).to receive(:initial).and_return(false)
-        allow(Yast::PackageSystem).to receive(:Install)
+        allow(Yast::Package).to receive(:Install)
         allow(::Bootloader::BootRecordBackup)
           .to receive(:new).and_return(double(:write => true))
       end
@@ -106,7 +106,7 @@ describe Bootloader::MBRUpdate do
 
       it "install syslinux if not on initial stage" do
         allow(Yast::Stage).to receive(:initial).and_return(false)
-        expect(Yast::PackageSystem).to receive(:Install).with("syslinux")
+        expect(Yast::Package).to receive(:Install).with("syslinux")
 
         subject.run(stage1(generic_mbr: true))
       end
@@ -125,7 +125,7 @@ describe Bootloader::MBRUpdate do
     context "when activate is enabled" do
       before do
         allow(Yast::Stage).to receive(:initial).and_return(false)
-        allow(Yast::PackageSystem).to receive(:Install)
+        allow(Yast::Package).to receive(:Install)
         allow(Yast::Execute).to receive(:locally).and_return("")
         allow(::Bootloader::BootRecordBackup)
           .to receive(:new).and_return(double(:write => true))
