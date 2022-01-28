@@ -361,7 +361,7 @@ module Bootloader
     def propose_timeout
       return if grub_default.timeout
 
-      grub_default.timeout = "8"
+      grub_default.timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_s
     end
 
     def propose_serial
