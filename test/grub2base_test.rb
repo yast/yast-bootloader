@@ -235,10 +235,12 @@ describe Bootloader::Grub2Base do
       end
     end
 
-    it "proposes timeout to 8 seconds" do
+    it "proposes timeout to product/role default" do
+      allow(Yast::ProductFeatures).to receive(:GetIntegerFeature)
+        .with("globals", "boot_timeout").and_return(2)
       subject.propose
 
-      expect(subject.grub_default.timeout).to eq "8"
+      expect(subject.grub_default.timeout).to eq "2"
     end
 
     it "proposes using btrfs snapshots always to true" do
