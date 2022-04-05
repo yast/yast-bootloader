@@ -48,7 +48,9 @@ describe Bootloader::AutoyastConverter do
 
     it "import configuration to returned bootloader" do
       data = {
-        "append"       => "verbose nomodeset",
+        "append"       => "verbose nomodeset resume=/dev/disk/by-uuid/bla-bla",
+        # /dev/sda exists on mocked trivial system, so it should not be removed
+        "xen_kernel_append"       => "verbose nomodeset resume=/dev/sda1",
         "terminal"     => "gfxterm",
         "os_prober"    => "true",
         "hiddenmenu"   => "true",
@@ -66,6 +68,9 @@ describe Bootloader::AutoyastConverter do
       bootloader = subject.import(section)
 
       expect(bootloader.grub_default.kernel_params.serialize).to eq "verbose nomodeset"
+      expect(
+        bootloader.grub_default.xen_hypervisor_params.serialize
+      ).to eq "verbose nomodeset resume=/dev/sda1"
       expect(bootloader.grub_default.terminal).to eq [:gfxterm]
       expect(bootloader.grub_default.os_prober).to be_enabled
       expect(bootloader.grub_default.hidden_timeout).to eq "10"

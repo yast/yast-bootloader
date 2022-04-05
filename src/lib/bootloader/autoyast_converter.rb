@@ -101,6 +101,12 @@ module Bootloader
           val = data.global.public_send(key)
           next unless val
 
+          # import resume only if device exists (bsc#1187690)
+          resume = val[/[\s^]resume=(\S+)/, 1]
+          if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
+            val = val.gsub(/[\s^]resume=#{Regexp.escape(resume)}/, "")
+          end
+
           default.public_send(method).replace(val)
         end
 
