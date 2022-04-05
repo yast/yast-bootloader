@@ -48,18 +48,18 @@ describe Bootloader::AutoyastConverter do
 
     it "import configuration to returned bootloader" do
       data = {
-        "append"       => "verbose nomodeset resume=/dev/disk/by-uuid/bla-bla",
+        "append"            => "verbose nomodeset resume=/dev/disk/by-uuid/bla-bla",
         # /dev/sda exists on mocked trivial system, so it should not be removed
-        "xen_kernel_append"       => "verbose nomodeset resume=/dev/sda1",
-        "terminal"     => "gfxterm",
-        "os_prober"    => "true",
-        "hiddenmenu"   => "true",
-        "timeout"      => 10,
-        "activate"     => "true",
-        "generic_mbr"  => "false",
-        "trusted_grub" => "true",
-        "update_nvram" => "true",
-        "boot_boot"    => "true"
+        "xen_kernel_append" => "verbose nomodeset resume=/dev/sda1",
+        "terminal"          => "gfxterm",
+        "os_prober"         => "true",
+        "hiddenmenu"        => "true",
+        "timeout"           => 10,
+        "activate"          => "true",
+        "generic_mbr"       => "false",
+        "trusted_grub"      => "true",
+        "update_nvram"      => "true",
+        "boot_boot"         => "true"
       }
 
       section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(
