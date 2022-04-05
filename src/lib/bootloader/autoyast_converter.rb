@@ -277,7 +277,11 @@ module Bootloader
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
           val = default.public_send(method)
-          res[key] = val.serialize unless val.empty?
+          result = val.serialize
+          # do not export resume parameter as it depends on storage which is
+          # not cloned by default and if missing it is proposed (bsc#1187690)
+          result.gsub!(/[\s^]resume=\S+/, "")
+          res[key] = result unless result.empty?
         end
 
         DEFAULT_STRING_MAPPING.each do |key, method|

@@ -117,7 +117,7 @@ describe Bootloader::AutoyastConverter do
     end
 
     it "export to global key configuration" do
-      bootloader.grub_default.kernel_params.replace("verbose nomodeset")
+      bootloader.grub_default.kernel_params.replace("verbose nomodeset resume=/dev/sda")
       bootloader.grub_default.terminal = [:gfxterm]
       bootloader.grub_default.os_prober.enable
       bootloader.grub_default.hidden_timeout = "10"
