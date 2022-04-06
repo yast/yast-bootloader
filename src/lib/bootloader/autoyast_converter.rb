@@ -102,10 +102,10 @@ module Bootloader
           next unless val
 
           # import resume only if device exists (bsc#1187690)
-          resume = val[/[\s^]resume=(\S+)/, 1]
+          resume = val[/(?:\s|\A)resume=(\S+)/, 1]
           if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
             log.warn "remove resume parameter for non existing #{resume}"
-            val = val.gsub(/[\s^]resume=#{Regexp.escape(resume)}/, "")
+            val = val.gsub(/(?:\s|\A)resume=#{Regexp.escape(resume)}/, "")
           end
 
           default.public_send(method).replace(val)
@@ -287,7 +287,7 @@ module Bootloader
           result = val.serialize
           # do not export resume parameter as it depends on storage which is
           # not cloned by default and if missing it is proposed (bsc#1187690)
-          result.gsub!(/[\s^]resume=\S+/, "")
+          result.gsub!(/(?:\s|\A)resume=\S+/, "")
           res[key] = result unless result.empty?
         end
 
