@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Apr 06 13:24:58 UTC 2022 - Ladislav Slezák <lslezak@suse.cz>
+
+- Bump version to 4.5.0 (#bsc1198109)
+
+-------------------------------------------------------------------
 Fri Jan 28 22:37:00 UTC 2022 - Josef Reidinger <jreidinger@suse.com>
 
 - Allow product/system role to select boot timeout (jsc#SLE-22667)
