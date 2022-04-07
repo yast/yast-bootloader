@@ -103,7 +103,7 @@ module Bootloader
 
           # import resume only if device exists (bsc#1187690)
           resume = val[/(?:\s|\A)resume=(\S+)/, 1]
-          if resume && !Yast::BootStoragn.staging.find_by_any_name(resume)
+          if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
             log.warn "Remove 'resume' parameter due to usage of non existing device '#{resume}'"
             val = val.gsub(/(?:\s|\A)resume=#{Regexp.escape(resume)}/, "")
           end
