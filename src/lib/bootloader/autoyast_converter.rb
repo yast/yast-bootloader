@@ -117,19 +117,7 @@ module Bootloader
 
       def import_default(data, default)
         # import first kernel params as cpu_mitigations can later modify it
-        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
-          val = data.global.public_send(key)
-          next unless val
-
-          # import resume only if device exists (bsc#1187690)
-          resume = val[/(?:\s|\A)resume=(\S+)/, 1]
-          if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
-            log.warn "Remove 'resume' parameter due to usage of non existing device '#{resume}'"
-            val = val.gsub(/(?:\s|\A)resume=#{Regexp.escape(resume)}/, "")
-          end
-
-          default.public_send(method).replace(val)
-        end
+        import_kernel_params(data, default)
 
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = data.global.public_send(key)
@@ -153,6 +141,22 @@ module Bootloader
         end
 
         import_timeout(data, default)
+      end
+
+      def import_kernel_params(data, default)
+        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
+          val = data.global.public_send(key)
+          next unless val
+
+          # import resume only if device exists (bsc#1187690)
+          resume = val[/(?:\s|\A)resume=(\S+)/, 1]
+          if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
+            log.warn "Remove 'resume' parameter due to usage of non existing device '#{resume}'"
+            val = val.gsub(/(?:\s|\A)resume=#{Regexp.escape(resume)}/, "")
+          end
+
+          default.public_send(method).replace(val)
+        end
       end
 
       def import_timeout(data, default)
