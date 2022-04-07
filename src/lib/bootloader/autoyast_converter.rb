@@ -103,8 +103,8 @@ module Bootloader
 
           # import resume only if device exists (bsc#1187690)
           resume = val[/(?:\s|\A)resume=(\S+)/, 1]
-          if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
-            log.warn "remove resume parameter for non existing #{resume}"
+          if resume && !Yast::BootStoragn.staging.find_by_any_name(resume)
+            log.warn "Remove 'resume' parameter due to usage of non existing device '#{resume}'"
             val = val.gsub(/(?:\s|\A)resume=#{Regexp.escape(resume)}/, "")
           end
 
@@ -285,8 +285,10 @@ module Bootloader
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
           val = default.public_send(method)
           result = val.serialize
-          # do not export resume parameter as it depends on storage which is
-          # not cloned by default and if missing it is proposed (bsc#1187690)
+          # Do not export the 'resume' parameter as it depends on storage, which is not
+          # cloned by default. The only exception is partition label which is cloned,
+          # but we decided to be consistent and also remove it.
+          # Anyways, 'resume' will be proposed if it's missing (bsc#1187690).
           result.gsub!(/(?:\s|\A)resume=\S+/, "")
           res[key] = result unless result.empty?
         end
