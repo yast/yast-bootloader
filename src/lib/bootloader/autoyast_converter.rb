@@ -117,12 +117,7 @@ module Bootloader
 
       def import_default(data, default)
         # import first kernel params as cpu_mitigations can later modify it
-        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
-          val = data.global.public_send(key)
-          next unless val
-
-          default.public_send(method).replace(val)
-        end
+        import_kernel_params(data, default)
 
         DEFAULT_BOOLEAN_MAPPING.each do |key, method|
           val = data.global.public_send(key)
@@ -146,6 +141,22 @@ module Bootloader
         end
 
         import_timeout(data, default)
+      end
+
+      def import_kernel_params(data, default)
+        DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
+          val = data.global.public_send(key)
+          next unless val
+
+          # import resume only if device exists (bsc#1187690)
+          resume = val[/(?:\s|\A)resume=(\S+)/, 1]
+          if resume && !Yast::BootStorage.staging.find_by_any_name(resume)
+            log.warn "Remove 'resume' parameter due to usage of non existing device '#{resume}'"
+            val = val.gsub(/(?:\s|\A)resume=#{Regexp.escape(resume)}/, "")
+          end
+
+          default.public_send(method).replace(val)
+        end
       end
 
       def import_timeout(data, default)
@@ -297,7 +308,13 @@ module Bootloader
 
         DEFAULT_KERNEL_PARAMS_MAPPING.each do |key, method|
           val = default.public_send(method)
-          res[key] = val.serialize unless val.empty?
+          result = val.serialize
+          # Do not export the 'resume' parameter as it depends on storage, which is not
+          # cloned by default. The only exception is partition label which is cloned,
+          # but we decided to be consistent and also remove it.
+          # Anyways, 'resume' will be proposed if it's missing (bsc#1187690).
+          result.gsub!(/(?:\s|\A)resume=\S+/, "")
+          res[key] = result unless result.empty?
         end
 
         DEFAULT_STRING_MAPPING.each do |key, method|
