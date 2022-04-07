@@ -48,17 +48,19 @@ describe Bootloader::AutoyastConverter do
 
     it "import configuration to returned bootloader" do
       data = {
-        "append"       => "verbose nomodeset",
-        "terminal"     => "gfxterm",
-        "os_prober"    => "true",
-        "hiddenmenu"   => "true",
-        "timeout"      => 10,
-        "activate"     => "true",
-        "generic_mbr"  => "false",
-        "trusted_grub" => "true",
-        "update_nvram" => "true",
-        "boot_boot"    => "true",
-        "password"     => {
+        "append"            => "verbose nomodeset resume=/dev/disk/by-uuid/bla-bla",
+        # /dev/sda exists on mocked trivial system, so it should not be removed
+        "xen_kernel_append" => "verbose nomodeset resume=/dev/sda1",
+        "terminal"          => "gfxterm",
+        "os_prober"         => "true",
+        "hiddenmenu"        => "true",
+        "timeout"           => 10,
+        "activate"          => "true",
+        "generic_mbr"       => "false",
+        "trusted_grub"      => "true",
+        "update_nvram"      => "true",
+        "boot_boot"         => "true",
+        "password"          => {
           "value"        => "test",
           "encrypted"    => "true", # if changed to false, then also mock grub2-mkpasswd
           "unrestricted" => "true"
@@ -71,6 +73,9 @@ describe Bootloader::AutoyastConverter do
       bootloader = subject.import(section)
 
       expect(bootloader.grub_default.kernel_params.serialize).to eq "verbose nomodeset"
+      expect(
+        bootloader.grub_default.xen_hypervisor_params.serialize
+      ).to eq "verbose nomodeset resume=/dev/sda1"
       expect(bootloader.grub_default.terminal).to eq [:gfxterm]
       expect(bootloader.grub_default.os_prober).to be_enabled
       expect(bootloader.grub_default.hidden_timeout).to eq "10"
@@ -124,7 +129,7 @@ describe Bootloader::AutoyastConverter do
     end
 
     it "export to global key configuration" do
-      bootloader.grub_default.kernel_params.replace("verbose nomodeset")
+      bootloader.grub_default.kernel_params.replace("verbose nomodeset resume=/dev/sda")
       bootloader.grub_default.terminal = [:gfxterm]
       bootloader.grub_default.os_prober.enable
       bootloader.grub_default.hidden_timeout = "10"
