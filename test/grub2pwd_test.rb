@@ -221,7 +221,7 @@ describe Bootloader::GRUB2Pwd do
       PBKDF2 hash of your password is #{ENCRYPTED_PASSWORD}
 OUTPUT
 
-      expect(Yast::Execute).to receive(:locally)
+      expect(Yast::Execute).to receive(:on_target)
         .with(/grub2-mkpasswd/, anything)
         .and_return(success_stdout)
       subject.password = "really strong password"
