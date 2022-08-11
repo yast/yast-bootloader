@@ -411,10 +411,8 @@ module Bootloader
     end
 
     def help
-      # TRANSLATORS: TrustedGRUB2 is a name, don't translate it
-      res = _("<p><b>Trusted Boot</b> will install TrustedGRUB2\n" \
-              "instead of regular GRUB2.\n" \
-              "It means measuring the integrity of the boot process,\n" \
+      res = _("<p><b>Trusted Boot</b> " \
+              "means measuring the integrity of the boot process,\n" \
               "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
               "chip).\n")
       if grub2.name == "grub2"
