@@ -53,7 +53,7 @@ module Bootloader
 
     # Write bootloader settings to disk
     # @return [Boolean] true on success
-    def write
+    def write(etc_only: false)
       # super have to called as first as grub install require some config writen in ancestor
       super
 
@@ -64,7 +64,7 @@ module Bootloader
       pmbr_setup(*::Yast::BootStorage.gpt_disks(stage1.devices))
 
       # powernv must not call grub2-install (bnc#970582)
-      unless Yast::Arch.board_powernv
+      if !Yast::Arch.board_powernv && !etc_only
         failed = @grub_install.execute(
           devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot,
           update_nvram: update_nvram
@@ -74,7 +74,7 @@ module Bootloader
       end
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
       # powernv do not have prep partition, so we do not have any partition to activate (bnc#970582)
-      MBRUpdate.new.run(stage1) if !Yast::Arch.s390 && !Yast::Arch.board_powernv
+      MBRUpdate.new.run(stage1) if !Yast::Arch.s390 && !Yast::Arch.board_powernv && !etc_only
     end
 
     def propose

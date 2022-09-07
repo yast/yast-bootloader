@@ -23,7 +23,7 @@ module Bootloader
     end
 
     # Write bootloader settings to disk
-    def write
+    def write(etc_only: false)
       # super have to called as first as grub install require some config written in ancestor
       super
 
@@ -43,7 +43,7 @@ module Bootloader
       end
 
       @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,
-        update_nvram: update_nvram)
+        update_nvram: update_nvram) unless etc_only
 
       true
     end

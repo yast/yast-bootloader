@@ -25,15 +25,16 @@ require "bootloader/autoinst_profile/bootloader_section"
 require "installation/autoinst_issues/invalid_value"
 require "cfa/matcher"
 
-Yast.import "UI"
 Yast.import "Arch"
 Yast.import "BootStorage"
 Yast.import "Initrd"
+Yast.import "Installation"
 Yast.import "Mode"
+Yast.import "Package"
 Yast.import "Progress"
 Yast.import "Report"
 Yast.import "Stage"
-Yast.import "Installation"
+Yast.import "UI"
 
 module Yast
   class BootloaderClass < Module
@@ -273,16 +274,24 @@ module Yast
       end
       Progress.set(progress_state)
 
+      transactional = Package.IsTransactionalSystem
+
       # Create initrd
       Progress.NextStage
       Progress.Title(titles[1]) unless Mode.normal
 
-      write_initrd || log.error("Error occurred while creating initrd")
+      if !transactional
+        write_initrd || log.error("Error occurred while creating initrd")
+      end
 
       # Save boot loader configuration
       Progress.NextStage
       Progress.Title(titles[2]) unless Mode.normal
-      ::Bootloader::BootloaderFactory.current.write
+      ::Bootloader::BootloaderFactory.current.write(etc_only: transactional)
+      if transactional
+        # all writing to target is done in specific transactional command
+        Yast::Execute.on_target!("transactional-update", "--continue", "bootloader")
+      end
 
       true
     end

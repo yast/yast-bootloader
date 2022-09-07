@@ -134,7 +134,7 @@ module Bootloader
       self.update_nvram = Systeminfo.update_nvram_active?
     end
 
-    def write
+    def write(etc_only: false)
       super
 
       log.info "writing /etc/default/grub #{grub_default.inspect}"
@@ -142,7 +142,7 @@ module Bootloader
       @sections.write
       @password.write
       Yast::Execute.on_target("/usr/sbin/grub2-mkconfig", "-o", "/boot/grub2/grub.cfg",
-        env: systemwide_locale)
+        env: systemwide_locale) unless etc_only
     end
 
     def propose

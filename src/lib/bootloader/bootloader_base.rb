@@ -36,7 +36,7 @@ module Bootloader
     end
 
     # writes configuration to target disk
-    def write; end
+    def write(etc_only: false); end
 
     # reads configuration from target disk
     def read
