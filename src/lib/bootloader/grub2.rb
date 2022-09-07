@@ -57,7 +57,7 @@ module Bootloader
       # super have to called as first as grub install require some config writen in ancestor
       super
 
-      device_map.write if Yast::Arch.x86_64 || Yast::Arch.i386
+      device_map.write if (Yast::Arch.x86_64 || Yast::Arch.i386) && !etc_only
 
       # TODO: own class handling PBMR
       # set it only for gpt disk bsc#1008092
