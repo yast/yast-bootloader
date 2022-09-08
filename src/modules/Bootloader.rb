@@ -280,9 +280,7 @@ module Yast
       Progress.NextStage
       Progress.Title(titles[1]) unless Mode.normal
 
-      if !transactional
-        write_initrd || log.error("Error occurred while creating initrd")
-      end
+      write_initrd || log.error("Error occurred while creating initrd") if !transactional
 
       # Save boot loader configuration
       Progress.NextStage
