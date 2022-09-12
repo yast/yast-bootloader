@@ -115,6 +115,23 @@ describe Bootloader::Grub2Base do
 
       subject.write
     end
+
+    it "writes password" do
+      password = instance_double(Bootloader::GRUB2Pwd)
+      expect(Bootloader::GRUB2Pwd).to receive(:new).and_return(password)
+      subject.define_singleton_method(:name) { "grub2base" }
+
+      expect(password).to receive(:write)
+
+      subject.write
+    end
+
+    it "calls grub2-mkconfig in non-transactional system" do
+      expect(Yast::Execute).to receive(:on_target).with(/grub2-mkconfig/, any_args)
+      subject.write
+      expect(Yast::Execute).to_not receive(:on_target)
+      subject.write(etc_only: true)
+    end
   end
 
   describe "#propose" do
