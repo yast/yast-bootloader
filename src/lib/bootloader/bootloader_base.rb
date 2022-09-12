@@ -36,7 +36,9 @@ module Bootloader
     end
 
     # writes configuration to target disk
-    def write; end
+    # @param etc_only [Boolean] true on transactional systems
+    #   because /boot is read-only there
+    def write(etc_only: false); end
 
     # reads configuration from target disk
     def read

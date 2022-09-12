@@ -55,12 +55,16 @@ describe Bootloader::Grub2 do
       allow(Yast::BootStorage).to receive(:gpt_disks).and_return(["/dev/sdb"])
     end
 
-    it "writes stage1 location" do
+    it "writes stage1 location on non-transactional systems" do
       stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false)
       expect(stage1).to receive(:write)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       subject.write
+
+      expect(stage1).to_not receive(:write)
+
+      subject.write(etc_only: true)
     end
 
     it "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
@@ -75,7 +79,7 @@ describe Bootloader::Grub2 do
       subject.write
     end
 
-    it "runs grub2-install for all configured stage1 locations" do
+    it "runs grub2-install for all configured stage1 locations on non-transactional systems" do
       stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
@@ -86,6 +90,10 @@ describe Bootloader::Grub2 do
 
       subject.trusted_boot = false
       subject.write
+
+      expect(grub2_install).to_not receive(:execute)
+
+      subject.write(etc_only: true)
     end
 
     context "on s390" do
@@ -105,12 +113,16 @@ describe Bootloader::Grub2 do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       end
 
-      it "runs mbr update for configured stage1 flags" do
+      it "runs mbr update for configured stage1 flags on non-transactional systems" do
         mbr_update = double(Bootloader::MBRUpdate)
         expect(mbr_update).to receive(:run)
         expect(Bootloader::MBRUpdate).to receive(:new).and_return(mbr_update)
 
         subject.write
+
+        expect(mbr_update).to_not receive(:run)
+
+        subject.write(etc_only: true)
       end
     end
   end

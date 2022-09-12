@@ -23,27 +23,16 @@ module Bootloader
     end
 
     # Write bootloader settings to disk
-    def write
+    def write(etc_only: false)
       # super have to called as first as grub install require some config written in ancestor
       super
 
-      if pmbr_action
-        fs = filesystems
-        efi_partition = fs.find { |f| f.mount_path == "/boot/efi" }
-        efi_partition ||= fs.find { |f| f.mount_path == "/boot" }
-        efi_partition ||= fs.find { |f| f.mount_path == "/" }
+      pmbr_write if pmbr_action
 
-        raise "could not find boot partiton" unless efi_partition
-
-        disks = Yast::BootStorage.stage1_disks_for(efi_partition)
-        # set only gpt disks
-        disks.select! { |disk| disk.gpt? }
-
-        pmbr_setup(*disks.map(&:name))
+      unless etc_only
+        @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,
+          update_nvram: update_nvram)
       end
-
-      @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,
-        update_nvram: update_nvram)
 
       true
     end
@@ -119,6 +108,22 @@ module Bootloader
     def filesystems
       staging = Y2Storage::StorageManager.instance.staging
       staging.filesystems
+    end
+
+    # write pmbr flags
+    def pmbr_write
+      fs = filesystems
+      efi_partition = fs.find { |f| f.mount_path == "/boot/efi" }
+      efi_partition ||= fs.find { |f| f.mount_path == "/boot" }
+      efi_partition ||= fs.find { |f| f.mount_path == "/" }
+
+      raise "could not find boot partiton" unless efi_partition
+
+      disks = Yast::BootStorage.stage1_disks_for(efi_partition)
+      # set only gpt disks
+      disks.select! { |disk| disk.gpt? }
+
+      pmbr_setup(*disks.map(&:name))
     end
   end
 end

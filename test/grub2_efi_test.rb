@@ -44,7 +44,7 @@ describe Bootloader::Grub2EFI do
       subject.write
     end
 
-    it "calls grub2-install with respective boot flags configuration" do
+    it "calls grub2-install with respective boot flags configuration on non-transactional systems" do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       grub_install = double(Bootloader::GrubInstall)
@@ -56,6 +56,10 @@ describe Bootloader::Grub2EFI do
       subject.update_nvram = false
 
       subject.write
+
+      expect(grub_install).to_not receive(:execute)
+
+      subject.write(etc_only: true)
     end
 
   end
