@@ -478,6 +478,12 @@ describe Bootloader::Grub2Base do
       expect(subject.update_nvram).to eq true
     end
 
+    it "proposes hidden timeout option disabled" do
+      subject.propose
+
+      expect(subject.grub_default.hidden_timeout).to eq "0"
+    end
+
     context "with a serial console on the kernel command line on non-s390" do
       before do
         allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
