@@ -165,6 +165,7 @@ module Bootloader
       grub_default.default = "saved"
       # always propose true as grub2 itself detect if btrfs used
       grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
+      grub_default.hidden_timeout = "0"
 
       propose_serial
       propose_xen_hypervisor
