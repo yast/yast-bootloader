@@ -216,20 +216,6 @@ module Bootloader
 
   private
 
-    def propose_grub_default
-      if grub_default.kernel_params.empty?
-        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
-        grub_default.kernel_params.replace(kernel_line)
-      end
-      grub_default.gfxmode ||= "auto"
-      grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
-      grub_default.distributor ||= ""
-      grub_default.default = "saved"
-      # always propose true as grub2 itself detect if btrfs used
-      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
-      grub_default.hidden_timeout = "0"
-    end
-
     def systemwide_locale
       begin
         language = ::Bootloader::Language.new
@@ -364,6 +350,8 @@ module Bootloader
     end
 
     def propose_timeout
+      grub_default.hidden_timeout = "0"
+
       return if grub_default.timeout
 
       grub_default.timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_s
@@ -413,6 +401,19 @@ module Bootloader
 
     def propose_encrypted
       grub_default.cryptodisk.value = !!Yast::BootStorage.encrypted_boot?
+    end
+
+    def propose_grub_default
+      if grub_default.kernel_params.empty?
+        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
+        grub_default.kernel_params.replace(kernel_line)
+      end
+      grub_default.gfxmode ||= "auto"
+      grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
+      grub_default.distributor ||= ""
+      grub_default.default = "saved"
+      # always propose true as grub2 itself detect if btrfs used
+      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
     end
 
     # Secure boot setting shown in summary screen.
