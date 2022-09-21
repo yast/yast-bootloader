@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 21 06:24:02 UTC 2022 - Michal Filka <mfilka@suse.com>
+
+- bsc#1203418
+  - added default proposal for hidden timeout
+- 4.5.5 
+
+-------------------------------------------------------------------
 Mon Sep 12 10:04:01 UTC 2022 - Josef Reidinger <jreidinger@suse.com>
 
 - Allow bootloader to run on transactional systems (bsc#1128853)
