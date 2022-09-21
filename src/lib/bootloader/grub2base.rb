@@ -154,19 +154,7 @@ module Bootloader
       propose_terminal
       propose_timeout
       propose_encrypted
-
-      if grub_default.kernel_params.empty?
-        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
-        grub_default.kernel_params.replace(kernel_line)
-      end
-      grub_default.gfxmode ||= "auto"
-      grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
-      grub_default.distributor ||= ""
-      grub_default.default = "saved"
-      # always propose true as grub2 itself detect if btrfs used
-      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
-      grub_default.hidden_timeout = "0"
-
+      propose_grub_default
       propose_serial
       propose_xen_hypervisor
 
@@ -227,6 +215,20 @@ module Bootloader
     end
 
   private
+
+    def propose_grub_default
+      if grub_default.kernel_params.empty?
+        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
+        grub_default.kernel_params.replace(kernel_line)
+      end
+      grub_default.gfxmode ||= "auto"
+      grub_default.recovery_entry.disable unless grub_default.recovery_entry.defined?
+      grub_default.distributor ||= ""
+      grub_default.default = "saved"
+      # always propose true as grub2 itself detect if btrfs used
+      grub_default.generic_set("SUSE_BTRFS_SNAPSHOT_BOOTING", "true")
+      grub_default.hidden_timeout = "0"
+    end
 
     def systemwide_locale
       begin
