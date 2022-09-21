@@ -55,16 +55,12 @@ describe Bootloader::Grub2 do
       allow(Yast::BootStorage).to receive(:gpt_disks).and_return(["/dev/sdb"])
     end
 
-    it "writes stage1 location on non-transactional systems" do
+    it "writes stage1 location" do
       stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false)
       expect(stage1).to receive(:write)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       subject.write
-
-      expect(stage1).to_not receive(:write)
-
-      subject.write(etc_only: true)
     end
 
     it "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
