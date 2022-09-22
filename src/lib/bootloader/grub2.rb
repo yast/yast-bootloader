@@ -64,12 +64,15 @@ module Bootloader
       pmbr_setup(*::Yast::BootStorage.gpt_disks(stage1.devices))
 
       # powernv must not call grub2-install (bnc#970582)
-      if !Yast::Arch.board_powernv && !etc_only
-        failed = @grub_install.execute(
-          devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot,
-          update_nvram: update_nvram
-        )
-        failed.each { |f| stage1.remove_device(f) }
+      if !Yast::Arch.board_powernv
+        if !etc_only
+          failed = @grub_install.execute(
+            devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot,
+            update_nvram: update_nvram
+          )
+          failed.each { |f| stage1.remove_device(f) }
+        end
+        # write stage1 location
         stage1.write
       end
       # Do some mbr activations ( s390 do not have mbr nor boot flag on its disks )
