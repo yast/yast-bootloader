@@ -1,5 +1,6 @@
 require "yast"
 require "shellwords"
+require "yast2/execute"
 
 Yast.import "Stage"
 
