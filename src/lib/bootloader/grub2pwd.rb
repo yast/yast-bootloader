@@ -129,9 +129,9 @@ module Bootloader
 
     def encrypt(password)
       result = Yast::Execute.locally("/usr/bin/grub2-mkpasswd-pbkdf2",
-        env:    { "LANG" => "C" },
-        stdin:  "#{password}\n#{password}\n",
-        stdout: :capture,
+        env:      { "LANG" => "C" },
+        stdin:    "#{password}\n#{password}\n",
+        stdout:   :capture,
         recorder: NoStdinRecorder.new(Yast::Y2Logger.instance))
 
       pwd_line = result.split("\n").grep(/password is/).first
