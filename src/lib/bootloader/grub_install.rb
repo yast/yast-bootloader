@@ -125,11 +125,7 @@ module Bootloader
       # point) or there is no efi variable exposed. Install grub in the
       # removable location there.
       # Workaround for SLE15 SP2 - run always as removable on arm (bsc#1167015)
-<<<<<<< HEAD
       Yast::Arch.aarch64 || Yast::Arch.arm || (efi && !Systeminfo.writable_efivars?)
-=======
-      Yast::Arch.aarch64 || (efi && !Systeminfo.writable_efivars?)
->>>>>>> origin/SLE-15-SP2
     end
 
     def no_device_install?
