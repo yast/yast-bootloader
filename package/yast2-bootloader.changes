@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct  5 21:35:19 UTC 2022 - Josef Reidinger <jreidinger@suse.com>
+
+- prevent leak of grub2 password to logs(bsc#1201962)
+- 4.1.27
+
+-------------------------------------------------------------------
 Thu Jan 23 16:15:38 UTC 2020 - José Iván López González <jlopez@suse.com>
 
 - Improve message when root file system is not found (bsc#1160176).
