@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Oct  5 21:35:19 UTC 2022 - Josef Reidinger <jreidinger@suse.com>
+
+- prevent leak of grub2 password to logs(bsc#1201962)
+- 4.2.29
+
+-------------------------------------------------------------------
 Wed Mar  3 09:30:42 UTC 2021 - Josef Reidinger <jreidinger@suse.com>
 
 - Respect if efivars is mounted read only (bsc#1174111,
