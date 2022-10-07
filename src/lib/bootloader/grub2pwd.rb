@@ -2,6 +2,7 @@
 
 require "yast"
 require "shellwords"
+require "yast2/execute"
 
 Yast.import "Stage"
 
@@ -132,9 +133,10 @@ module Bootloader
 
     def encrypt(password)
       result = Yast::Execute.locally("/usr/bin/grub2-mkpasswd-pbkdf2",
-        env:    { "LANG" => "C" },
-        stdin:  "#{password}\n#{password}\n",
-        stdout: :capture)
+        env:      { "LANG" => "C" },
+        stdin:    "#{password}\n#{password}\n",
+        stdout:   :capture,
+        recorder: NoStdinRecorder.new(Yast::Y2Logger.instance))
 
       pwd_line = result.split("\n").grep(/password is/).first
       if !pwd_line
@@ -146,5 +148,12 @@ module Bootloader
 
       ret
     end
+  end
+
+  # Class to prevent Yast::Execute from leaking to the logs the password
+  # provided via stdin
+  class NoStdinRecorder < Cheetah::DefaultRecorder
+    # To prevent leaking stdin, just do nothing
+    def record_stdin(_stdin); end
   end
 end
