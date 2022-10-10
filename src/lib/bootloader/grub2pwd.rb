@@ -2,6 +2,7 @@
 
 require "yast"
 require "shellwords"
+require "yast2/execute"
 
 Yast.import "Stage"
 
@@ -132,9 +133,10 @@ module Bootloader
 
     def encrypt(password)
       result = Yast::Execute.on_target("/usr/bin/grub2-mkpasswd-pbkdf2",
-        env:    { "LANG" => "C" },
-        stdin:  "#{password}\n#{password}\n",
-        stdout: :capture)
+        env:      { "LANG" => "C" },
+        stdin:    "#{password}\n#{password}\n",
+        stdout:   :capture,
+        recorder: Yast::ReducedRecorder.new(skip: :stdin))
 
       pwd_line = result.split("\n").grep(/password is/).first
       if !pwd_line
