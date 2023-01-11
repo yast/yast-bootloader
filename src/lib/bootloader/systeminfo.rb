@@ -18,7 +18,7 @@ module Bootloader
       #
       # @return [Boolean] true if secure boot is currently active
       def secure_boot_active?
-        (efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_active?) &&
+        (efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_supported?) &&
           Sysconfig.from_system.secure_boot
       end
 
