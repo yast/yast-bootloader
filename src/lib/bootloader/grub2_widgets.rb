@@ -339,6 +339,50 @@ module Bootloader
     end
   end
 
+  # Specific secure boot widget for ppc as we need to handle also
+  # secure boot state in hardware. For details see https://bugzilla.suse.com/show_bug.cgi?id=1206295
+  class SecureBootWidgetPPC < CWM::CustomWidget
+    def initialize
+      textdomain "bootloader"
+
+      self.handle_all_events = true
+      @secure_boot_widget = SecureBootWidget.new
+
+      super
+    end
+
+    def contents
+      VBox(
+        @secure_boot_widget,
+        ReplacePoint(Id(:ppc_sec_label), Empty())
+      )
+    end
+
+    def init
+      handle_label
+    end
+
+    def handle(events)
+      return unless events["ID"] ==  @secure_boot_widget.widget_id
+
+      handle_label
+    end
+
+  private
+
+    def handle_label
+      # no work if already enabled in HMC
+      return if Systeminfo.ppc_secure_boot_active?
+
+      if @secure_boot_widget.value
+        label_widget = Label(_("Enable also in HMC!"))
+        Yast::UI.ReplaceWidget(Id(:ppc_sec_label), label_widget)
+      else
+        Yast::UI.ReplaceWidget(Id(:ppc_sec_label), Empty())
+      end
+    end
+  end
+
   # Represents switcher for secure boot on EFI
   class SecureBootWidget < CWM::CheckBox
     include Grub2Widget
@@ -1104,7 +1148,7 @@ module Bootloader
         w << GenericMBRWidget.new
       end
 
-      w << SecureBootWidget.new if secure_boot_widget?
+      w << secure_boot_widget if secure_boot_widget?
       w << TrustedBootWidget.new if trusted_boot_widget?
       w << UpdateNvramWidget.new if update_nvram_widget?
 
@@ -1117,6 +1161,10 @@ module Bootloader
       return Empty() unless pmbr_widget?
 
       MarginBox(1, 0, Left(PMBRWidget.new))
+    end
+
+    def secure_boot_widget
+      Yast::Arch.ppc ? SecureBootWidgetPPC.new : SecureBootWidget.new
     end
 
     def device_map_button
