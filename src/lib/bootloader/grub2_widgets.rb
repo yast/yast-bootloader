@@ -364,7 +364,7 @@ module Bootloader
     end
 
     def handle(events)
-      return unless events["ID"] ==  @secure_boot_widget.widget_id
+      return unless events["ID"] == @secure_boot_widget.widget_id
 
       handle_label
       nil
