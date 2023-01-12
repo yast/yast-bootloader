@@ -346,7 +346,7 @@ module Bootloader
       textdomain "bootloader"
 
       self.handle_all_events = true
-      @secure_boot_widget = SecureBootWidget.new
+      @secure_boot_widget = SecureBootWidget.new(notify: true)
 
       super
     end
@@ -359,6 +359,7 @@ module Bootloader
     end
 
     def init
+      @secure_boot_widget.init # ensure it is init before this widget so we can read value
       handle_label
     end
 
@@ -366,6 +367,7 @@ module Bootloader
       return unless events["ID"] ==  @secure_boot_widget.widget_id
 
       handle_label
+      nil
     end
 
   private
@@ -387,10 +389,15 @@ module Bootloader
   class SecureBootWidget < CWM::CheckBox
     include Grub2Widget
 
-    def initialize
+    def initialize(notify: false)
       textdomain "bootloader"
+      @notify = notify
 
-      super
+      super()
+    end
+
+    def opt
+      @notify ? [:notify] : []
     end
 
     def label
