@@ -285,6 +285,14 @@ describe Bootloader::SecureBootWidget do
   end
 end
 
+describe Bootloader::SecureBootWidgetPPC do
+  before do
+    assign_bootloader("grub2-efi")
+  end
+
+  include_examples "CWM::CustomWidget"
+end
+
 describe Bootloader::UpdateNvramWidget do
   before do
     assign_bootloader("grub2-efi")
