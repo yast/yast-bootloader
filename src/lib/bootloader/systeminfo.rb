@@ -28,7 +28,7 @@ module Bootloader
       #
       # @return [Boolean] true if secure boot is (in principle) supported on this system
       def secure_boot_supported?
-       efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_supported?
+        efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_supported?
       end
 
       # Check if secure boot is configurable with a bootloader.
