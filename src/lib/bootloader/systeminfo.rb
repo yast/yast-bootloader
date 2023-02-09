@@ -12,22 +12,24 @@ module Bootloader
   # Provide system and architecture dependent information
   class Systeminfo
     class << self
+      include Yast::Logger
+
       # Check current secure boot state.
       #
-      # This prefers the 'real' state over the config file setting, if possible.
+      # This reflects settings on OS level. If secure boot is not supported, it returns false.
       #
       # @return [Boolean] true if secure boot is currently active
       def secure_boot_active?
-        (efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_active?) &&
+        secure_boot_supported? &&
           Sysconfig.from_system.secure_boot
       end
 
       # Check if secure boot is in principle supported.
       #
       # @return [Boolean] true if secure boot is (in principle) supported on this system
-      # def secure_boot_supported?
-      #  efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_supported?
-      # end
+      def secure_boot_supported?
+        efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_supported?
+      end
 
       # Check if secure boot is configurable with a bootloader.
       #
@@ -113,7 +115,10 @@ module Bootloader
         # see jsc#SLE-9425
         return false unless Yast::Arch.s390
 
-        File.read("/sys/firmware/ipl/has_secure", 1) == "1"
+        res = File.read("/sys/firmware/ipl/has_secure", 1)
+        log.info "s390 has secure: #{res}"
+
+        res == "1"
       rescue StandardError
         false
       end
@@ -139,7 +144,10 @@ module Bootloader
         return false unless Yast::Arch.s390
 
         # see jsc#SLE-9425
-        File.read("/sys/firmware/ipl/secure", 1) == "1"
+        res = File.read("/sys/firmware/ipl/secure", 1)
+        log.info "s390 secure: #{res}"
+
+        res == "1"
       rescue StandardError
         false
       end
@@ -158,7 +166,9 @@ module Bootloader
         begin
           result = File.read("/proc/device-tree/ibm,secure-boot")
           result = result.unpack1("N")
-        rescue StandardError
+          log.info "reading ibm,secure-boot result #{result}"
+        rescue StandardError => e
+          log.info "reading ibm,secure-boot failed with #{e}"
           result = nil
         end
         result
@@ -177,7 +187,7 @@ module Bootloader
       # @return [Boolean] true if this is an ppc machine and secure boot is
       #   supported with the current setup
       def ppc_secure_boot_supported?
-        ppc_secure_boot_active?
+        ppc_secure_boot_available?
       end
 
       # Check if secure boot is currently active on an ppc machine.
