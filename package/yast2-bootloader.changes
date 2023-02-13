@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Feb 13 20:10:27 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
+
+- make secure boot for ppc64 consistent with how secure boot works
+  on other architectures (bsc#1206295)
+- 4.4.19
+
+-------------------------------------------------------------------
 Wed Oct  5 21:35:19 UTC 2022 - Josef Reidinger <jreidinger@suse.com>
 
 - prevent leak of grub2 password to logs(bsc#1201962)
