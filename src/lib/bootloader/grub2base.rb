@@ -168,7 +168,7 @@ module Bootloader
       propose_xen_hypervisor
 
       self.trusted_boot = false
-      self.secure_boot = Systeminfo.secure_boot_active?
+      self.secure_boot = Systeminfo.secure_boot_supported?
       self.update_nvram = true
     end
 

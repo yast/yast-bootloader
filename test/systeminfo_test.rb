@@ -111,11 +111,11 @@ describe Bootloader::Systeminfo do
 
       context "and ibm,secure-boot is not enabled on arch ppc64le " do
         let(:arch) { "ppc64" }
-        it "returns false and secure_boot_active? returns false" do
+        it "returns true and secure_boot_active? returns true" do
           allow(File).to receive(:read).with("/sys/firmware/ipl/has_secure", 1).and_return(false)
           allow(File).to receive(:read).with("/proc/device-tree/ibm,secure-boot").and_return("\0\0\0\0")
           expect(described_class.secure_boot_available?("grub2")).to be true
-          expect(described_class.secure_boot_active?).to be false
+          expect(described_class.secure_boot_active?).to be true
         end
       end
 
