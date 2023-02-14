@@ -167,7 +167,7 @@ module Bootloader
       return @target if @target
 
       arch = Yast::Arch.architecture
-      target = efi ? EFI_TARGETS[arch] : NON_EFI_TARGETS[arch]
+      target = efi ? EFI_TARGETS[Systeminfo.efi_arch] : NON_EFI_TARGETS[arch]
 
       if !target
         raise "unsupported combination of architecture #{arch} and " \
