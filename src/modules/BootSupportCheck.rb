@@ -50,6 +50,8 @@ module Yast
         supported = GRUB2() && supported
       when "grub2-efi"
         supported = GRUB2EFI() && supported
+      when "systemd-boot"
+        supported = SYSTEMDBOOT() && supported
       end
 
       log.info "Configuration supported: #{supported}"
@@ -81,9 +83,13 @@ module Yast
       # grub2 is sooo cool...
       return true if type == "grub2" && !::Bootloader::Systeminfo.efi_mandatory?
 
-      return true if (Arch.i386 || Arch.x86_64) && type == "grub2-efi" && efi?
+      if (Arch.i386 || Arch.x86_64) && ["grub2-efi", "systemd-boot"].include?(type) && efi?
+        return true
+      end
 
-      return true if type == "grub2-efi" && ::Bootloader::Systeminfo.efi_mandatory?
+      if ["grub2-efi", "systemd-boot"].include?(type) && ::Bootloader::Systeminfo.efi_mandatory?
+        return true
+      end
 
       log.error "Unsupported combination of hardware platform #{Arch.architecture} and bootloader #{type}"
       add_new_problem(
@@ -180,6 +186,11 @@ module Yast
 
     # GRUB2EFI-related check
     def GRUB2EFI
+      true
+    end
+
+    # systemd-boot-related check
+    def SYSTEMDBOOT
       true
     end
 

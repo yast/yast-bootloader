@@ -8,6 +8,8 @@ The goal of this document is to have a single source of information  which scena
 * grub2-efi
   * only for UEFI boot
   * only with GPT (see [bug](https://bugzilla.novell.com/show_bug.cgi?id=889733#c8))
+* systemd-boot
+  * only for UEFI boot
 * none
 
 # Partition table
@@ -76,6 +78,10 @@ This option requires packages based on the architecture of the system:
 * x86_64 architecture requires: <b>grub2-x86_64-efi</b>. If secure boot is used, it also requires <b>shim</b> and <b>mokutil</b>.
 * arm architecture requires: <b>grub2-arm-efi</b>.
 * aarch64 architecture requires: <b>grub2-arm64-efi</b>.
+
+## systemd-boot
+If you're running a multiboot EFI system, systemd-boot can provide easier boot management and may even reduce your boot times.
+Systemd-boot will be supported on x86_64 EFI architecture only.
 
 ## none
 This option has no additional package requirement.

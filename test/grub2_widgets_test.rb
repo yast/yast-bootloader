@@ -29,7 +29,7 @@ shared_examples "labeled widget" do
   end
 end
 
-describe Bootloader::TimeoutWidget do
+describe Bootloader::Grub2Widget::TimeoutWidget do
   subject(:widget) do
     described_class.new(hidden_menu_widget)
   end
@@ -102,7 +102,7 @@ describe Bootloader::TimeoutWidget do
   end
 end
 
-describe Bootloader::CpuMitigationsWidget do
+describe Bootloader::Grub2Widget::CpuMitigationsWidget do
   before do
     assign_bootloader
   end
@@ -134,7 +134,7 @@ describe Bootloader::CpuMitigationsWidget do
   end
 end
 
-describe Bootloader::ActivateWidget do
+describe Bootloader::Grub2Widget::ActivateWidget do
   before do
     assign_bootloader
   end
@@ -156,7 +156,7 @@ describe Bootloader::ActivateWidget do
   end
 end
 
-describe Bootloader::GenericMBRWidget do
+describe Bootloader::Grub2Widget::GenericMBRWidget do
   before do
     assign_bootloader
   end
@@ -178,7 +178,7 @@ describe Bootloader::GenericMBRWidget do
   end
 end
 
-describe Bootloader::HiddenMenuWidget do
+describe Bootloader::Grub2Widget::HiddenMenuWidget do
   before do
     assign_bootloader
   end
@@ -193,7 +193,7 @@ describe Bootloader::HiddenMenuWidget do
   end
 end
 
-describe Bootloader::OSProberWidget do
+describe Bootloader::Grub2Widget::OSProberWidget do
   before do
     assign_bootloader
   end
@@ -215,7 +215,7 @@ describe Bootloader::OSProberWidget do
   end
 end
 
-describe Bootloader::KernelAppendWidget do
+describe Bootloader::Grub2Widget::KernelAppendWidget do
   before do
     assign_bootloader
   end
@@ -237,7 +237,7 @@ describe Bootloader::KernelAppendWidget do
   end
 end
 
-describe Bootloader::PMBRWidget do
+describe Bootloader::Grub2Widget::PMBRWidget do
   before do
     assign_bootloader
   end
@@ -263,7 +263,7 @@ describe Bootloader::PMBRWidget do
   end
 end
 
-describe Bootloader::SecureBootWidget do
+describe Bootloader::Grub2Widget::SecureBootWidget do
   before do
     assign_bootloader("grub2-efi")
   end
@@ -285,7 +285,7 @@ describe Bootloader::SecureBootWidget do
   end
 end
 
-describe Bootloader::UpdateNvramWidget do
+describe Bootloader::Grub2Widget::UpdateNvramWidget do
   before do
     assign_bootloader("grub2-efi")
   end
@@ -322,11 +322,11 @@ describe Bootloader::UpdateNvramWidget do
 
 end
 
-describe Bootloader::TrustedBootWidget do
+describe Bootloader::Grub2Widget::TrustedBootWidget do
   include_examples "CWM::AbstractWidget"
 end
 
-describe Bootloader::GrubPasswordWidget do
+describe Bootloader::Grub2Widget::GrubPasswordWidget do
   before do
     assign_bootloader
   end
@@ -541,7 +541,7 @@ describe Bootloader::GrubPasswordWidget do
   end
 end
 
-describe Bootloader::ConsoleWidget do
+describe Bootloader::Grub2Widget::ConsoleWidget do
   before do
     assign_bootloader
   end
@@ -724,7 +724,7 @@ describe Bootloader::ConsoleWidget do
   end
 end
 
-describe Bootloader::DefaultSectionWidget do
+describe Bootloader::Grub2Widget::DefaultSectionWidget do
   before do
     sections = [
       { title: "openSUSE", path: "openSUSE" },
@@ -760,7 +760,7 @@ describe Bootloader::DefaultSectionWidget do
   end
 end
 
-describe Bootloader::LoaderLocationWidget do
+describe Bootloader::Grub2Widget::LoaderLocationWidget do
   before do
     assign_bootloader
     allow_any_instance_of(Bootloader::Stage1).to receive(:can_use_boot?).and_return true
@@ -769,7 +769,7 @@ describe Bootloader::LoaderLocationWidget do
   include_examples "CWM::CustomWidget"
 end
 
-describe Bootloader::DeviceMapWidget do
+describe Bootloader::Grub2Widget::DeviceMapWidget do
   before do
     assign_bootloader
   end
@@ -783,7 +783,7 @@ describe Bootloader::DeviceMapWidget do
   end
 end
 
-describe Bootloader::TrustedBootWidget do
+describe Bootloader::Grub2Widget::TrustedBootWidget do
   before do
     assign_bootloader
   end
@@ -800,7 +800,7 @@ describe Bootloader::TrustedBootWidget do
   end
 end
 
-describe Bootloader::KernelTab do
+describe Bootloader::Grub2Widget::KernelTab do
   before do
     assign_bootloader
   end
@@ -808,7 +808,7 @@ describe Bootloader::KernelTab do
   include_examples "CWM::Tab"
 end
 
-describe Bootloader::BootCodeTab do
+describe Bootloader::Grub2Widget::BootCodeTab do
   before do
     assign_bootloader
   end
@@ -816,7 +816,7 @@ describe Bootloader::BootCodeTab do
   include_examples "CWM::Tab"
 end
 
-describe Bootloader::BootloaderTab do
+describe Bootloader::Grub2Widget::BootloaderTab do
   before do
     allow(Yast::Package).to receive(:Available).and_return(true)
     assign_bootloader

@@ -14,6 +14,7 @@ describe Bootloader::AutoyastConverter do
     before do
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       allow(Bootloader::BootloaderFactory).to receive(:proposed).and_return(Bootloader::Grub2.new)
+      allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(true)
     end
 
     it "create bootloader of passed loader_type" do
@@ -115,6 +116,20 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.stage1).to be_activate
       expect(bootloader.stage1).to include("/dev/sda1")
     end
+
+    it "supports systemd-boot bootloader" do
+      data = {
+        "loader_type" => "systemd-boot",
+        "global"      => { "secure_boot" => true,
+                           "timeout"     => 30 }
+      }
+
+      section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(data)
+      bootloader = subject.import(section)
+      expect(bootloader).to be_a(Bootloader::SystemdBoot)
+      expect(bootloader.menue_timeout).to eq 30
+      expect(bootloader.secure_boot).to eq true
+    end
   end
 
   describe ".export" do
@@ -168,6 +183,19 @@ describe Bootloader::AutoyastConverter do
       it "exports update nvram key" do
         bootloader.update_nvram = false
         expect(subject.export(bootloader)["global"]["update_nvram"]).to eq "false"
+      end
+    end
+
+    context "for systemd-boot bootloader" do
+      let(:bootloader) { Bootloader::SystemdBoot.new }
+
+      it "exports secure boot key" do
+        bootloader.secure_boot = true
+        expect(subject.export(bootloader)["global"]["secure_boot"]).to eq true
+      end
+      it "exports timeout key" do
+        bootloader.menue_timeout = 20
+        expect(subject.export(bootloader)["global"]["timeout"]).to eq 20
       end
     end
   end

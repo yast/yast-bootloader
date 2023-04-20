@@ -35,6 +35,14 @@ module Yast
       @boot_fs
     end
 
+    # Moint point for /.
+    # @return [Y2Storage::Filesystem]
+    def root_filesystem
+      detect_disks
+
+      @root_fs
+    end
+
     def main
       textdomain "bootloader"
 
@@ -94,6 +102,7 @@ module Yast
     # resets disk configuration. Clears cache from #detect_disks
     def reset_disks
       @boot_fs = nil
+      @root_fs = nil
     end
 
     def prep_partitions
@@ -240,17 +249,24 @@ module Yast
       stage1_partitions_for(boot_filesystem)
     end
 
+    # shortcut to get stage1 partitions for /
+    def root_partitions
+      stage1_partitions_for(root_filesystem)
+    end
+
   private
 
     def detect_disks
-      return if @boot_fs && !storage_changed? # quit if already detected
+      return if @boot_fs && @root_fs && !storage_changed? # quit if already detected
 
+      @root_fs = find_mountpoint("/")
       @boot_fs = find_mountpoint("/boot")
-      @boot_fs ||= find_mountpoint("/")
+      @boot_fs ||= @root_fs
 
-      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @boot_fs
+      raise ::Bootloader::NoRoot, "Missing '/' mount point" unless @boot_fs && @root_fs
 
       log.info "boot fs #{@boot_fs.inspect}"
+      log.info "root fs #{@root_fs.inspect}"
 
       @storage_revision = Y2Storage::StorageManager.instance.staging_revision
     end
