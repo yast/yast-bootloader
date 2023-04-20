@@ -63,7 +63,7 @@ module Yast
         ret << " quiet"
         ret
       elsif Arch.s390
-        termparm = if ENV["TERM"] == "linux"
+        termparm = if ENV.fetch("TERM", nil) == "linux"
           "TERM=linux console=ttyS0 console=ttyS1"
         else
           "hvc_iucv=8 TERM=dumb"

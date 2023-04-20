@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Set the paths
+DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
+
 ENV["Y2DIR"] = File.expand_path("../src", __dir__)
 
 # localization agnostic tests
@@ -36,7 +39,7 @@ if ENV["COVERAGE"]
   SimpleCov.track_files("#{src_location}/**/*.rb")
 
   # additionally use the LCOV format for on-line code coverage reporting at CI
-  if ENV["CI"] || ENV["COVERAGE_LCOV"]
+  if ENV.fetch("CI", nil) || ENV.fetch("COVERAGE_LCOV", nil)
     require "simplecov-lcov"
 
     SimpleCov::Formatter::LcovFormatter.config do |c|

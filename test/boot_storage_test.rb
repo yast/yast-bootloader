@@ -183,4 +183,31 @@ describe Yast::BootStorage do
       end
     end
   end
+
+  describe ".root_filesystems" do
+    before { devicegraph_stub(scenario) }
+
+    context "with local storage and no separate boot" do
+      let(:scenario) { "trivial.yaml" }
+
+      it "returns the root filesystem" do
+        fs = subject.root_filesystem
+        expect(fs).to be_a Y2Storage::Filesystems::BlkFilesystem
+        expect(fs.type.is?(:btrfs)).to eq true
+        expect(fs.mount_path).to eq "/"
+      end
+    end
+  end
+
+  describe ".root_partitions" do
+    context "intel RSTe" do
+      before do
+        devicegraph_stub("intel_rst.xml")
+      end
+
+      it "returns md raid partitions device where / lives" do
+        expect(subject.root_partitions.map(&:name)).to eq ["/dev/md/Volume0_0p5"]
+      end
+    end
+  end
 end

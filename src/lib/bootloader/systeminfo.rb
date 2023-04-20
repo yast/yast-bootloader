@@ -79,7 +79,7 @@ module Bootloader
       # param bootloader_name [String] bootloader name
       # @return [Boolean] true if UEFI will be used for booting with this bootloader
       def efi_used?(bootloader_name)
-        bootloader_name == "grub2-efi"
+        ["grub2-efi", "systemd-boot"].include?(bootloader_name)
       end
 
       # Check if UEFI is available on this system.

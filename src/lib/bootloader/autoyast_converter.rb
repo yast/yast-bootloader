@@ -33,19 +33,28 @@ module Bootloader
         bootloader = bootloader_from_data(data)
         return bootloader if bootloader.name == "none"
 
-        import_grub2(data, bootloader)
-        import_grub2efi(data, bootloader)
-        import_stage1(data, bootloader)
-        import_default(data, bootloader.grub_default)
-        import_device_map(data, bootloader)
-        import_password(data, bootloader)
-        # always nil pmbr as autoyast does not support it yet,
-        # so use nil to always use proposed value (bsc#1081967)
-        bootloader.pmbr_action = nil
-        cpu_mitigations = data.global.cpu_mitigations
-        bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations) if cpu_mitigations
+        case bootloader.name
+        when "grub2", "grub2-efi"
+          import_grub2(data, bootloader)
+          import_grub2efi(data, bootloader)
+          import_stage1(data, bootloader)
+          import_default(data, bootloader.grub_default)
+          import_device_map(data, bootloader)
+          import_password(data, bootloader)
+          # always nil pmbr as autoyast does not support it yet,
+          # so use nil to always use proposed value (bsc#1081967)
+          bootloader.pmbr_action = nil
+          cpu_mitigations = data.global.cpu_mitigations
+          if cpu_mitigations
+            bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations)
+          end
+        when "systemd-boot"
+          bootloader.menue_timeout = data.global.timeout
+          bootloader.secure_boot = data.global.secure_boot
+        else
+          raise UnsupportedBootloader, bootloader.name
+        end
         # TODO: import Initrd
-
         log.warn "autoyast profile contain sections which won't be processed" if data.sections
 
         bootloader
@@ -61,12 +70,21 @@ module Bootloader
         return res if bootloader_type == "none"
 
         res["global"] = {}
-        global = res["global"]
-        export_grub2(global, config) if config.name == "grub2"
-        export_grub2efi(global, config) if config.name == "grub2-efi"
-        export_default(global, config.grub_default)
-        export_password(global, config.password)
-        res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
+
+        case config.name
+        when "grub2", "grub2-efi"
+          global = res["global"]
+          export_grub2(global, config) if config.name == "grub2"
+          export_grub2efi(global, config) if config.name == "grub2-efi"
+          export_default(global, config.grub_default)
+          export_password(global, config.password)
+          res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
+        when "systemd-boot"
+          res["global"]["timeout"] = config.menue_timeout
+          res["global"]["secure_boot"] = config.secure_boot
+        else
+          raise UnsupportedBootloader, bootloader.name
+        end
         # Do not export device map as device name are very unpredictable and is used only as
         # work-around when automatic ones do not work for what-ever reasons ( it can really safe
         # your day in L3 )

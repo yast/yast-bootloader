@@ -40,11 +40,12 @@ module Bootloader
 
     def localized_names(name)
       names = {
-        "grub2"     => _("GRUB2"),
-        "grub2-efi" => _("GRUB2 for EFI"),
+        "grub2"        => _("GRUB2"),
+        "grub2-efi"    => _("GRUB2 for EFI"),
         # Translators: option in combo box when bootloader is not managed by yast2
-        "none"      => _("Not Managed"),
-        "default"   => _("Default")
+        "systemd-boot" => _("Systemd Boot"),
+        "none"         => _("Not Managed"),
+        "default"      => _("Default")
       }
 
       names[name] or raise "Unknown supported bootloader '#{name}'"
@@ -63,6 +64,20 @@ module Bootloader
           "If you do not install any boot loader, the system\n" \
           "might not start.\n" \
           "\n" \
+          "Proceed?\n"
+        )
+
+        return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
+      end
+
+      if new_bl == "systemd-boot"
+        # popup - Continue/Cancel
+        popup_msg = _(
+          "\n" \
+          "Systemd-boot support is currently work in progress and\n" \
+          "may not work as expected. Use at your own risk.\n" \
+          "\n" \
+          "Currently we do not provide official maintenance or support.\n" \
           "Proceed?\n"
         )
 
