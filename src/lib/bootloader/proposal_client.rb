@@ -227,7 +227,7 @@ module Bootloader
       elsif old_bootloader =~ /grub2/ && old_bootloader != current_bl.name
         raise MismatchBootloader.new(old_bootloader, current_bl.name)
       elsif force_reset
-        log.warn "forced proposel during migration. Will change existing config"
+        log.warn "forced proposal during migration. Will change existing config"
         # Repropose the type. A regular Reset/Propose is not enough.
         # For more details see bnc#872081
         Yast::Bootloader.Reset
