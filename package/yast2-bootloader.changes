@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 25 20:22:30 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
+
+- Do not overwrite user selection during migration (bsc#1210811)
+- 4.5.9
+
+-------------------------------------------------------------------
 Wed Feb  8 15:30:25 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
 
 - make secure boot for ppc64 consistent with how secure boot works

@@ -187,17 +187,6 @@ describe Bootloader::ProposalClient do
       subject.make_proposal({})
     end
 
-    it "reproprose from scrach during update if old bootloader is not grub2" do
-      allow(Yast::Mode).to receive(:update).and_return(true)
-
-      expect(subject).to receive("old_bootloader").and_return("grub").at_least(:once)
-
-      expect(Yast::Bootloader).to receive(:Reset).at_least(:once)
-      expect(Bootloader::BootloaderFactory).to receive(:proposed).and_call_original
-
-      subject.make_proposal({})
-    end
-
     it "do not propose during update if if old bootloader is none" do
       allow(Yast::Mode).to receive(:update).and_return(true)
 
