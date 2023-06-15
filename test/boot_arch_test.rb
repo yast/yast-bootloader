@@ -88,6 +88,11 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("/dev/dasd2")).to include("fips=1")
       end
 
+      it "adds zfcp.allow_lun_scan if boot command line contains it" do
+        allow(Yast::Kernel).to receive(:GetCmdLine).and_return("danger zfcp.allow_lun_scan=0 fips=1 anarchy=0")
+        expect(subject.DefaultKernelParams("/dev/dasd2")).to include("zfcp.allow_lun_scan=0")
+      end
+
       it "does not add other boot params" do
         allow(Yast::Kernel).to receive(:GetCmdLine).and_return("danger kill=1 murder=allowed anarchy=0")
         expect(subject.DefaultKernelParams("/dev/dasd2")).to_not include("danger")

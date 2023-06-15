@@ -41,7 +41,8 @@ module Yast
       /net\.ifnames=\S*/,
       /fips=\S*/,
       /mitigations=\S*/,
-      /rd\.zdev=\S*/
+      /rd\.zdev=\S*/,
+      /zfcp\.allow_lun_scan=\S*/
     ].freeze
 
     # Get parameters for the default kernel
