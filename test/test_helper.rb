@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Set the paths
-DATA_PATH = File.join(File.expand_path(File.dirname(__FILE__)), "data")
+DATA_PATH = File.join(__dir__, "data")
 
 ENV["Y2DIR"] = File.expand_path("../src", __dir__)
 

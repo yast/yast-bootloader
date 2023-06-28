@@ -81,6 +81,6 @@ describe CFA::SystemdBoot do
 
       subject.save
     end
-  end  
-  
+  end
+
 end

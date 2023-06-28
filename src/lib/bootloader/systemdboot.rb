@@ -14,7 +14,6 @@ Yast.import "Stage"
 
 module Bootloader
   # Represents systemd bootloader with efi target
-  # rubocop:disable Metrics/ClassLength
   class SystemdBoot < BootloaderBase
     include Yast::Logger
     include Yast::I18n
@@ -182,7 +181,7 @@ module Bootloader
 
     def write_menue_timeout
       config = CFA::SystemdBoot.load
-      config.menue_timeout = self.menue_timeout.to_s
+      config.menue_timeout = menue_timeout.to_s
       config.save
     end
 
@@ -272,5 +271,4 @@ module Bootloader
       end
     end
   end
-  # rubocop:enable Metrics/ClassLength
 end

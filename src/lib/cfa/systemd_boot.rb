@@ -37,15 +37,15 @@ module CFA
   #
   # @example Loading shortcut
   #   file = CFA::SystemdBoot.load
-  #   file.menue_timeout #=> 10  
+  #   file.menue_timeout #=> 10
   class SystemdBoot < BaseModel
     extend Yast::Logger
     include Yast::Logger
 
     attributes(
       menue_timeout: "timeout",
-      console_mode: "console_mode",
-      default: "default"
+      console_mode:  "console_mode",
+      default:       "default"
     )
 
     # Instantiates and loads a file when possible
@@ -76,7 +76,10 @@ module CFA
 
     def save
       directory = File.dirname(@file_path)
-      Yast::Execute.on_target("/usr/bin/mkdir", "--parents", directory) if !Yast::FileUtils.IsDirectory(directory)
+      if !Yast::FileUtils.IsDirectory(directory)
+        Yast::Execute.on_target("/usr/bin/mkdir", "--parents",
+          directory)
+      end
       super
     rescue Errno::EACCES
       log.info("Permission denied when writting to #{@file_path}")
