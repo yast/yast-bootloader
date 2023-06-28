@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) [2023] SUSE LLC
 #
 # All Rights Reserved.
@@ -87,12 +89,12 @@ module CFA
     end
 
     # Default path to the systemd-boot config file
-    PATH = "/boot/efi/loader/loader.conf".freeze
+    PATH = "/boot/efi/loader/loader.conf"
     private_constant :PATH
 
     # The lens to be used by Augeas parser
     #
-    LENS = "spacevars.lns".freeze
+    LENS = "spacevars.lns"
     private_constant :LENS
   end
 end
