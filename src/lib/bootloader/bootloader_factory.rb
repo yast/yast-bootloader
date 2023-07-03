@@ -72,9 +72,10 @@ module Bootloader
         # grub2 everywhere except aarch64 or riscv64
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
-        ret << SYSTEMDBOOT if Systeminfo.efi_supported? && Yast::ProductFeatures.GetBooleanFeature(
-          "globals", "enable_systemd_boot"
-        )
+        if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+            Yast::Arch.x86_64 # only x86_64 is supported
+          ret << SYSTEMDBOOT
+        end
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
