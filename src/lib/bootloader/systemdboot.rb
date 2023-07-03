@@ -42,6 +42,7 @@ module Bootloader
 
     def cpu_mitigations
       log.info "cpu_mitigations not supported in systemd-boot"
+      return auto:
     end
 
     def cpu_mitigations=(value)
