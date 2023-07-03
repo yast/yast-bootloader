@@ -55,7 +55,7 @@ module Bootloader
 
       install_bootloader
       create_menue_entries
-      write_menue_timeout
+#      write_menue_timeout
 
       true
     end
@@ -135,43 +135,23 @@ module Bootloader
     LS = "/bin/ls"
     KERNELINSTALL = "/usr/bin/kernel-install"
     BOOTCTL = "/bin/bootctl"
+    SDBOOTUTIL = "/usr/bin/sdbootutil"
     CAT = "/bin/cat"
     MOKUTIL = "/bin/mokutil"
 
     def create_menue_entries
-      cmdline_file = File.join(Yast::Installation.destdir, "/etc/kernel/cmdline")
-      if Yast::Stage.initial
-        # kernel-install script needs the "root=<device>" entry in kernel parameters.
-        # This will be written to /etc/kernel/cmdline which will be used in an
-        # installed system by the administrator only. So we can use it because
-        # the system will be installed new. This file will be deleted after
-        # calling kernel-install.
-        File.open(cmdline_file, "w+") do |fw|
-          fw.puts("root=#{Yast::BootStorage.root_partitions.first.name}")
-        end
+      begin
+        Yast::Execute.on_target!(SDBOOTUTIL, "add-all-kernels")
+      rescue Cheetah::ExecutionFailed => e
+        Yast::Report.Error(
+          format(_(
+                   "Cannot create systemd-boot menue entry:\n" \
+                   "Command `%{command}`.\n" \
+                   "Error output: %{stderr}"
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+        break
       end
-
-      Dir.foreach(File.join(Yast::Installation.destdir, "/usr/lib/modules")) do |kernel_name|
-        next if [".", ".."].include?(kernel_name)
-
-        kernel_file = File.join("/usr/lib/modules", kernel_name, "vmlinuz")
-        if File.exist?(File.join(Yast::Installation.destdir, kernel_file))
-          begin
-            Yast::Execute.on_target!(KERNELINSTALL, "add",
-              File.basename(kernel_name), kernel_file)
-          rescue Cheetah::ExecutionFailed => e
-            Yast::Report.Error(
-            format(_(
-                     "Cannot create systemd-boot menue entry:\n" \
-                     "Command `%{command}`.\n" \
-                     "Error output: %{stderr}"
-                   ), command: e.commands.inspect, stderr: e.stderr)
-          )
-            break
-          end
-        end
-      end
-      File.delete(cmdline_file) if Yast::Stage.initial # see above
     end
 
     def read_menue_timeout
@@ -248,8 +228,8 @@ module Bootloader
 
     def install_bootloader
       begin
-        delete_bootloader # if bootloader is already installed
-        Yast::Execute.on_target!(BOOTCTL, "--make-entry-directory=yes",
+#        delete_bootloader # if bootloader is already installed
+        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
           "install")
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
@@ -261,6 +241,7 @@ module Bootloader
       )
         return
       end
+return      
       return unless secure_boot
 
       if secure_boot_available
