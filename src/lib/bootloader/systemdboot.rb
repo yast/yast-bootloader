@@ -42,7 +42,10 @@ module Bootloader
 
     def cpu_mitigations
       log.info "cpu_mitigations not supported in systemd-boot"
-      return ""
+    end
+
+    def cpu_mitigations=(value)
+      log.info "ignoring set of cpu_mitigations (#{value}) in systemd bootloader."
     end
 
     def read
