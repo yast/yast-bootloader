@@ -41,8 +41,8 @@ module Bootloader
     end
 
     def cpu_mitigations
-      log.info "cpu_mitigations not supported in systemd-boot"
-      return :auto
+      log.info "cpu_mitigations not supported in systemd-boot. Return DEFAULT"
+      return ::Bootloader::CpuMitigations::DEFAULT
     end
 
     def cpu_mitigations=(value)
