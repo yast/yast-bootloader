@@ -150,7 +150,6 @@ module Bootloader
                    "Error output: %{stderr}"
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
-        break
       end
     end
 
