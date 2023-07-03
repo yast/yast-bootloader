@@ -40,6 +40,11 @@ module Bootloader
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
     end
 
+    def cpu_mitigations
+      log.info "cpu_mitigations not supported in systemd-boot"
+      return ""
+    end
+
     def read
       super
 
