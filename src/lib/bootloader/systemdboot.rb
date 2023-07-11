@@ -149,8 +149,19 @@ module Bootloader
     MOKUTIL = "/bin/mokutil"
 
     def create_menue_entries
+      cmdline_file = File.join(Yast::Installation.destdir, "/etc/kernel/cmdline")
+      if Yast::Stage.initial
+        # sdbootutil script needs the "root=<device>" entry in kernel parameters.
+        # This will be written to /etc/kernel/cmdline which will be used in an
+        # installed system by the administrator only. So we can use it because
+        # the system will be installed new. This file will be deleted after
+        # calling sdbootutil.
+        File.open(cmdline_file, "w+") do |fw|
+          fw.puts("root=#{Yast::BootStorage.root_partitions.first.name}")
+        end
+      end      
       begin
-        Yast::Execute.on_target!(SDBOOTUTIL, "add-all-kernels")
+        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
@@ -160,6 +171,7 @@ module Bootloader
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
       end
+      File.delete(cmdline_file) if Yast::Stage.initial # see above      
     end
 
     def read_menue_timeout
