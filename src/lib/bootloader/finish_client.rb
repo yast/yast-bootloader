@@ -65,21 +65,25 @@ module Bootloader
       # and remember result of merge as current one
       ::Bootloader::BootloaderFactory.current = system
 
-      # fate #303395: Use kexec to avoid booting between first and second stage
-      # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
-      if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
-        kexec = ::Bootloader::Kexec.new
-        kexec.prepare_environment
-      else
-        log.info "Installation started with kexec_reboot set 0"
-      end
+      if !BootloaderFactory.current.is_a?(SystemdBoot)
+        #not for SystemdBoot bootloader
 
-      # call dracut to ensure initrd is properly set, it is especially needed
-      # in live system install ( where it is just copyied ) and image based
-      # installation where post install script is not executed
-      # (bnc#979719,bnc#977656, bsc#1189374)
-      # --regenerate-all is needed for generating initrd image for all kernels (bsc#1189915)
-      Yast::Execute.on_target("/usr/bin/dracut", "--force", "--regenerate-all")
+        # fate #303395: Use kexec to avoid booting between first and second stage
+        # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
+        if Yast::Linuxrc.InstallInf("kexec_reboot") == "1"
+          kexec = ::Bootloader::Kexec.new
+          kexec.prepare_environment
+        else
+          log.info "Installation started with kexec_reboot set 0"
+        end
+
+        # call dracut to ensure initrd is properly set, it is especially needed
+        # in live system install ( where it is just copyied ) and image based
+        # installation where post install script is not executed
+        # (bnc#979719,bnc#977656, bsc#1189374)
+        # --regenerate-all is needed for generating initrd image for all kernels (bsc#1189915)
+        Yast::Execute.on_target("/usr/bin/dracut", "--force", "--regenerate-all")
+      end
 
       true
     end
