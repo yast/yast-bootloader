@@ -64,7 +64,7 @@ module Bootloader
 
       install_bootloader
       create_menue_entries
-#      write_menue_timeout
+      write_menue_timeout
 
       true
     end
@@ -174,6 +174,20 @@ module Bootloader
       File.delete(cmdline_file) if Yast::Stage.initial # see above      
     end
 
+    def delete_menue_entries
+      begin
+        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "remove-all-kernels")
+      rescue Cheetah::ExecutionFailed => e
+        Yast::Report.Error(
+          format(_(
+                   "Cannot delete systemd-boot menue entry:\n" \
+                   "Command `%{command}`.\n" \
+                   "Error output: %{stderr}"
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+      end
+    end
+
     def read_menue_timeout
       config = CFA::SystemdBoot.load
       self.menue_timeout = config.menue_timeout.to_i if config.menue_timeout
@@ -214,6 +228,9 @@ module Bootloader
       return unless bootloader_is_installed
 
       log.info("Removing already installed systemd bootmanager.")
+
+      delete_menue_entries
+
       begin
         Yast::Execute.on_target!(BOOTCTL, "remove")
       rescue Cheetah::ExecutionFailed => e
@@ -226,7 +243,7 @@ module Bootloader
       )
         return
       end
-      remove_secure_boot_settings
+#      remove_secure_boot_settings
     end
 
     def set_secure_boot
@@ -248,7 +265,7 @@ module Bootloader
 
     def install_bootloader
       begin
-#        delete_bootloader # if bootloader is already installed
+        delete_bootloader # if bootloader is already installed
         Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
           "install")
       rescue Cheetah::ExecutionFailed => e
