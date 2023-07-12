@@ -231,18 +231,18 @@ module Bootloader
 
       delete_menue_entries
 
-      begin
-        Yast::Execute.on_target!(BOOTCTL, "remove")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-        format(_(
-               "Cannot remove systemd bootloader:\n" \
-               "Command `%{command}`.\n" \
-               "Error output: %{stderr}"
-             ), command: e.commands.inspect, stderr: e.stderr)
-      )
-        return
-      end
+#      begin
+#        Yast::Execute.on_target!(BOOTCTL, "remove")
+#      rescue Cheetah::ExecutionFailed => e
+#        Yast::Report.Error(
+#        format(_(
+#               "Cannot remove systemd bootloader:\n" \
+#               "Command `%{command}`.\n" \
+#               "Error output: %{stderr}"
+#             ), command: e.commands.inspect, stderr: e.stderr)
+#      )
+#        return
+#      end
 #      remove_secure_boot_settings
     end
 
