@@ -10,10 +10,18 @@ describe Bootloader::SystemdBoot do
     sub
   end
 
+  let(:destdir) { File.expand_path("data/", __dir__) }
+  let(:kerneldir) { File.join(destdir, "etc", "kernel") }
+
   before do
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     allow(Yast::Package).to receive(:Available).and_return(true)
+    FileUtils.mkdir_p(kerneldir)
+  end
+
+  after do
+    FileUtils.remove_entry(kerneldir) if Dir.exist?(kerneldir)
   end
 
   describe "#read" do
@@ -30,13 +38,13 @@ describe Bootloader::SystemdBoot do
   describe "#write" do
     it "installs bootloader and creates menue entries" do
       allow(subject).to receive(:secure_boot).and_return(false)
+      allow(Yast::Stage).to receive(:initial).and_return(true)
 
       # install bootloader
       expect(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "install")
       # create menue entries
-      allow(Yast::Stage).to receive(:initial).and_return(false)
-      allow(Yast::Installation).to receive(:destdir).and_return(File.expand_path("data/", __dir__))
+      allow(Yast::Installation).to receive(:destdir).and_return(destdir)
       expect(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
       # Saving menue timeout
