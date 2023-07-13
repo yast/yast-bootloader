@@ -33,12 +33,13 @@ describe Bootloader::SystemdBoot do
 
       # install bootloader
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/bin/bootctl", "--make-entry-directory=yes", "install")
+        .with("/usr/bin/sdbootutil", "--verbose", "install")
       # create menue entries
       allow(Yast::Stage).to receive(:initial).and_return(false)
       allow(Yast::Installation).to receive(:destdir).and_return(File.expand_path("data/", __dir__))
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/kernel-install", "add", "testkernel", "/usr/lib/modules/testkernel/vmlinuz")
+        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+      # Saving menue timeout
       expect_any_instance_of(CFA::SystemdBoot).to receive(:save)
 
       subject.menue_timeout = 10
@@ -52,7 +53,6 @@ describe Bootloader::SystemdBoot do
       subject.secure_boot = true
 
       expect(subject.packages).to include("shim")
-      expect(subject.packages).to include("mokutil")
     end
   end
 

@@ -108,8 +108,7 @@ module Bootloader
 
     def packages
       res = super
-
-      #      res << "sdbootutil" << "systemd-boot"
+      res << "sdbootutil" << "systemd-boot"
 
       case Yast::Arch.architecture
       when "x86_64"

@@ -54,10 +54,10 @@ module Bootloader
         if Yast::Mode.config
           # default means bootloader use what it think is the best
           result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
-          #          if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
-          #              Yast::Arch.x86_64 # only x86_64 is supported
-          result << SYSTEMDBOOT
-          #          end
+          if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+              Yast::Arch.x86_64 # only x86_64 is supported
+            result << SYSTEMDBOOT
+          end
           result << DEFAULT_KEYWORD
           return result
         end
@@ -72,10 +72,10 @@ module Bootloader
         # grub2 everywhere except aarch64 or riscv64
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
-        #     if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
-        #              Yast::Arch.x86_64 # only x86_64 is supported
-        ret << SYSTEMDBOOT
-        #      end
+        if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+            Yast::Arch.x86_64 # only x86_64 is supported
+          ret << SYSTEMDBOOT
+        end
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
