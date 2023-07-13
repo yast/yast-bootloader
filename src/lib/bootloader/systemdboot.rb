@@ -58,12 +58,12 @@ module Bootloader
 
     # Write bootloader settings to disk
     def write(etc_only: false)
-      # super have to called as first as grub install require some config written in ancestor
       super
       log.info("Writing settings...")
-
-      install_bootloader
-      create_menue_entries
+      if Yast::Stage.initial # while new installation only (currently)
+        install_bootloader
+        create_menue_entries
+      end
       write_menue_timeout
 
       true
@@ -117,9 +117,11 @@ module Bootloader
     def packages
       res = super
 
+      res << "sdbootutil" << "systemd-boot"
+
       case Yast::Arch.architecture
       when "x86_64"
-        res << "shim" << "mokutil" if secure_boot
+        res << "shim" if secure_boot
       else
         log.warn "Unknown architecture #{Yast::Arch.architecture} for EFI"
       end
@@ -128,7 +130,7 @@ module Bootloader
     end
 
     def delete
-      delete_bootloader
+      log.warn("is currently not supported")
     end
 
     # overwrite BootloaderBase version to save secure boot
@@ -141,12 +143,7 @@ module Bootloader
 
   private
 
-    LS = "/bin/ls"
-    KERNELINSTALL = "/usr/bin/kernel-install"
-    BOOTCTL = "/bin/bootctl"
     SDBOOTUTIL = "/usr/bin/sdbootutil"
-    CAT = "/bin/cat"
-    MOKUTIL = "/bin/mokutil"
 
     def create_menue_entries
       cmdline_file = File.join(Yast::Installation.destdir, "/etc/kernel/cmdline")
@@ -174,20 +171,6 @@ module Bootloader
       File.delete(cmdline_file) if Yast::Stage.initial # see above      
     end
 
-    def delete_menue_entries
-      begin
-        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "remove-all-kernels")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot delete systemd-boot menue entry:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-      end
-    end
-
     def read_menue_timeout
       config = CFA::SystemdBoot.load
       self.menue_timeout = config.menue_timeout.to_i if config.menue_timeout
@@ -199,73 +182,8 @@ module Bootloader
       config.save
     end
 
-    def bootloader_is_installed
-      Yast::Execute.on_target(BOOTCTL, "is-installed", allowed_exitstatus: 1) == 0
-    end
-
-    def remove_secure_boot_settings
-      del_files = ["/boot/efi/EFI/systemd/grub.efi",
-                   "/boot/efi/EFI/systemd/systemd-bootx64.efi",
-                   "/boot/efi/EFI/systemd/MokManager.efi"]
-      del_files.each do |f|
-        filename = File.join(Yast::Installation.destdir, f)
-        File.delete(filename) if File.exist?(filename)
-      end
-    end
-
-    def secure_boot_available
-      ret = false
-      begin
-        ret = Yast::Execute.on_target(MOKUTIL, "--sb-state", allowed_exitstatus: 1) == 0
-      rescue Cheetah::ExecutionFailed => e
-        log.info("Command `#{e.commands.inspect}`.\n" \
-                 "Error output: #{e.stderr}")
-      end
-      ret
-    end
-
-    def delete_bootloader
-      return unless bootloader_is_installed
-
-      log.info("Removing already installed systemd bootmanager.")
-
-      delete_menue_entries
-
-#      begin
-#        Yast::Execute.on_target!(BOOTCTL, "remove")
-#      rescue Cheetah::ExecutionFailed => e
-#        Yast::Report.Error(
-#        format(_(
-#               "Cannot remove systemd bootloader:\n" \
-#               "Command `%{command}`.\n" \
-#               "Error output: %{stderr}"
-#             ), command: e.commands.inspect, stderr: e.stderr)
-#      )
-#        return
-#      end
-#      remove_secure_boot_settings
-    end
-
-    def set_secure_boot
-      # If secure boot is enabled, shim needs to be installed.
-      # As shim only reads grub.efi, systemd-boot needs to be renamed to pretend it's grub:
-      log.info("Enabling secure boot options")
-      src = File.join(Yast::Installation.destdir, "/boot/efi/EFI/systemd/systemd-bootx64.efi")
-      dest = File.join(Yast::Installation.destdir, "/boot/efi/EFI/systemd/grub.efi")
-      FileUtils.mv(src, dest) if File.exist?(src)
-      src = File.join(Yast::Installation.destdir, "/usr/share/efi/", Yast::Arch.architecture,
-        "/shim.efi")
-      dest = File.join(Yast::Installation.destdir, "/boot/efi/EFI/systemd/systemd-bootx64.efi")
-      FileUtils.cp(src, dest) if File.exist?(src)
-      src = File.join(Yast::Installation.destdir, "/usr/share/efi/", Yast::Arch.architecture,
-        "/MokManager.efi")
-      dest = File.join(Yast::Installation.destdir, "/boot/efi/EFI/systemd/MokManager.efi")
-      FileUtils.cp(src, dest) if File.exist?(src)
-    end
-
     def install_bootloader
       begin
-        delete_bootloader # if bootloader is already installed
         Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
           "install")
       rescue Cheetah::ExecutionFailed => e
@@ -277,15 +195,6 @@ module Bootloader
                ), command: e.commands.inspect, stderr: e.stderr)
       )
         return
-      end
-return      
-      return unless secure_boot
-
-      if secure_boot_available
-        set_secure_boot
-      else
-        Yast::Report.Error(_("Cannot activate secure boot because it is not available " \
-                             "on your system."))
       end
     end
   end
