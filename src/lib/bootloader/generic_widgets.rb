@@ -84,6 +84,15 @@ module Bootloader
         return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
       end
 
+      unless Yast::Stage.initial
+        if old_bl == "systemd-boot"
+          Yast::Popup.Warning(_(
+          "Switching from systemd-boot to another bootloader\n" \
+          "is currently not supported.\n"))
+          return :redraw
+        end
+      end
+
       BootloaderFactory.current_name = new_bl
       BootloaderFactory.current.propose
 
