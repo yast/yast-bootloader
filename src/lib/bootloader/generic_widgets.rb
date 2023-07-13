@@ -51,6 +51,8 @@ module Bootloader
       names[name] or raise "Unknown supported bootloader '#{name}'"
     end
 
+    # rubocop:disable Metrics/MethodLength
+    # It will be reduced again if systemd-boot is not anymore in beta phase.
     def handle
       old_bl = BootloaderFactory.current.name
       new_bl = value
@@ -84,13 +86,12 @@ module Bootloader
         return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
       end
 
-      unless Yast::Stage.initial
-        if old_bl == "systemd-boot"
-          Yast::Popup.Warning(_(
-          "Switching from systemd-boot to another bootloader\n" \
-          "is currently not supported.\n"))
-          return :redraw
-        end
+      if !Yast::Stage.initial && (old_bl == "systemd-boot")
+        Yast::Popup.Warning(_(
+        "Switching from systemd-boot to another bootloader\n" \
+        "is currently not supported.\n"
+      ))
+        return :redraw
       end
 
       BootloaderFactory.current_name = new_bl
@@ -99,6 +100,7 @@ module Bootloader
       :redraw
     end
 
+    # rubocop:enable Metrics/MethodLength
     def help
       _(
         "<p><b>Boot Loader</b>\n" \

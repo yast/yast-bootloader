@@ -109,7 +109,7 @@ module Bootloader
     def packages
       res = super
 
-#      res << "sdbootutil" << "systemd-boot"
+      #      res << "sdbootutil" << "systemd-boot"
 
       case Yast::Arch.architecture
       when "x86_64"
@@ -148,7 +148,7 @@ module Bootloader
         File.open(cmdline_file, "w+") do |fw|
           fw.puts("root=#{Yast::BootStorage.root_partitions.first.name}")
         end
-      end      
+      end
       begin
         Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
       rescue Cheetah::ExecutionFailed => e
@@ -160,7 +160,7 @@ module Bootloader
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
       end
-      File.delete(cmdline_file) if Yast::Stage.initial # see above      
+      File.delete(cmdline_file) if Yast::Stage.initial # see above
     end
 
     def read_menue_timeout
@@ -175,19 +175,17 @@ module Bootloader
     end
 
     def install_bootloader
-      begin
-        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
-          "install")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-        format(_(
-                 "Cannot install systemd bootloader:\n" \
-                 "Command `%{command}`.\n" \
-                 "Error output: %{stderr}"
-               ), command: e.commands.inspect, stderr: e.stderr)
-      )
-        return
-      end
+      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
+        "install")
+    rescue Cheetah::ExecutionFailed => e
+      Yast::Report.Error(
+      format(_(
+               "Cannot install systemd bootloader:\n" \
+               "Command `%{command}`.\n" \
+               "Error output: %{stderr}"
+             ), command: e.commands.inspect, stderr: e.stderr)
+    )
+      nil
     end
   end
 end

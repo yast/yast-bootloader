@@ -129,7 +129,7 @@ module Bootloader
       def widgets
         w = []
         if Yast::Stage.initial && # while new installation only (currently)
-           secure_boot_widget?
+            secure_boot_widget?
           w << SecureBootWidget.new
         end
 

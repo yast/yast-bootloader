@@ -66,7 +66,7 @@ module Bootloader
       ::Bootloader::BootloaderFactory.current = system
 
       if !BootloaderFactory.current.is_a?(SystemdBoot)
-        #not for SystemdBoot bootloader
+        # not for SystemdBoot bootloader
 
         # fate #303395: Use kexec to avoid booting between first and second stage
         # copy vmlinuz, initrd and flush kernel option into /var/lib/YaST2
