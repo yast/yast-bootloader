@@ -85,11 +85,17 @@ module Bootloader
     end
 
     # Secure boot setting shown in summary screen.
-    # sdbootutil decides (shim is installed or not) if secure boot is enabled.
+    # sdbootutil intialize secure boot if shim has been installed.
     #
     # @return [String]
     def secure_boot_summary
-      "#{_("Secure Boot:")} #{status_string(secure_boot)}"
+      link = if secure_boot
+        "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
     end
 
     # Display bootloader summary
