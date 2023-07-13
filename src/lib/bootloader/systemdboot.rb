@@ -85,16 +85,11 @@ module Bootloader
     end
 
     # Secure boot setting shown in summary screen.
+    # sdbootutil decides (shim is installed or not) if secure boot is enabled.
     #
     # @return [String]
     def secure_boot_summary
-      link = if secure_boot
-        "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
-      else
-        "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
-      end
-
-      "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
+      "#{_("Secure Boot:")} #{status_string(secure_boot)}"
     end
 
     # Display bootloader summary
@@ -117,7 +112,7 @@ module Bootloader
     def packages
       res = super
 
-      res << "sdbootutil" << "systemd-boot"
+#      res << "sdbootutil" << "systemd-boot"
 
       case Yast::Arch.architecture
       when "x86_64"
