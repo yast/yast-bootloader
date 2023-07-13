@@ -40,15 +40,6 @@ module Bootloader
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
     end
 
-    def cpu_mitigations
-      log.info "cpu_mitigations not supported in systemd-boot. Return DEFAULT"
-      return ::Bootloader::CpuMitigations::DEFAULT
-    end
-
-    def cpu_mitigations=(value)
-      log.info "ignoring set of cpu_mitigations (#{value}) in systemd bootloader."
-    end
-
     def read
       super
 
