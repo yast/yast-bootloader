@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug  7 09:02:48 UTC 2023 - Steffen Winterfeldt <snwint@suse.com>
+
+- support 32 bit UEFI firmware on x86_64/i386 architecture (bsc#1208003,
+  jsc#PED-2569)
+- 4.6.3
+
+-------------------------------------------------------------------
 Thu Jun 15 09:51:19 UTC 2023 - José Iván López González <jlopez@suse.com>
 
 - Persist zfcp.allow_lun_scan kernel option for s390 arch
