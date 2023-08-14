@@ -72,7 +72,7 @@ module Bootloader
     def packages
       res = super
 
-      case Yast::Arch.architecture
+      case Systeminfo.efi_arch
       when "i386"
         res << "grub2-i386-efi"
       when "x86_64"

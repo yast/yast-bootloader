@@ -28,6 +28,9 @@ module Bootloader
       #
       # @return [Boolean] true if secure boot is (in principle) supported on this system
       def secure_boot_supported?
+        # no shim for i386 (yet)
+        return false if efi_arch == "i386"
+
         efi_supported? || s390_secure_boot_supported? || ppc_secure_boot_supported?
       end
 
@@ -36,6 +39,9 @@ module Bootloader
       # @param bootloader_name [String] bootloader name
       # @return [Boolean] true if secure boot setting is available with this bootloader
       def secure_boot_available?(bootloader_name)
+        # no shim for i386 (yet)
+        return false if efi_arch == "i386"
+
         efi_used?(bootloader_name) || s390_secure_boot_available? || ppc_secure_boot_available?
       end
 
@@ -106,6 +112,31 @@ module Bootloader
       def shim_needed?(bootloader_name, secure_boot)
         (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64) &&
           secure_boot && efi_used?(bootloader_name)
+      end
+
+      # UEFI platform size (32 or 64 bits).
+      #
+      # On x86_64 systems both variants are possible.
+      #
+      # @return [Integer] platform size - or 0 if not applicable
+      def efi_platform_size
+        bits = File.read("/sys/firmware/efi/fw_platform_size").to_i
+        log.info "EFI platform size: #{bits}"
+        bits
+      rescue StandardError
+        0
+      end
+
+      # Effective UEFI architecture.
+      #
+      # Usually the same as the architecture except on x86_64 where it
+      # depends on the platform size.
+      #
+      # @return [String] architecture name
+      def efi_arch
+        arch = Yast::Arch.architecture
+        arch = "i386" if arch == "x86_64" && efi_platform_size == 32
+        arch
       end
 
       # Check if secure boot is (in principle) available on an s390 machine.
