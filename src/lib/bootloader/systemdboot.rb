@@ -114,7 +114,7 @@ module Bootloader
       when "x86_64"
         res << "shim" if secure_boot
       else
-        log.warn "Unknown architecture #{Yast::Arch.architecture} for EFI"
+        log.warn "Unknown architecture #{Yast::Arch.architecture} for systemdboot"
       end
 
       res
