@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug 30 20:16:10 UTC 2023 - Josef Reidinger <jreidinger@suse.cz>
+
+- 5.0.0 (#bsc1185510)
+
+-------------------------------------------------------------------
 Mon Aug  7 09:02:48 UTC 2023 - Steffen Winterfeldt <snwint@suse.com>
 
 - support 32 bit UEFI firmware on x86_64/i386 architecture (bsc#1208003,
