@@ -38,7 +38,13 @@ module Bootloader
     # writes configuration to target disk
     # @param etc_only [Boolean] true on transactional systems
     #   because /boot is read-only there
-    def write(etc_only: false); end
+    def write(etc_only: false)
+      return if etc_only
+
+      # reset eventl. already installed systemd bootloader
+      systemd_boot = BootloaderFactory.bootloader_by_name("systemd-boot")
+      systemd_boot&.delete
+    end
 
     # reads configuration from target disk
     def read

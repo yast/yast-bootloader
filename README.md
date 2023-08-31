@@ -38,6 +38,7 @@ that holds and also can propose the bootloader implementation. So now let's expl
 
 - [GRUB2](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2) for legacy booting or emulated grub2 boot like s390x.
 - [GRUB2-EFI](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2EFI) for EFI variant of GRUB2 bootloader
+- [systemd-boot](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/SystemdBoot) systemd bootloader (for EFI only)
 - [None](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/NoneBootloader) when YaST does not manage booting
 - [GRUB2 base](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/Grub2Base) is the shared functionality for both GRUB2 implementations
 - [GRUB password](https://www.rubydoc.info/github/yast/yast-bootloader/master/Bootloader/GRUB2Pwd) is a specific class that manages password protection of grub2

@@ -42,6 +42,13 @@ describe Yast::BootSupportCheck do
         expect(subject.SystemSupported).to eq false
       end
 
+      it "returns false if systemd-boot is used and UEFI is not supported" do
+        Bootloader::BootloaderFactory.current_name = "systemd-boot"
+        allow(subject).to receive(:efi?).and_return(false)
+
+        expect(subject.SystemSupported).to eq false
+      end
+
       it "returns false if neither generic mbr nor grub2 mbr is written" do
         allow(bootloader).to receive(:stage1)
           .and_return(double(mbr?: false, generic_mbr?: false, activate?: false))

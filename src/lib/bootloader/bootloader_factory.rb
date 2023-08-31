@@ -5,10 +5,12 @@ require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
 require "bootloader/grub2"
 require "bootloader/grub2efi"
+require "bootloader/systemdboot"
 require "bootloader/exceptions"
 
 Yast.import "Arch"
 Yast.import "Mode"
+Yast.import "ProductFeatures"
 
 module Bootloader
   # Factory to get instance of bootloader
@@ -21,6 +23,7 @@ module Bootloader
 
     # Keyword used in autoyast for default bootloader used for given system.
     DEFAULT_KEYWORD = "default"
+    SYSTEMDBOOT = "systemd-boot"
 
     class << self
       include Yast::Logger
@@ -50,7 +53,13 @@ module Bootloader
       def supported_names
         if Yast::Mode.config
           # default means bootloader use what it think is the best
-          return BootloaderFactory::SUPPORTED_BOOTLOADERS + [DEFAULT_KEYWORD]
+          result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
+          if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+              Yast::Arch.x86_64 # only x86_64 is supported
+            result << SYSTEMDBOOT
+          end
+          result << DEFAULT_KEYWORD
+          return result
         end
 
         begin
@@ -63,11 +72,16 @@ module Bootloader
         # grub2 everywhere except aarch64 or riscv64
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
+        if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+            Yast::Arch.x86_64 # only x86_64 is supported
+          ret << SYSTEMDBOOT
+        end
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity
       def bootloader_by_name(name)
         # needed to be able to store settings when moving between bootloaders
         @cached_bootloaders ||= {}
@@ -76,6 +90,8 @@ module Bootloader
           @cached_bootloaders["grub2"] ||= Grub2.new
         when "grub2-efi"
           @cached_bootloaders["grub2-efi"] ||= Grub2EFI.new
+        when "systemd-boot"
+          @cached_bootloaders["systemd-boot"] ||= SystemdBoot.new
         when "none"
           @cached_bootloaders["none"] ||= NoneBootloader.new
         when String
@@ -86,6 +102,7 @@ module Bootloader
           nil # in other cases it means that read failed
         end
       end
+    # rubocop:enable Metrics/CyclomaticComplexity
 
     private
 
