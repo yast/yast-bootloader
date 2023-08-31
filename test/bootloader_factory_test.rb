@@ -28,20 +28,49 @@ describe Bootloader::BootloaderFactory do
     end
   end
   describe "#supported_names" do
-    context "product supports systemd-boot" do
+    context "on x86_64 architectures" do
       before do
-        allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(true)
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       end
-      it "returns systemd-boot in the list" do
-        expect(Bootloader::BootloaderFactory.supported_names).to eq ["grub2", "grub2-efi", "systemd-boot", "none"]
+
+      context "product supports systemd-boot" do
+        before do
+          allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(true)
+        end
+        it "returns systemd-boot in the list" do
+          expect(Bootloader::BootloaderFactory.supported_names).to eq ["grub2", "grub2-efi", "systemd-boot", "none"]
+        end
+      end
+      context "product does not support systemd-boot" do
+        before do
+          allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(false)
+        end
+        it "does not include systemd-boot in the list" do
+          expect(Bootloader::BootloaderFactory.supported_names).to eq ["grub2", "grub2-efi", "none"]
+        end
       end
     end
-    context "product does not support systemd-boot" do
+
+    context "on aarch64 architectures" do
       before do
-        allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(false)
+        allow(Yast::Arch).to receive(:architecture).and_return("aarch64")
       end
-      it "does not include systemd-boot in the list" do
-        expect(Bootloader::BootloaderFactory.supported_names).to eq ["grub2", "grub2-efi", "none"]
+
+      context "product supports systemd-boot" do
+        before do
+          allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(true)
+        end
+        it "does not include systemd-boot and grub2 in the list" do
+          expect(Bootloader::BootloaderFactory.supported_names).to eq ["grub2-efi", "none"]
+        end
+      end
+      context "product does not support systemd-boot" do
+        before do
+          allow(Yast::ProductFeatures).to receive(:GetBooleanFeature).with("globals", "enable_systemd_boot").and_return(false)
+        end
+        it "does not include systemd-boot and grub2 in the list" do
+          expect(Bootloader::BootloaderFactory.supported_names).to eq ["grub2-efi", "none"]
+        end
       end
     end
   end
