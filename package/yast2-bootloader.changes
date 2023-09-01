@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Sep 01 19:57:03 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
+
+- Branch package for SP6 (bsc#1208913)
+
+-------------------------------------------------------------------
 Tue Apr 25 20:22:30 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
 
 - Do not overwrite user selection during migration (bsc#1210811)
