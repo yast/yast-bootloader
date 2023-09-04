@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Sep  4 06:40:19 UTC 2023 - Stefan Schubert <schubi@suse.com>
+
+- Fixed testsuite for architectures other than x86_64.
+- 5.0.2
+
+-------------------------------------------------------------------
 Thu Aug 31 07:35:22 UTC 2023 - Stefan Schubert <schubi@suse.com>
 
 - Supporting systemd-boot for architecture x86_64.
