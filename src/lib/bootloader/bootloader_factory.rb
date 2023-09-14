@@ -96,7 +96,7 @@ module Bootloader
       def proposed_name
         return "grub2-efi" if Systeminfo.efi_mandatory?
 
-        return "grub2-efi" if Yast::Arch.x86_64 && boot_efi?
+        return "grub2-efi" if (Yast::Arch.x86_64 || Yast::Arch.i386) && boot_efi?
 
         "grub2" # grub2 works(c) everywhere
       end

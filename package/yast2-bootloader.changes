@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Thu Sep  7 13:44:17 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
+
+- Backport:
+-- support 32 bit UEFI firmware on x86_64/i386 architecture
+   (bsc#1208003, jsc#PED-2569)
+- 4.6.4
+
+-------------------------------------------------------------------
 Fri Sep 01 19:57:03 UTC 2023 - Josef Reidinger <jreidinger@suse.com>
 
 - Branch package for SP6 (bsc#1208913)
