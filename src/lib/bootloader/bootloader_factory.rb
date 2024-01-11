@@ -32,7 +32,10 @@ module Bootloader
       end
 
       def system
-        bootloader_by_name(Sysconfig.from_system.bootloader)
+        sysconfig_name = Sysconfig.from_system.bootloader
+        return nil unless sysconfig_name
+
+        bootloader_by_name(sysconfig_name)
       end
 
       def current
