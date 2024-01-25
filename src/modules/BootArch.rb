@@ -42,7 +42,9 @@ module Yast
       /fips=\S*/,
       /mitigations=\S*/,
       /rd\.zdev=\S*/,
-      /zfcp\.allow_lun_scan=\S*/
+      /zfcp\.allow_lun_scan=\S*/,
+      # Keep cio_ignore parameter always (bsc#1210525)
+      /cio_ignore=\S*/
     ].freeze
 
     # Get parameters for the default kernel
