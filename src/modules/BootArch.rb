@@ -36,13 +36,14 @@ module Yast
     end
 
     # list of regexp to match kernel params that should be added
-    # from installation to running kernel on s390 (bsc#1086665)
+    # from installation to running kernel on s390 (bsc#1086665, bsc#1210525)
     S390_WHITELIST = [
       /net\.ifnames=\S*/,
       /fips=\S*/,
       /mitigations=\S*/,
       /rd\.zdev=\S*/,
-      /zfcp\.allow_lun_scan=\S*/
+      /zfcp\.allow_lun_scan=\S*/,
+      /cio_ignore=\S*/
     ].freeze
 
     # Get parameters for the default kernel
