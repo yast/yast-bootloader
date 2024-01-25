@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Thu Jan 25 11:18:12 UTC 2024 - Knut Anderssen <kanderssen@suse.com>
+
+- Add cio_ignore to allowed kernel options on s390 (bsc#1210525)
+- 5.0.4
+
+-------------------------------------------------------------------
 Wed Jan 10 23:16:39 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
 
 - Do not try finding undefined bootloader name to avoid error
