@@ -58,7 +58,7 @@ module Bootloader
           # default means bootloader use what it think is the best
           result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
           if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
-              Yast::Arch.x86_64 # only x86_64 is supported
+             (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
             result << SYSTEMDBOOT
           end
           result << DEFAULT_KEYWORD
@@ -114,6 +114,8 @@ module Bootloader
       end
 
       def proposed_name
+        return "systemd-boot" if ENV["YAST_SET_SYSTEMD_BOOT"] == "1"
+
         return "grub2-efi" if Systeminfo.efi_mandatory?
 
         return "grub2-efi" if (Yast::Arch.x86_64 || Yast::Arch.i386) && boot_efi?
