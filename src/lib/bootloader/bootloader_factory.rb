@@ -109,16 +109,22 @@ module Bootloader
 
     private
 
-      def boot_efi?
-        Systeminfo.efi?
+      def grub2_efi_installable?
+        Systeminfo.efi_mandatory? ||
+        (Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?
       end
 
       def proposed_name
-        return "systemd-boot" if ENV["YAST_SET_SYSTEMD_BOOT"] == "1"
+        prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals", "prefered_bootloader")
+        if supported_names.include?(prefered_bootloader)
+          if prefered_bootloader == "grub2-efi"
+            return prefered_bootloader if grub2_efi_installable?
+          else
+            return prefered_bootloader
+          end
+        end
 
-        return "grub2-efi" if Systeminfo.efi_mandatory?
-
-        return "grub2-efi" if (Yast::Arch.x86_64 || Yast::Arch.i386) && boot_efi?
+        return "grub2-efi" if grub2_efi_installable?
 
         "grub2" # grub2 works(c) everywhere
       end
