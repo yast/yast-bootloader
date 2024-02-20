@@ -57,10 +57,7 @@ module Bootloader
         if Yast::Mode.config
           # default means bootloader use what it think is the best
           result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
-          if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
-             (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
-            result << SYSTEMDBOOT
-          end
+          result << SYSTEMDBOOT if use_systemd_boot?
           result << DEFAULT_KEYWORD
           return result
         end
@@ -75,10 +72,7 @@ module Bootloader
         # grub2 everywhere except aarch64 or riscv64
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
-        if Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
-            Yast::Arch.x86_64 # only x86_64 is supported
-          ret << SYSTEMDBOOT
-        end
+        ret << SYSTEMDBOOT if use_systemd_boot?
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
@@ -109,19 +103,21 @@ module Bootloader
 
     private
 
+      def use_systemd_boot?
+        Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+          (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
+      end
+
       def grub2_efi_installable?
         Systeminfo.efi_mandatory? ||
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?
+          ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
       end
 
       def proposed_name
-        prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals", "prefered_bootloader")
-        if supported_names.include?(prefered_bootloader)
-          if prefered_bootloader == "grub2-efi"
-            return prefered_bootloader if grub2_efi_installable?
-          else
-            return prefered_bootloader
-          end
+        prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals",
+          "prefered_bootloader")
+        if supported_names.include?(prefered_bootloader) && prefered_bootloader != "grub2-efi"
+          return prefered_bootloader
         end
 
         return "grub2-efi" if grub2_efi_installable?
