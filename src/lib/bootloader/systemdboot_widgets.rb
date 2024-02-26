@@ -17,7 +17,7 @@ module Bootloader
     end
 
     # Represents bootloader timeout value
-    class TimeoutWidget < CWM::IntField
+    class TimeoutWidget < CWM::CustomWidget
       include SystemdBootHelper
 
       def initialize
@@ -27,25 +27,50 @@ module Bootloader
 
         @minimum = -1
         @maximum = 600
+        @default = 10
       end
 
-      attr_reader :minimum, :maximum
+      attr_reader :minimum, :maximum, :default
 
-      def label
-        _("&Timeout in Seconds")
+      def contents
+        CheckBoxFrame(
+          Id(:cont_boot),
+          _("Finishing systemd-boot menue after a certain amount of time"),
+          false,
+          HBox(
+            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum, systemdboot.menue_timeout.to_i),
+            HStretch()
+          )
+        )
       end
 
       def help
-        _("<p><b>Timeout in Seconds</b>\n" \
+        _("<p>Continue boot process after defined seconds.</p>" \
+          "<p><b>Timeout in Seconds</b>\n" \
           "specifies the time the boot loader will wait until the default kernel is loaded.</p>\n")
       end
 
+      def validate
+        if Yast::UI.QueryWidget(Id(:cont_boot), :Value) &&
+           Yast::UI.QueryWidget(Id(:seconds), :Value) == -1
+          systemdboot.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+          systemdboot.menue_timeout = @default if systemdboot.menue_timeout <= 0
+          Yast::UI.ChangeWidget(Id(:seconds), :Value, (systemdboot.menue_timeout.to_i))
+        end
+        return true
+      end
+
       def init
-        self.value = systemdboot.menue_timeout.to_i
+        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout.to_i >= 0 )
+        Yast::UI.ChangeWidget(Id(:seconds), :Value, (systemdboot.menue_timeout.to_i))
       end
 
       def store
-        systemdboot.menue_timeout = value.to_s
+        if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
+          systemdboot.menue_timeout = Yast::UI.QueryWidget(Id(:seconds), :Value)
+        else
+          systemdboot.menue_timeout = -1
+        end
       end
     end
 

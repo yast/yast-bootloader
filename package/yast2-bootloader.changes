@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Feb 26 13:30:54 UTC 2024 - Stefan Schubert <schubi@suse.com>
+
+- Feature: Do not timeout boot menue in systemd-boot. (bsc#1216366)
+- New flag in the product description file:
+  global/prefered_bootloader (systemd-boot, grub2-efi, grub2)
+- 5.0.5
+
+-------------------------------------------------------------------
 Thu Jan 25 11:18:12 UTC 2024 - Knut Anderssen <kanderssen@suse.com>
 
 - Persist s390 cio_ignore kernel argument always when given 
