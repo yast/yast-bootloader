@@ -35,7 +35,7 @@ module Bootloader
       def contents
         CheckBoxFrame(
           Id(:cont_boot),
-          _("Finishing systemd-boot menue after a certain amount of time"),
+          _("Finishing systemd-boot menu after a certain amount of time"),
           false,
           HBox(
             IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
