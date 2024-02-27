@@ -164,21 +164,21 @@ module Bootloader
 
     def read_menue_timeout
       config = CFA::SystemdBoot.load
-      if config.menue_timeout
-        if config.menue_timeout == "menu-force"
-          self.menue_timeout = -1
-        else
-          self.menue_timeout = config.menue_timeout.to_i
-        end
+      return unless config.menue_timeout
+
+      self.menue_timeout = if config.menue_timeout == "menu-force"
+        -1
+      else
+        config.menue_timeout.to_i
       end
     end
 
     def write_menue_timeout
       config = CFA::SystemdBoot.load
-      if menue_timeout == -1
-        config.menue_timeout = "menu-force"
+      config.menue_timeout = if menue_timeout == -1
+        "menu-force"
       else
-        config.menue_timeout = menue_timeout.to_s
+        menue_timeout.to_s
       end
       config.save
     end

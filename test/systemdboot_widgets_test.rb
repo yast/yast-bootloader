@@ -74,7 +74,7 @@ describe Bootloader::SystemdBootWidget::TimeoutWidget do
     it "sets timeout to -1" do
       subject.store
 
-      expect(bootloader.menue_timeout).to eq -1
+      expect(bootloader.menue_timeout).to eq(-1)
     end
   end
 end

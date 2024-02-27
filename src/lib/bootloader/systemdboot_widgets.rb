@@ -38,7 +38,8 @@ module Bootloader
           _("Finishing systemd-boot menue after a certain amount of time"),
           false,
           HBox(
-            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum, systemdboot.menue_timeout.to_i),
+            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
+              systemdboot.menue_timeout.to_i),
             HStretch()
           )
         )
@@ -52,24 +53,25 @@ module Bootloader
 
       def validate
         if Yast::UI.QueryWidget(Id(:cont_boot), :Value) &&
-           Yast::UI.QueryWidget(Id(:seconds), :Value) == -1
-          systemdboot.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+            Yast::UI.QueryWidget(Id(:seconds), :Value) == -1
+          systemdboot.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals",
+            "boot_timeout").to_i
           systemdboot.menue_timeout = @default if systemdboot.menue_timeout <= 0
-          Yast::UI.ChangeWidget(Id(:seconds), :Value, (systemdboot.menue_timeout.to_i))
+          Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout.to_i)
         end
-        return true
+        true
       end
 
       def init
-        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout.to_i >= 0 )
-        Yast::UI.ChangeWidget(Id(:seconds), :Value, (systemdboot.menue_timeout.to_i))
+        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout.to_i >= 0)
+        Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout.to_i)
       end
 
       def store
-        if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
-          systemdboot.menue_timeout = Yast::UI.QueryWidget(Id(:seconds), :Value)
+        systemdboot.menue_timeout = if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
+          Yast::UI.QueryWidget(Id(:seconds), :Value)
         else
-          systemdboot.menue_timeout = -1
+          -1
         end
       end
     end
