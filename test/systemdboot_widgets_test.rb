@@ -53,15 +53,17 @@ describe Bootloader::SystemdBootWidget::TimeoutWidget do
     before do
       stub_widget_value(:cont_boot, true)
       stub_widget_value(:seconds, -1)
+      allow(Yast::ProductFeatures).to receive(:GetIntegerFeature).with("globals",
+        "boot_timeout").and_return(15)
     end
 
     it "is valid everytime" do
       expect(subject.validate).to eq true
     end
 
-    it "set to default timeout if selected" do
+    it "set to product default timeout if selected" do
       subject.validate
-      expect(bootloader.menue_timeout).to eq 10
+      expect(bootloader.menue_timeout).to eq 15
     end
   end
 
