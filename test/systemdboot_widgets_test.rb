@@ -37,8 +37,8 @@ describe Bootloader::SystemdBootWidget::TimeoutWidget do
 
   it_behaves_like "CWM::CustomWidget"
 
-  it "has minimal value to -1 as unlimited" do
-    expect(subject.minimum).to eq(-1)
+  it "has minimal value to 0 as unlimited" do
+    expect(subject.minimum).to eq(0)
   end
 
   it "has maximum value to 600" do
@@ -49,31 +49,13 @@ describe Bootloader::SystemdBootWidget::TimeoutWidget do
     expect(subject.contents).to be_a Yast::Term
   end
 
-  context "validation" do
-    before do
-      stub_widget_value(:cont_boot, true)
-      stub_widget_value(:seconds, -1)
-      allow(Yast::ProductFeatures).to receive(:GetIntegerFeature).with("globals",
-        "boot_timeout").and_return(15)
-    end
-
-    it "is valid everytime" do
-      expect(subject.validate).to eq true
-    end
-
-    it "set to product default timeout if selected" do
-      subject.validate
-      expect(bootloader.menue_timeout).to eq 15
-    end
-  end
-
   context "storing content" do
     before do
       stub_widget_value(:cont_boot, false)
       stub_widget_value(:seconds, 15)
     end
 
-    it "sets timeout to -1" do
+    it "sets timeout to -1 for using menu-force" do
       subject.store
 
       expect(bootloader.menue_timeout).to eq(-1)

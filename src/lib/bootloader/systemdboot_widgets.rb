@@ -25,7 +25,7 @@ module Bootloader
 
         super()
 
-        @minimum = -1
+        @minimum = 0
         @maximum = 600
         @default = 10
       end
@@ -35,7 +35,7 @@ module Bootloader
       def contents
         CheckBoxFrame(
           Id(:cont_boot),
-          _("Finishing systemd-boot menu after a certain amount of time"),
+          _("Automatically boot the default entry after a timeout"),
           false,
           HBox(
             IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
@@ -51,28 +51,29 @@ module Bootloader
           "specifies the time the boot loader will wait until the default kernel is loaded.</p>\n")
       end
 
-      def validate
-        if Yast::UI.QueryWidget(Id(:cont_boot), :Value) &&
-            Yast::UI.QueryWidget(Id(:seconds), :Value) == -1
-          systemdboot.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals",
-            "boot_timeout").to_i
-          systemdboot.menue_timeout = @default if systemdboot.menue_timeout <= 0
-          Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout.to_i)
-        end
-        true
-      end
-
       def init
-        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout.to_i >= 0)
-        Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout.to_i)
+        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout >= 0)
+        systemdboot.menue_timeout = default_value if systemdboot.menue_timeout < 0
+        Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout)
       end
 
       def store
-        systemdboot.menue_timeout = if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
-          Yast::UI.QueryWidget(Id(:seconds), :Value)
+        if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
+          systemdboot.menue_timeout = Yast::UI.QueryWidget(Id(:seconds), :Value)
+          systemdboot.menue_timeout = default_value if systemdboot.menue_timeout == -1
         else
-          -1
+          systemdboot.menue_timeout = -1
         end
+      end
+
+    private
+
+      def default_value
+        # set default
+        ret = Yast::ProductFeatures.GetIntegerFeature("globals",
+          "boot_timeout").to_i
+        ret = @default if ret <= 0
+        ret
       end
     end
 
