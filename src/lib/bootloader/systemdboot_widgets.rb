@@ -60,7 +60,6 @@ module Bootloader
       def store
         if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
           systemdboot.menue_timeout = Yast::UI.QueryWidget(Id(:seconds), :Value)
-          systemdboot.menue_timeout = default_value if systemdboot.menue_timeout == -1
         else
           systemdboot.menue_timeout = -1
         end
