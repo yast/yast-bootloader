@@ -17,7 +17,7 @@ module Bootloader
     end
 
     # Represents bootloader timeout value
-    class TimeoutWidget < CWM::IntField
+    class TimeoutWidget < CWM::CustomWidget
       include SystemdBootHelper
 
       def initialize
@@ -25,27 +25,54 @@ module Bootloader
 
         super()
 
-        @minimum = -1
+        @minimum = 0
         @maximum = 600
+        @default = 10
       end
 
-      attr_reader :minimum, :maximum
+      attr_reader :minimum, :maximum, :default
 
-      def label
-        _("&Timeout in Seconds")
+      def contents
+        CheckBoxFrame(
+          Id(:cont_boot),
+          _("Automatically boot the default entry after a timeout"),
+          false,
+          HBox(
+            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
+              systemdboot.menue_timeout.to_i),
+            HStretch()
+          )
+        )
       end
 
       def help
-        _("<p><b>Timeout in Seconds</b>\n" \
+        _("<p>Continue boot process after defined seconds.</p>" \
+          "<p><b>Timeout in Seconds</b>\n" \
           "specifies the time the boot loader will wait until the default kernel is loaded.</p>\n")
       end
 
       def init
-        self.value = systemdboot.menue_timeout.to_i
+        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout >= 0)
+        systemdboot.menue_timeout = default_value if systemdboot.menue_timeout < 0
+        Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout)
       end
 
       def store
-        systemdboot.menue_timeout = value.to_s
+        if Yast::UI.QueryWidget(Id(:cont_boot), :Value)
+          systemdboot.menue_timeout = Yast::UI.QueryWidget(Id(:seconds), :Value)
+        else
+          systemdboot.menue_timeout = -1
+        end
+      end
+
+    private
+
+      def default_value
+        # set default
+        ret = Yast::ProductFeatures.GetIntegerFeature("globals",
+          "boot_timeout").to_i
+        ret = @default if ret <= 0
+        ret
       end
     end
 
