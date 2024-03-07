@@ -359,8 +359,8 @@ module Bootloader
           "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
           "This does not turn on secure booting. " \
           "It only switches to the new secure-boot enabled boot data format. " \
-          "Note that this new format works only on z15 or later and only for zFCP disks. " \
-          "The system does not boot if these requirements are not met.</p>"
+          "Note that this new format works only on z15 or later and disk type supports depends on hardware. " \
+          "For details consult requirements at https://www.ibm.com/docs/en/linux-on-systems?topic=introduction-requirements</p>"
         )
       else
         _(
@@ -388,9 +388,11 @@ module Bootloader
 
       Yast::Popup.ContinueCancel(
         _(
-          "The new secure-boot enabled boot data format works only on z15 " \
-          "and later and only for zFCP disks.\n\n" \
-          "The system does not boot if these requirements are not met."
+          "The secure boot IPL works only on IBM z15, IBM LinuxONE III or later.\n" \
+          "NVMe disks works from IBM z15.\n" \
+          "FC-attached SCSI disks needs at least IBM LinuxONE III.\n" \
+          "ECKD DASDs with CDL layout works on IBM z16 or newer.\n" \
+          "If these requirements are not met, the system will not IPL in secure mode."
         )
       )
     end
