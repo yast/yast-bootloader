@@ -389,9 +389,9 @@ module Bootloader
       Yast::Popup.ContinueCancel(
         _(
           "The secure boot IPL works only on IBM z15, IBM LinuxONE III or later.\n" \
-          "NVMe disks works from IBM z15.\n" \
-          "FC-attached SCSI disks needs at least IBM LinuxONE III.\n" \
-          "ECKD DASDs with CDL layout works on IBM z16 or newer.\n" \
+          "NVMe disks works from IBM LinuxONE III.\n" \
+          "FC-attached SCSI disks needs at least IBM LinuxONE III or a IBM z15.\n" \
+          "ECKD DASDs with CDL layout works on IBM z16, LinuxONE 4 or newer.\n" \
           "If these requirements are not met, the system will not IPL in secure mode."
         )
       )
