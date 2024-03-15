@@ -359,8 +359,10 @@ module Bootloader
           "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
           "This does not turn on secure booting. " \
           "It only switches to the new secure-boot enabled boot data format. " \
-          "Note that this new format works only on z15 or later and disk type supports depends on hardware. " \
-          "For details consult requirements at https://www.ibm.com/docs/en/linux-on-systems?topic=introduction-requirements</p>"
+          "Note that this new format works only on z15 or later and "\
+          "disk type supports depends on hardware. " \
+          "For details consult requirements at " \
+          "https://www.ibm.com/docs/en/linux-on-systems?topic=introduction-requirements</p>"
         )
       else
         _(
