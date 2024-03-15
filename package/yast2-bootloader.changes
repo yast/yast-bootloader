@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Mar 15 10:11:13 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
+
+- Improve warnings and help text for secure boot on s390 to reflect
+  state with new hardware. (bsc#1219989)
+- 4.6.6
+
+-------------------------------------------------------------------
 Wed Jan 10 23:16:39 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
 
 - Do not try finding undefined bootloader name to avoid error
