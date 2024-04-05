@@ -389,17 +389,17 @@ module Bootloader
           !value ||
           value == Systeminfo.secure_boot_active?
 
-          Yast::Popup.ContinueCancel(
-            # TRANSLATORS: IPL stands for Initial Program Load, IBM speak for system boot
-            _(
-              "Secure boot IPL has the following minimum system requirements,\n" \
-              "depending on the boot device to be IPLed:\n" \
-              "NVMe disk: IBM LinuxONE III or newer.\n" \
-              "FC-attached SCSI disk: IBM LinuxONE III, IBM z15 or newer.\n" \
-              "ECKD DASD with CDL layout: IBM z16, LinuxONE 4 or newer.\n" \
-              "If these requirements are not met, the system can be IPLed in non-secure mode only."
-            )
+        Yast::Popup.ContinueCancel(
+          # TRANSLATORS: IPL stands for Initial Program Load, IBM speak for system boot
+          _(
+            "Secure boot IPL has the following minimum system requirements,\n" \
+            "depending on the boot device to be IPLed:\n" \
+            "NVMe disk: IBM LinuxONE III or newer.\n" \
+            "FC-attached SCSI disk: IBM LinuxONE III, IBM z15 or newer.\n" \
+            "ECKD DASD with CDL layout: IBM z16, LinuxONE 4 or newer.\n" \
+            "If these requirements are not met, the system can be IPLed in non-secure mode only."
           )
+        )
       end
     end
 
