@@ -91,7 +91,7 @@ module Bootloader
       write_menue_timeout
 
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
-        fw.puts(@kernel_line.serialize)
+        fw.puts(self.kernel_params.serialize)
       end
       File.close
       true
