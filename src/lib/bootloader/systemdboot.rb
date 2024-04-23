@@ -93,7 +93,6 @@ module Bootloader
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         fw.puts(self.kernel_params.serialize)
       end
-      File.close
       true
     end
 
