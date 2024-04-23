@@ -107,7 +107,6 @@ module Bootloader
 
     # represents kernel command line
     class KernelAppendWidget < CWM::InputField
-      include Grub2Helper
 
       def initialize
         textdomain "bootloader"
