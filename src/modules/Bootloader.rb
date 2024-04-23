@@ -338,7 +338,7 @@ module Yast
       end
 
       current_bl = ::Bootloader::BootloaderFactory.current
-      if current_bl.is_a?(SystemdBoot)
+      if current_bl.is_a?(::Bootloader::SystemdBoot)
         # systemd-boot
         kernel_params = current_bl.kernel_params
       elsif current_bl.respond_to?(:grub_default)
@@ -389,7 +389,7 @@ module Yast
       ReadOrProposeIfNeeded() # ensure we have data to modify
       current_bl = ::Bootloader::BootloaderFactory.current
       # currently only grub2 bootloader and systemd-boot supported
-      if !current_bl.respond_to?(:grub_default) && !current_bl.is_a?(SystemdBoot)
+      if !current_bl.respond_to?(:grub_default) && !current_bl.is_a?(::Bootloader::SystemdBoot)
         return :missing
       end
 
@@ -409,7 +409,7 @@ module Yast
         values[key] = remap_values[values[key]] if remap_values.key?(values[key])
       end
 
-      if current_bl.is_a?(SystemdBoot)
+      if current_bl.is_a?(::Bootloader::SystemdBoot)
         params = [current_bl.kernel_params]
       else
         grub_default = current_bl.grub_default
