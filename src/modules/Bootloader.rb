@@ -22,6 +22,7 @@ require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
 require "bootloader/autoinst_profile/bootloader_section"
+require "bootloader/systemdboot"
 require "installation/autoinst_issues/invalid_value"
 require "cfa/matcher"
 
