@@ -107,6 +107,7 @@ module Bootloader
 
     # represents kernel command line
     class KernelAppendWidget < CWM::InputField
+      include SystemdBootHelper      
 
       def initialize
         textdomain "bootloader"
