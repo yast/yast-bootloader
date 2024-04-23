@@ -72,7 +72,7 @@ module Bootloader
 
       lines = ""
       filename = File.join(Yast::Installation.destdir, CMDLINE)
-      if File.exists?(filename)
+      if File.exist?(filename)
         File.open(filename).each do |line|
           lines =+ line
         end
