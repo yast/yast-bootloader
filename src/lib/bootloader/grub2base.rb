@@ -21,7 +21,6 @@ Yast.import "BootArch"
 Yast.import "BootStorage"
 Yast.import "HTML"
 Yast.import "Initrd"
-Yast.import "Kernel"
 Yast.import "Mode"
 Yast.import "Pkg"
 Yast.import "Product"
@@ -379,24 +378,6 @@ module Bootloader
       matcher = CFA::Matcher.new(key: "vga")
       placer = CFA::ReplacePlacer.new(matcher)
       grub_default.xen_hypervisor_params.add_parameter("vga", "gfx-1024x768x16", placer)
-    end
-
-    def propose_resume
-      swap_parts = Yast::BootStorage.available_swap_partitions
-      largest_swap_name, lagest_swap_size = (swap_parts.max_by { |_part, size| size } || [])
-
-      propose = Yast::Kernel.propose_hibernation? && largest_swap_name
-
-      return "" unless propose
-
-      if lagest_swap_size < Yast::BootStorage.ram_size
-        log.info "resume parameter is not added because swap (#{largest_swap_name}) is too small"
-
-        return ""
-      end
-
-      # try to use label or udev id for device name... FATE #302219
-      UdevMapping.to_mountby_device(largest_swap_name)
     end
 
     def propose_encrypted

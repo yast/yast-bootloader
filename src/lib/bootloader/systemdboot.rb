@@ -5,6 +5,9 @@ require "yast"
 require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
 require "cfa/systemd_boot"
+require "cfa/grub2/default"
+require "cfa/matcher"
+require "cfa/placer"
 
 Yast.import "Report"
 Yast.import "Arch"
@@ -18,6 +21,8 @@ module Bootloader
     include Yast::Logger
     include Yast::I18n
 
+    CMDLINE = "/etc/kernel/cmdline"
+
     # @!attribute menue_timeout
     #   @return [Integer] menue timeout
     attr_accessor :menue_timeout
@@ -30,14 +35,33 @@ module Bootloader
       super
 
       textdomain "bootloader"
+      # For kernel parameters we are using the same datastructure
+      # like grub2 does, in order to be compatible with all calls
+      @kernel_container = ::CFA::Grub2::Default.new
+    end
+
+    def kernel_params
+      @kernel_container.kernel_params
     end
 
     def merge(other)
       log.info "merging with system: timeout=#{other.menue_timeout} " \
                "secure_boot=#{other.secure_boot}"
+      log.info "      kernel_params = #{other.kernel_params.serialize}"
       super
       self.menue_timeout = other.menue_timeout unless other.menue_timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
+      kernel_serialize = self.kernel_params.serialize
+      # handle specially noresume as it should lead to remove all other resume
+      kernel_serialize.gsub!(/resume=\S+/, "") if self.kernel_params.parameter("noresume")
+      # prevent double cpu_mitigations params
+      kernel_serialize.gsub!(/mitigations=\S+/, "") if self.kernel_params.parameter("mitigations")
+
+      new_kernel_params = "#{kernel_serialize} #{other.kernel_params.serialize}"
+      # deduplicate identicatel parameter. Keep always the last one ( so reverse is needed ).
+      new_params = new_kernel_params.split.reverse.uniq.reverse.join(" ")
+
+      @kernel_container.kernel_params.replace(new_params)
     end
 
     def read
@@ -45,6 +69,12 @@ module Bootloader
 
       read_menue_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
+
+      lines = ""
+      File.open(File.join(Yast::Installation.destdir, CMDLINE)).each do |line|
+         lines =+ line
+      end
+      @kernel_container.kernel_params.replace(lines)
     end
 
     # Write bootloader settings to disk
@@ -57,6 +87,10 @@ module Bootloader
       end
       write_menue_timeout
 
+      File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
+        fw.puts(@kernel_line.serialize)
+      end
+      File.close
       true
     end
 
@@ -65,6 +99,10 @@ module Bootloader
       log.info("Propose settings...")
       self.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
       self.secure_boot = Systeminfo.secure_boot_supported?
+      if @kernel_container.kernel_params.empty?
+        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
+        @kernel_container.kernel_params.replace(kernel_line)
+      end
     end
 
     def status_string(status)
@@ -137,10 +175,10 @@ module Bootloader
     SDBOOTUTIL = "/usr/bin/sdbootutil"
 
     def create_menue_entries
-      cmdline_file = File.join(Yast::Installation.destdir, "/etc/kernel/cmdline")
+      cmdline_file = File.join(Yast::Installation.destdir, CMDLINE)
       if Yast::Stage.initial
         # sdbootutil script needs the "root=<device>" entry in kernel parameters.
-        # This will be written to /etc/kernel/cmdline which will be used in an
+        # This will be written to CMDLINE which will be used in an
         # installed system by the administrator only. So we can use it because
         # the system will be installed new. This file will be deleted after
         # calling sdbootutil.

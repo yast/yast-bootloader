@@ -105,6 +105,36 @@ module Bootloader
       end
     end
 
+    # represents kernel command line
+    class KernelAppendWidget < CWM::InputField
+      include Grub2Helper
+
+      def initialize
+        textdomain "bootloader"
+
+        super
+      end
+
+      def label
+        _("O&ptional Kernel Command Line Parameter")
+      end
+
+      def help
+        _(
+          "<p><b>Optional Kernel Command Line Parameter</b> lets you define " \
+          "additional parameters to pass to the kernel.</p>"
+        )
+      end
+
+      def init
+        self.value = systemdboot.kernel_params.serialize.gsub(/mitigations=\S+/, "")
+      end
+
+      def store
+        systemdboot.kernel_params.replace(value)
+      end
+    end
+
     # represents Tab with kernel related configuration
     class KernelTab < CWM::Tab
       def label
@@ -116,10 +146,7 @@ module Bootloader
       def contents
         VBox(
           VSpacing(1),
-          HBox(
-            HSpacing(1),
-            HStretch()
-          ),
+          MarginBox(1, 0.5, KernelAppendWidget.new),
           VStretch()
         )
       end
