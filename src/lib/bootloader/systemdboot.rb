@@ -71,8 +71,11 @@ module Bootloader
       self.secure_boot = Systeminfo.secure_boot_active?
 
       lines = ""
-      File.open(File.join(Yast::Installation.destdir, CMDLINE)).each do |line|
-         lines =+ line
+      filename = File.join(Yast::Installation.destdir, CMDLINE)
+      if File.exists?(filename)
+        File.open(filename).each do |line|
+          lines =+ line
+        end
       end
       @kernel_container.kernel_params.replace(lines)
     end
