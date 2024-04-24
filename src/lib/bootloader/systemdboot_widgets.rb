@@ -204,17 +204,11 @@ module Bootloader
       end
 
       def init
-        if grub2.respond_to?(:cpu_mitigations)
-          self.value = grub2.cpu_mitigations.value.to_s
-        else
-          # do not crash when use no bootloader. This widget is also used in security dialog.
-          # (bsc#1184968)
-          disable
-        end
+        self.value = systemdboot.cpu_mitigations.value.to_s
       end
 
       def store
-        grub2.cpu_mitigations = ::Bootloader::CpuMitigations.new(value.to_sym) if enabled?
+        systemdboot.cpu_mitigations = ::Bootloader::CpuMitigations.new(value.to_sym) if enabled?
       end
     end
 
