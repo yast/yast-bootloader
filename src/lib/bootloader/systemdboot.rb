@@ -38,6 +38,7 @@ module Bootloader
       # For kernel parameters we are using the same datastructure
       # like grub2 does, in order to be compatible with all calls
       @kernel_container = ::CFA::Grub2::Default.new
+      @explicit_cpu_mitigations = false
     end
 
     def kernel_params
@@ -54,6 +55,14 @@ module Bootloader
       kernel_serialize = self.kernel_params.serialize
       # handle specially noresume as it should lead to remove all other resume
       kernel_serialize.gsub!(/resume=\S+/, "") if self.kernel_params.parameter("noresume")
+
+      # explicitly set mitigations means overwrite of our
+      if other.explicit_cpu_mitigations
+        log.info "merging cpu_mitigations"
+        self.cpu_mitigations = other.cpu_mitigations
+      end
+      log.info "mitigations after merge #{cpu_mitigations}"
+
       # prevent double cpu_mitigations params
       kernel_serialize.gsub!(/mitigations=\S+/, "") if self.kernel_params.parameter("mitigations")
 
@@ -62,6 +71,20 @@ module Bootloader
       new_params = new_kernel_params.split.reverse.uniq.reverse.join(" ")
 
       @kernel_container.kernel_params.replace(new_params)
+    end
+
+    def cpu_mitigations
+      CpuMitigations.from_kernel_params(self.kernel_params)
+    end
+
+    def explicit_cpu_mitigations
+      @explicit_cpu_mitigations ? cpu_mitigations : nil
+    end
+
+    def cpu_mitigations=(value)
+      log.info "setting mitigations to #{value}"
+      @explicit_cpu_mitigations = true
+      value.modify_kernel_params(self.kernel_params)
     end
 
     def read
