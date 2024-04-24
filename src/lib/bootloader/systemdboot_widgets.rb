@@ -161,7 +161,6 @@ module Bootloader
 
     # Represents decision if smt is enabled
     class CpuMitigationsWidget < CWM::ComboBox
-      include Grub2Helper
 
       def initialize
         textdomain "bootloader"
