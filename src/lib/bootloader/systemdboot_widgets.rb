@@ -107,49 +107,8 @@ module Bootloader
     end
 
     # Represents decision if smt is enabled
-    class CpuMitigationsWidget < CWM::ComboBox
+    class SdCpuMitigationsWidget < CpuMitigationsWidget
       include SystemdBootHelper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("CPU Mitigations")
-      end
-
-      def items
-        ::Bootloader::CpuMitigations::ALL.map do |m|
-          [m.value.to_s, m.to_human_string]
-        end
-      end
-
-      def help
-        _(
-          "<p><b>CPU Mitigations</b><br>\n" \
-          "The option selects which default settings should be used for CPU \n" \
-          "side channels mitigations. A highlevel description is on our Technical Information \n" \
-          "Document TID 7023836. Following options are available:<ul>\n" \
-          "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. \n" \
-          "This setting can impact performance to some degree, depending on CPU model and \n" \
-          "workload. It provides all security mitigations, but it does not protect against \n" \
-          "cross-CPU thread attacks.</li>\n" \
-          "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \n" \
-          "\"Auto\", and also disables Simultaneous Multithreading to avoid \n" \
-          "side channel attacks across multiple CPU threads. This setting can \n" \
-          "further impact performance, depending on your \n" \
-          "workload. This setting provides the full set of available security mitigations.</li>\n" \
-          "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
-          "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
-          "model.</li>\n" \
-          "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves \n" \
-          "this to be the kernel default. The administrator can add other mitigations options \n" \
-          "in the <i>kernel command line</i> widget.\n" \
-          "All CPU mitigation specific options can be set manually.</li></ul></p>"
-        )
-      end
 
       def init
         self.value = systemdboot.cpu_mitigations.value.to_s
@@ -161,25 +120,8 @@ module Bootloader
     end
 
     # represents kernel command line
-    class KernelAppendWidget < CWM::InputField
+    class SdKernelAppendWidget < KernelAppendWidget
       include SystemdBootHelper      
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("O&ptional Kernel Command Line Parameter")
-      end
-
-      def help
-        _(
-          "<p><b>Optional Kernel Command Line Parameter</b> lets you define " \
-          "additional parameters to pass to the kernel.</p>"
-        )
-      end
 
       def init
         self.value = systemdboot.kernel_params.serialize.gsub(/mitigations=\S+/, "")
@@ -201,8 +143,8 @@ module Bootloader
       def contents
         VBox(
           VSpacing(1),
-          MarginBox(1, 0.5, KernelAppendWidget.new),
-          MarginBox(1, 0.5, Left(CpuMitigationsWidget.new)),
+          MarginBox(1, 0.5, SdKernelAppendWidget.new),
+          MarginBox(1, 0.5, Left(SdCpuMitigationsWidget.new)),
           VStretch()
         )
       end
