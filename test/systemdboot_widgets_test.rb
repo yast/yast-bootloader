@@ -87,7 +87,7 @@ end
 
 describe Bootloader::SystemdBootWidget::SdCpuMitigationsWidget do
   before do
-    assign_bootloader
+    assign_systemd_bootloader
   end
 
   it_behaves_like "labeled widget"
@@ -119,7 +119,7 @@ end
 
 describe Bootloader::SystemdBootWidget::SdKernelAppendWidget do
   before do
-    assign_bootloader
+    assign_systemd_bootloader
   end
 
   it_behaves_like "labeled widget"
