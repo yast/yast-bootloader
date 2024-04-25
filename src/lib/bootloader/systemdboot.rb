@@ -49,8 +49,8 @@ module Bootloader
     def merge(other)
       log.info "merging: timeout: #{menue_timeout}=>#{other.menue_timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
-      log.info "         mitigations: #{cpu_mitigations.kernel_value}=>" \
-               "#{other.cpu_mitigations.kernel_value}"
+      log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
+               "#{other.cpu_mitigations.to_human_string}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
       super
@@ -75,7 +75,7 @@ module Bootloader
 
       log.info "merging result: timeout: #{menue_timeout}"
       log.info "                secure_boot: #{secure_boot}"
-      log.info "                mitigations: #{cpu_mitigations.kernel_value}"
+      log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
     end
     # rubocop:enable Metrics/AbcSize
@@ -89,7 +89,7 @@ module Bootloader
     end
 
     def cpu_mitigations=(value)
-      log.info "set mitigations to #{value.kernel_value}"
+      log.info "set mitigations to #{value.to_human_string}"
       @explicit_cpu_mitigations = true
       value.modify_kernel_params(kernel_params)
     end
