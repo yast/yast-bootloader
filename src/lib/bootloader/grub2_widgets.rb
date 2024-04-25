@@ -123,7 +123,7 @@ module Bootloader
     end
 
     # Represents decision if smt is enabled
-    class Grub2CpuMitigationsWidget < CpuMitigationsWidget
+    class GrubCpuMitigationsWidget < CpuMitigationsWidget
       include Grub2Helper
 
       def init
@@ -1012,7 +1012,7 @@ module Bootloader
         VBox(
           VSpacing(1),
           MarginBox(1, 0.5, KernelAppendWidget.new),
-          MarginBox(1, 0.5, Left(Grub2CpuMitigationsWidget.new)),
+          MarginBox(1, 0.5, Left(GrubCpuMitigationsWidget.new)),
           MarginBox(1, 0.5, console_widget),
           VStretch()
         )

@@ -85,6 +85,60 @@ describe Bootloader::SystemdBootWidget::SecureBootWidget do
   end
 end
 
+describe Bootloader::Grub2Widget::SdCpuMitigationsWidget do
+  before do
+    assign_bootloader
+  end
+
+  it_behaves_like "labeled widget"
+  it_behaves_like "CWM::ComboBox"
+
+  context "when none bootloader is selected" do
+    before do
+      assign_bootloader("none")
+    end
+
+    describe "#init" do
+      it "disables widget" do
+        expect(subject).to receive(:disable)
+
+        subject.init
+      end
+    end
+
+    describe "#store" do
+      it "does nothing on disabled widget" do
+        expect(subject).to receive(:enabled?).and_return(false)
+        expect(subject).to_not receive(:value)
+
+        subject.store
+      end
+    end
+  end
+end
+
+describe Bootloader::Grub2Widget::SdKernelAppendWidget do
+  before do
+    assign_bootloader
+  end
+
+  it_behaves_like "labeled widget"
+
+  it "is initialized to kernel command line option" do
+    bootloader.kernel_params.replace("verbose showopts")
+    expect(subject).to receive(:value=).with("verbose showopts")
+
+    subject.init
+  end
+
+  it "stores text as kernel command line option" do
+    expect(subject).to receive(:value).and_return("showopts quiet")
+    subject.store
+
+    expect(bootloader.kernel_params.serialize).to eq "showopts quiet"
+  end
+end
+
 describe Bootloader::SystemdBootWidget::KernelTab do
   before do
     assign_systemd_bootloader
