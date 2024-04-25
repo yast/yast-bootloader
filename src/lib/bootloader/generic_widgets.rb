@@ -114,7 +114,6 @@ module Bootloader
 
   # Represents decision if smt is enabled
   class CpuMitigationsWidget < CWM::ComboBox
-
     def initialize
       textdomain "bootloader"
 
@@ -156,16 +155,13 @@ module Bootloader
       )
     end
 
-    def init
-    end
+    def init; end
 
-    def store
-    end
+    def store; end
   end
 
   # represents kernel command line
   class KernelAppendWidget < CWM::InputField
-
     def initialize
       textdomain "bootloader"
 
@@ -183,10 +179,8 @@ module Bootloader
       )
     end
 
-    def init
-    end
+    def init; end
 
-    def store
-    end
+    def store; end
   end
 end

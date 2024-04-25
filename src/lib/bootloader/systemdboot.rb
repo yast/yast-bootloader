@@ -52,9 +52,9 @@ module Bootloader
       super
       self.menue_timeout = other.menue_timeout unless other.menue_timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
-      kernel_serialize = self.kernel_params.serialize
+      kernel_serialize = kernel_params.serialize
       # handle specially noresume as it should lead to remove all other resume
-      kernel_serialize.gsub!(/resume=\S+/, "") if self.kernel_params.parameter("noresume")
+      kernel_serialize.gsub!(/resume=\S+/, "") if kernel_params.parameter("noresume")
 
       # explicitly set mitigations means overwrite of our
       if other.explicit_cpu_mitigations
@@ -64,7 +64,7 @@ module Bootloader
       log.info "mitigations after merge #{cpu_mitigations}"
 
       # prevent double cpu_mitigations params
-      kernel_serialize.gsub!(/mitigations=\S+/, "") if self.kernel_params.parameter("mitigations")
+      kernel_serialize.gsub!(/mitigations=\S+/, "") if kernel_params.parameter("mitigations")
 
       new_kernel_params = "#{kernel_serialize} #{other.kernel_params.serialize}"
       # deduplicate identicatel parameter. Keep always the last one ( so reverse is needed ).
@@ -74,7 +74,7 @@ module Bootloader
     end
 
     def cpu_mitigations
-      CpuMitigations.from_kernel_params(self.kernel_params)
+      CpuMitigations.from_kernel_params(kernel_params)
     end
 
     def explicit_cpu_mitigations
@@ -84,7 +84,7 @@ module Bootloader
     def cpu_mitigations=(value)
       log.info "setting mitigations to #{value}"
       @explicit_cpu_mitigations = true
-      value.modify_kernel_params(self.kernel_params)
+      value.modify_kernel_params(kernel_params)
     end
 
     def read
@@ -97,7 +97,7 @@ module Bootloader
       filename = File.join(Yast::Installation.destdir, CMDLINE)
       if File.exist?(filename)
         File.open(filename).each do |line|
-          lines =+ line
+          lines = + line
         end
       end
       @kernel_container.kernel_params.replace(lines)
@@ -114,7 +114,7 @@ module Bootloader
       write_menue_timeout
 
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
-        fw.puts(self.kernel_params.serialize)
+        fw.puts(kernel_params.serialize)
       end
       true
     end
@@ -122,12 +122,12 @@ module Bootloader
     def propose
       super
       log.info("Propose settings...")
-      self.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
-      self.secure_boot = Systeminfo.secure_boot_supported?
       if @kernel_container.kernel_params.empty?
         kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
         @kernel_container.kernel_params.replace(kernel_line)
       end
+      self.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+      self.secure_boot = Systeminfo.secure_boot_supported?
     end
 
     def status_string(status)

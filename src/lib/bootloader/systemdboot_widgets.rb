@@ -121,7 +121,7 @@ module Bootloader
 
     # represents kernel command line
     class SdKernelAppendWidget < KernelAppendWidget
-      include SystemdBootHelper      
+      include SystemdBootHelper
 
       def init
         self.value = systemdboot.kernel_params.serialize.gsub(/mitigations=\S+/, "")
