@@ -49,7 +49,8 @@ module Bootloader
     def merge(other)
       log.info "merging: timeout: #{menue_timeout}=>#{other.menue_timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
-      log.info "         mitigations: #{cpu_mitigations}=>#{other.cpu_mitigations}"
+      log.info "         mitigations: #{cpu_mitigations.kernel_value}=>" \
+               "#{other.cpu_mitigations.kernel_value}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
       super
@@ -74,7 +75,7 @@ module Bootloader
 
       log.info "merging result: timeout: #{menue_timeout}"
       log.info "                secure_boot: #{secure_boot}"
-      log.info "                mitigations: #{cpu_mitigations}"
+      log.info "                mitigations: #{cpu_mitigations.kernel_value}"
       log.info "                kernel_params: #{kernel_params.serialize}"
     end
     # rubocop:enable Metrics/AbcSize
