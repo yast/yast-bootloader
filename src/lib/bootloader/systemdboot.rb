@@ -45,6 +45,7 @@ module Bootloader
       @kernel_container.kernel_params
     end
 
+    # rubocop:disable Metrics/AbcSize
     def merge(other)
       log.info "merging with system: timeout=#{other.menue_timeout} " \
                "secure_boot=#{other.secure_boot}"
@@ -61,8 +62,8 @@ module Bootloader
         log.info "merging cpu_mitigations"
         self.cpu_mitigations = other.cpu_mitigations
       end
-      log.info "mitigations after merge #{cpu_mitigations}"
 
+      log.info "mitigations after merge #{cpu_mitigations}"
       # prevent double cpu_mitigations params
       kernel_serialize.gsub!(/mitigations=\S+/, "") if kernel_params.parameter("mitigations")
 
@@ -72,6 +73,7 @@ module Bootloader
 
       @kernel_container.kernel_params.replace(new_params)
     end
+    # rubocop:enable Metrics/AbcSize
 
     def cpu_mitigations
       CpuMitigations.from_kernel_params(kernel_params)
