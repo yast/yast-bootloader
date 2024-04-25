@@ -89,7 +89,7 @@ module Bootloader
     end
 
     def cpu_mitigations=(value)
-      log.info "setting mitigations to #{value}"
+      log.info "set mitigations to #{value.kernel_value}"
       @explicit_cpu_mitigations = true
       value.modify_kernel_params(kernel_params)
     end
