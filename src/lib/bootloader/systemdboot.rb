@@ -35,8 +35,8 @@ module Bootloader
       super
 
       textdomain "bootloader"
-      # For kernel parameters we are using the same datastructure
-      # like grub2 does, in order to be compatible with all calls
+      # For kernel parameters we are using the same data structure
+      # like grub2 in order to be compatible with all calls.
       @kernel_container = ::CFA::Grub2::Default.new
       @explicit_cpu_mitigations = false
     end
