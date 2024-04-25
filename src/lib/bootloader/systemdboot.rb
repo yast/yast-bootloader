@@ -47,31 +47,35 @@ module Bootloader
 
     # rubocop:disable Metrics/AbcSize
     def merge(other)
-      log.info "merging with system: timeout=#{other.menue_timeout} " \
-               "secure_boot=#{other.secure_boot}"
-      log.info "      kernel_params = #{other.kernel_params.serialize}"
+      log.info "merging: timeout: #{timeout}=>#{other.menue_timeout}"
+      log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
+      log.info "         mitigations: #{cpu_mitigations}=>#{other.cpu_mitigations}"
+      log.info "         kernel_params: #{kernel_params.serialize}=>" \
+               "#{other.kernel_params.serialize}"
       super
       self.menue_timeout = other.menue_timeout unless other.menue_timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
+
       kernel_serialize = kernel_params.serialize
       # handle specially noresume as it should lead to remove all other resume
-      kernel_serialize.gsub!(/resume=\S+/, "") if kernel_params.parameter("noresume")
+      kernel_serialize.gsub!(/resume=\S+/, "") if other.kernel_params.parameter("noresume")
 
-      # explicitly set mitigations means overwrite of our
-      if other.explicit_cpu_mitigations
-        log.info "merging cpu_mitigations"
-        self.cpu_mitigations = other.cpu_mitigations
-      end
-
-      log.info "mitigations after merge #{cpu_mitigations}"
       # prevent double cpu_mitigations params
-      kernel_serialize.gsub!(/mitigations=\S+/, "") if kernel_params.parameter("mitigations")
+      kernel_serialize.gsub!(/mitigations=\S+/, "") if other.kernel_params.parameter("mitigations")
 
       new_kernel_params = "#{kernel_serialize} #{other.kernel_params.serialize}"
       # deduplicate identicatel parameter. Keep always the last one ( so reverse is needed ).
       new_params = new_kernel_params.split.reverse.uniq.reverse.join(" ")
 
       @kernel_container.kernel_params.replace(new_params)
+
+      # explicitly set mitigations means overwrite of our
+      self.cpu_mitigations = other.cpu_mitigations if other.explicit_cpu_mitigations
+
+      log.info "merging result: timeout: #{timeout}"
+      log.info "                secure_boot: #{secure_boot}"
+      log.info "                mitigations: #{cpu_mitigations}"
+      log.info "                kernel_params: #{kernel_params.serialize}"
     end
     # rubocop:enable Metrics/AbcSize
 
