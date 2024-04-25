@@ -47,7 +47,7 @@ module Bootloader
 
     # rubocop:disable Metrics/AbcSize
     def merge(other)
-      log.info "merging: timeout: #{timeout}=>#{other.menue_timeout}"
+      log.info "merging: timeout: #{menue_timeout}=>#{other.menue_timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
       log.info "         mitigations: #{cpu_mitigations}=>#{other.cpu_mitigations}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
@@ -72,7 +72,7 @@ module Bootloader
       # explicitly set mitigations means overwrite of our
       self.cpu_mitigations = other.cpu_mitigations if other.explicit_cpu_mitigations
 
-      log.info "merging result: timeout: #{timeout}"
+      log.info "merging result: timeout: #{menue_timeout}"
       log.info "                secure_boot: #{secure_boot}"
       log.info "                mitigations: #{cpu_mitigations}"
       log.info "                kernel_params: #{kernel_params.serialize}"
