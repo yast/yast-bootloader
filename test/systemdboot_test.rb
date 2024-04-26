@@ -140,4 +140,28 @@ describe Bootloader::SystemdBoot do
       expect(subject.kernel_params.serialize).to eq "security=apparmor splash=silent quiet mitigations=auto"
     end
   end
+
+  describe "#propose" do
+    it "proposes timeout to product/role default" do
+      allow(Yast::ProductFeatures).to receive(:GetIntegerFeature)
+        .with("globals", "boot_timeout").and_return(2)
+      subject.propose
+
+      expect(subject.menue_timeout).to eq 2
+    end
+
+    it "proposes secure boot" do
+      allow(Bootloader::Systeminfo).to receive(:secure_boot_supported?).and_return(true)
+      subject.propose
+
+      expect(subject.secure_boot).to eq true
+    end
+
+    it "proposes kernel cmdline" do
+      expect(Yast::BootArch).to receive(:DefaultKernelParams).and_return(cmdline_content)
+
+      subject.propose
+      expect(subject.kernel_params.serialize).to eq cmdline_content
+    end
+  end
 end
