@@ -27,11 +27,13 @@ describe Bootloader::SystemdBoot do
   describe "#read" do
     it "reads bootloader flags from sysconfig" do
       expect(Bootloader::Systeminfo).to receive(:secure_boot_active?).and_return(true)
-      allow(Yast::Installation).to receive(:destdir).and_return(File.expand_path("data/", __dir__))
+      allow(Yast::Installation).to receive(:destdir).and_return(destdir)
 
       subject.read
 
       expect(subject.secure_boot).to eq true
+      expect(subject.cpu_mitigations.to_human_string).to eq "offdd"
+      expect(subject.kernel_params.serialize).to eq "splash=silent quiet security=apparmor mitigations=off"
     end
   end
 
