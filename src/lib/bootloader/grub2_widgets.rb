@@ -122,25 +122,6 @@ module Bootloader
       end
     end
 
-    # Represents decision if smt is enabled
-    class GrubCpuMitigationsWidget < CpuMitigationsWidget
-      include Grub2Helper
-
-      def init
-        if grub2.respond_to?(:cpu_mitigations)
-          self.value = grub2.cpu_mitigations.value.to_s
-        else
-          # do not crash when use no bootloader. This widget is also used in security dialog.
-          # (bsc#1184968)
-          disable
-        end
-      end
-
-      def store
-        grub2.cpu_mitigations = ::Bootloader::CpuMitigations.new(value.to_sym) if enabled?
-      end
-    end
-
     # Represents decision if generic MBR have to be installed on disk
     class GenericMBRWidget < CWM::CheckBox
       include Grub2Helper
@@ -224,19 +205,6 @@ module Bootloader
 
       def store
         grub_default.os_prober.value = checked?
-      end
-    end
-
-    # represents kernel command line
-    class Grub2KernelAppendWidget < KernelAppendWidget
-      include Grub2Helper
-
-      def init
-        self.value = grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
-      end
-
-      def store
-        grub_default.kernel_params.replace(value)
       end
     end
 
@@ -1012,7 +980,7 @@ module Bootloader
         VBox(
           VSpacing(1),
           MarginBox(1, 0.5, KernelAppendWidget.new),
-          MarginBox(1, 0.5, Left(GrubCpuMitigationsWidget.new)),
+          MarginBox(1, 0.5, Left(CpuMitigationsWidget.new)),
           MarginBox(1, 0.5, console_widget),
           VStretch()
         )

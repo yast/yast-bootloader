@@ -7,8 +7,6 @@ Yast.import "BootStorage"
 Yast.import "Linuxrc"
 Yast.import "Mode"
 Yast.import "Package"
-Yast.import "Kernel"
-Yast.import "BootStorage"
 
 module Bootloader
   # Represents base for all kinds of bootloaders
@@ -100,24 +98,6 @@ module Bootloader
     end
 
   private
-
-    def propose_resume
-      swap_parts = Yast::BootStorage.available_swap_partitions
-      largest_swap_name, lagest_swap_size = (swap_parts.max_by { |_part, size| size } || [])
-
-      propose = Yast::Kernel.propose_hibernation? && largest_swap_name
-
-      return "" unless propose
-
-      if lagest_swap_size < Yast::BootStorage.ram_size
-        log.info "resume parameter is not added because swap (#{largest_swap_name}) is too small"
-
-        return ""
-      end
-
-      # try to use label or udev id for device name... FATE #302219
-      UdevMapping.to_mountby_device(largest_swap_name)
-    end
 
     # @return [Boolean] true when kexec-tools package should be included; false otherwise
     def include_kexec_tools_package?

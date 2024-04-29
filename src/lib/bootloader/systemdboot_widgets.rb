@@ -106,38 +106,6 @@ module Bootloader
       end
     end
 
-    # Represents decision if smt is enabled
-    class SdCpuMitigationsWidget < CpuMitigationsWidget
-      include SystemdBootHelper
-
-      def init
-        if systemdboot.respond_to?(:cpu_mitigations)
-          self.value = systemdboot.cpu_mitigations.value.to_s
-        else
-          # do not crash when use no bootloader. This widget is also used in security dialog.
-          # (bsc#1184968)
-          disable
-        end
-      end
-
-      def store
-        systemdboot.cpu_mitigations = ::Bootloader::CpuMitigations.new(value.to_sym) if enabled?
-      end
-    end
-
-    # represents kernel command line
-    class SdKernelAppendWidget < KernelAppendWidget
-      include SystemdBootHelper
-
-      def init
-        self.value = systemdboot.kernel_params.serialize.gsub(/mitigations=\S+/, "")
-      end
-
-      def store
-        systemdboot.kernel_params.replace(value)
-      end
-    end
-
     # represents Tab with kernel related configuration
     class KernelTab < CWM::Tab
       def label
@@ -149,8 +117,8 @@ module Bootloader
       def contents
         VBox(
           VSpacing(1),
-          MarginBox(1, 0.5, SdKernelAppendWidget.new),
-          MarginBox(1, 0.5, Left(SdCpuMitigationsWidget.new)),
+          MarginBox(1, 0.5, KernelAppendWidget.new),
+          MarginBox(1, 0.5, Left(CpuMitigationsWidget.new)),
           VStretch()
         )
       end

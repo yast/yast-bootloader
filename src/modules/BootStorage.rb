@@ -48,6 +48,7 @@ module Yast
 
       Yast.import "Arch"
       Yast.import "Mode"
+      Yast.import "Kernel"
 
       # FATE#305008: Failover boot configurations for md arrays with redundancy
       # list <string> includes physical disks used for md raid
@@ -252,6 +253,24 @@ module Yast
     # shortcut to get stage1 partitions for /
     def root_partitions
       stage1_partitions_for(root_filesystem)
+    end
+
+    def propose_resume
+      swap_parts = Yast::BootStorage.available_swap_partitions
+      largest_swap_name, largest_swap_size = (swap_parts.max_by { |_part, size| size } || [])
+
+      propose = Yast::Kernel.propose_hibernation? && largest_swap_name
+
+      return "" unless propose
+
+      if largest_swap_size < Yast::BootStorage.ram_size
+        log.info "resume parameter is not added because swap (#{largest_swap_name}) is too small"
+
+        return ""
+      end
+
+      # try to use label or udev id for device name... FATE #302219
+      UdevMapping.to_mountby_device(largest_swap_name)
     end
 
   private

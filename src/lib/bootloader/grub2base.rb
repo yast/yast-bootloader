@@ -386,7 +386,7 @@ module Bootloader
 
     def propose_grub_default
       if grub_default.kernel_params.empty?
-        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
+        kernel_line = Yast::BootArch.DefaultKernelParams(Yast::BootStorage.propose_resume)
         grub_default.kernel_params.replace(kernel_line)
       end
       grub_default.gfxmode ||= "auto"

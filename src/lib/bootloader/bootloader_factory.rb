@@ -99,7 +99,7 @@ module Bootloader
           nil # in other cases it means that read failed
         end
       end
-    # rubocop:enable Metrics/CyclomaticComplexity
+      # rubocop:enable Metrics/CyclomaticComplexity
 
     private
 

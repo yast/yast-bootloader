@@ -130,7 +130,7 @@ module Bootloader
       super
       log.info("Propose settings...")
       if @kernel_container.kernel_params.empty?
-        kernel_line = Yast::BootArch.DefaultKernelParams(propose_resume)
+        kernel_line = Yast::BootArch.DefaultKernelParams(Yast::BootStorage.propose_resume)
         @kernel_container.kernel_params.replace(kernel_line)
       end
       self.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i

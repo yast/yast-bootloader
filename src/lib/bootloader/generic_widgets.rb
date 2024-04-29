@@ -155,9 +155,21 @@ module Bootloader
       )
     end
 
-    def init; end
+    def init
+        if Bootloader::BootloaderFactory.current.respond_to?(:cpu_mitigations)
+          self.value = Bootloader::BootloaderFactory.current.cpu_mitigations.value.to_s
+        else
+          disable
+        end
+    end
 
-    def store; end
+
+    def store
+      if enabled?
+        Bootloader::BootloaderFactory.current.cpu_mitigations =
+          ::Bootloader::CpuMitigations.new(value.to_sym)
+      end
+    end
   end
 
   # represents kernel command line
@@ -179,8 +191,28 @@ module Bootloader
       )
     end
 
-    def init; end
+    def init
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.is_a?(::Bootloader::SystemdBoot)
+        self.value = current_bl.kernel_params.serialize.gsub(/mitigations=\S+/, "")
+      elsif current_bl.is_a?(::Bootloader::Grub2Base)
+        self.value = current_bl.grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
+      else
+        disable
+      end
+    end
 
-    def store; end
+    def store
+      if enabled?
+        current_bl = ::Bootloader::BootloaderFactory.current
+        if current_bl.is_a?(::Bootloader::SystemdBoot)
+          current_bl.kernel_params.replace(value)
+        elsif
+          current_bl.grub_default.kernel_params.replace(value)
+        else
+          log.error("Bootloader type #{current_bl} not found.")
+        end
+      end
+    end
   end
 end
