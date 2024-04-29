@@ -102,7 +102,7 @@ describe Bootloader::Grub2Widget::TimeoutWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::GrubCpuMitigationsWidget do
+describe Bootloader::CpuMitigationsWidget do
   before do
     assign_bootloader
   end
@@ -215,7 +215,7 @@ describe Bootloader::Grub2Widget::OSProberWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::Grub2KernelAppendWidget do
+describe Bootloader::KernelAppendWidget do
   before do
     assign_bootloader
   end

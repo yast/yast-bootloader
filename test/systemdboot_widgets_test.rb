@@ -85,7 +85,7 @@ describe Bootloader::SystemdBootWidget::SecureBootWidget do
   end
 end
 
-describe Bootloader::SystemdBootWidget::SdCpuMitigationsWidget do
+describe Bootloader::CpuMitigationsWidget do
   before do
     assign_systemd_bootloader
   end
@@ -117,7 +117,7 @@ describe Bootloader::SystemdBootWidget::SdCpuMitigationsWidget do
   end
 end
 
-describe Bootloader::SystemdBootWidget::SdKernelAppendWidget do
+describe Bootloader::KernelAppendWidget do
   before do
     assign_systemd_bootloader
   end
