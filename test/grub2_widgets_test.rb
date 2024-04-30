@@ -231,6 +231,7 @@ describe Bootloader::KernelAppendWidget do
 
   it "stores text as kernel command line option" do
     expect(subject).to receive(:value).and_return("showopts quiet")
+    expect(subject).to receive(:enabled?).and_return(true)
     subject.store
 
     expect(bootloader.grub_default.kernel_params.serialize).to eq "showopts quiet"

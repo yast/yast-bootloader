@@ -270,7 +270,7 @@ module Yast
       end
 
       # try to use label or udev id for device name... FATE #302219
-      Bootloader::UdevMapping.to_mountby_device(largest_swap_name)
+      ::Bootloader::UdevMapping.to_mountby_device(largest_swap_name)
     end
 
   private
