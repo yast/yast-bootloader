@@ -192,9 +192,10 @@ module Bootloader
 
     def init
       current_bl = ::Bootloader::BootloaderFactory.current
-      if current_bl.is_a?(::Bootloader::SystemdBoot)
+      case current_bl
+      when ::Bootloader::SystemdBoot
         self.value = current_bl.kernel_params.serialize.gsub(/mitigations=\S+/, "")
-      elsif current_bl.is_a?(::Bootloader::Grub2Base)
+      when ::Bootloader::Grub2Base
         self.value = current_bl.grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
       else
         disable
