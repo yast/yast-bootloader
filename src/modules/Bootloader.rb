@@ -22,6 +22,7 @@ require "bootloader/sysconfig"
 require "bootloader/bootloader_factory"
 require "bootloader/autoyast_converter"
 require "bootloader/autoinst_profile/bootloader_section"
+require "bootloader/systemdboot"
 require "installation/autoinst_issues/invalid_value"
 require "cfa/matcher"
 
@@ -336,21 +337,26 @@ module Yast
         return :missing
       end
 
-      ReadOrProposeIfNeeded() # ensure we have some data
-
       current_bl = ::Bootloader::BootloaderFactory.current
-      # currently only grub2 bootloader supported
-      return :missing unless current_bl.respond_to?(:grub_default)
-
-      grub_default = current_bl.grub_default
-      params = case flavor
-      when :common then grub_default.kernel_params
-      when :xen_guest then grub_default.xen_kernel_params
-      when :xen_host then grub_default.xen_hypervisor_params
-      else raise ArgumentError, "Unknown flavor #{flavor}"
+      if current_bl.is_a?(::Bootloader::SystemdBoot)
+        # systemd-boot
+        kernel_params = current_bl.kernel_params
+      elsif current_bl.respond_to?(:grub_default)
+        # all grub bootloader types
+        grub_default = current_bl.grub_default
+        kernel_params = case flavor
+        when :common then grub_default.kernel_params
+        when :xen_guest then grub_default.xen_kernel_params
+        when :xen_host then grub_default.xen_hypervisor_params
+        else raise ArgumentError, "Unknown flavor #{flavor}"
+        end
+      else
+        return :missing
       end
 
-      res = params.parameter(key)
+      ReadOrProposeIfNeeded() # ensure we have some data
+
+      res = kernel_params.parameter(key)
 
       BOOLEAN_MAPPING[res] || res
     end
@@ -382,10 +388,10 @@ module Yast
     def modify_kernel_params(*args)
       ReadOrProposeIfNeeded() # ensure we have data to modify
       current_bl = ::Bootloader::BootloaderFactory.current
-      # currently only grub2 bootloader supported
-      return :missing unless current_bl.respond_to?(:grub_default)
-
-      grub_default = current_bl.grub_default
+      # currently only grub2 bootloader and systemd-boot supported
+      if !current_bl.respond_to?(:grub_default) && !current_bl.is_a?(::Bootloader::SystemdBoot)
+        return :missing
+      end
 
       values = args.pop
       raise ArgumentError, "Missing parameters to modify #{args.inspect}" if !values.is_a? Hash
@@ -403,12 +409,17 @@ module Yast
         values[key] = remap_values[values[key]] if remap_values.key?(values[key])
       end
 
-      params = args.map do |flavor|
-        case flavor
-        when :common then grub_default.kernel_params
-        when :xen_guest then grub_default.xen_kernel_params
-        when :xen_host then grub_default.xen_hypervisor_params
-        else raise ArgumentError, "Unknown flavor #{flavor}"
+      if current_bl.is_a?(::Bootloader::SystemdBoot)
+        params = [current_bl.kernel_params]
+      else
+        grub_default = current_bl.grub_default
+        params = args.map do |flavor|
+          case flavor
+          when :common then grub_default.kernel_params
+          when :xen_guest then grub_default.xen_kernel_params
+          when :xen_host then grub_default.xen_hypervisor_params
+          else raise ArgumentError, "Unknown flavor #{flavor}"
+          end
         end
       end
 

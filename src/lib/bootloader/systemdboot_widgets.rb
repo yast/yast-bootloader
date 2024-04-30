@@ -116,10 +116,8 @@ module Bootloader
       def contents
         VBox(
           VSpacing(1),
-          HBox(
-            HSpacing(1),
-            HStretch()
-          ),
+          MarginBox(1, 0.5, KernelAppendWidget.new),
+          MarginBox(1, 0.5, Left(CpuMitigationsWidget.new)),
           VStretch()
         )
       end

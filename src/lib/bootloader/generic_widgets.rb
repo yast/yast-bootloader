@@ -3,6 +3,7 @@
 require "yast"
 
 require "bootloader/bootloader_factory"
+require "bootloader/cpu_mitigations"
 
 require "cwm/widget"
 
@@ -108,6 +109,111 @@ module Bootloader
         "which means that the boot loader configuration is not managed by YaST and also " \
         "the kernel post install script does not update the boot loader configuration."
       )
+    end
+  end
+
+  # Represents decision if smt is enabled
+  class CpuMitigationsWidget < CWM::ComboBox
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("CPU Mitigations")
+    end
+
+    def items
+      ::Bootloader::CpuMitigations::ALL.map do |m|
+        [m.value.to_s, m.to_human_string]
+      end
+    end
+
+    def help
+      _(
+        "<p><b>CPU Mitigations</b><br>\n" \
+        "The option selects which default settings should be used for CPU \n" \
+        "side channels mitigations. A highlevel description is on our Technical Information \n" \
+        "Document TID 7023836. Following options are available:<ul>\n" \
+        "<li><b>Auto</b>: This option enables all the mitigations needed for your CPU model. \n" \
+        "This setting can impact performance to some degree, depending on CPU model and \n" \
+        "workload. It provides all security mitigations, but it does not protect against \n" \
+        "cross-CPU thread attacks.</li>\n" \
+        "<li><b>Auto + No SMT</b>: This option enables all the above mitigations in \n" \
+        "\"Auto\", and also disables Simultaneous Multithreading to avoid \n" \
+        "side channel attacks across multiple CPU threads. This setting can \n" \
+        "further impact performance, depending on your \n" \
+        "workload. This setting provides the full set of available security mitigations.</li>\n" \
+        "<li><b>Off</b>: All CPU Mitigations are disabled. This setting has no performance \n" \
+        "impact, but side channel attacks against your CPU are possible, depending on CPU \n" \
+        "model.</li>\n" \
+        "<li><b>Manual</b>: This setting does not specify a mitigation level and leaves \n" \
+        "this to be the kernel default. The administrator can add other mitigations options \n" \
+        "in the <i>kernel command line</i> widget.\n" \
+        "All CPU mitigation specific options can be set manually.</li></ul></p>"
+      )
+    end
+
+    def init
+      if Bootloader::BootloaderFactory.current.respond_to?(:cpu_mitigations)
+        self.value = Bootloader::BootloaderFactory.current.cpu_mitigations.value.to_s
+      else
+        disable
+      end
+    end
+
+    def store
+      return unless enabled?
+
+      Bootloader::BootloaderFactory.current.cpu_mitigations =
+        ::Bootloader::CpuMitigations.new(value.to_sym)
+    end
+  end
+
+  # represents kernel command line
+  class KernelAppendWidget < CWM::InputField
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("O&ptional Kernel Command Line Parameter")
+    end
+
+    def help
+      _(
+        "<p><b>Optional Kernel Command Line Parameter</b> lets you define " \
+        "additional parameters to pass to the kernel.</p>"
+      )
+    end
+
+    def init
+      current_bl = ::Bootloader::BootloaderFactory.current
+      case current_bl
+      when ::Bootloader::SystemdBoot
+        self.value = current_bl.kernel_params.serialize.gsub(/mitigations=\S+/, "")
+      when ::Bootloader::Grub2Base
+        self.value = current_bl.grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
+      else
+        disable
+      end
+    end
+
+    def store
+      return unless enabled?
+
+      current_bl = ::Bootloader::BootloaderFactory.current
+      case current_bl
+      when ::Bootloader::SystemdBoot
+        current_bl.kernel_params.replace(value)
+      when ::Bootloader::Grub2Base
+        current_bl.grub_default.kernel_params.replace(value)
+      else
+        log.error("Bootloader type #{current_bl} not found.")
+      end
     end
   end
 end
