@@ -164,10 +164,10 @@ module Bootloader
     end
 
     def store
-      if enabled?
-        Bootloader::BootloaderFactory.current.cpu_mitigations =
-          ::Bootloader::CpuMitigations.new(value.to_sym)
-      end
+      return unless enabled?
+
+      Bootloader::BootloaderFactory.current.cpu_mitigations =
+        ::Bootloader::CpuMitigations.new(value.to_sym)
     end
   end
 
@@ -203,14 +203,16 @@ module Bootloader
     end
 
     def store
-      if enabled?
-        current_bl = ::Bootloader::BootloaderFactory.current
-        if current_bl.is_a?(::Bootloader::SystemdBoot)
-          current_bl.kernel_params.replace(value)
-        elsif current_bl.grub_default.kernel_params.replace(value)
-        else
-          log.error("Bootloader type #{current_bl} not found.")
-        end
+      return unless enabled?
+
+      current_bl = ::Bootloader::BootloaderFactory.current
+      case current_bl
+      when ::Bootloader::SystemdBoot
+        current_bl.kernel_params.replace(value)
+      when ::Bootloader::Grub2Base
+        current_bl.grub_default.kernel_params.replace(value)
+      else
+        log.error("Bootloader type #{current_bl} not found.")
       end
     end
   end
