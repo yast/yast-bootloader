@@ -3,7 +3,6 @@
 require "yast"
 require "bootloader/generic_widgets"
 require "bootloader/systeminfo"
-require "bootloader/cpu_mitigations"
 
 Yast.import "UI"
 Yast.import "Arch"

@@ -6,8 +6,6 @@ require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
 require "cfa/systemd_boot"
 require "cfa/grub2/default"
-require "cfa/matcher"
-require "cfa/placer"
 
 Yast.import "Report"
 Yast.import "Arch"
