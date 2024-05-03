@@ -205,7 +205,11 @@ module Bootloader
     def create_menue_entries
       # writing kernel parameter to /etc/kernel/cmdline
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
-        fw.puts("root=#{Yast::BootStorage.root_partitions.first.name} #{kernel_params.serialize}")
+        if Yast::Stage.initial # while new installation only
+          fw.puts("root=#{Yast::BootStorage.root_partitions.first.name} #{kernel_params.serialize}")
+        else # root entry is already available
+          fw.puts(kernel_params.serialize)
+        end
       end
 
       begin
