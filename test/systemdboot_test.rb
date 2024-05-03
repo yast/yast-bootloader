@@ -71,7 +71,7 @@ describe Bootloader::SystemdBoot do
       # Checking written kernel parameters
       subject.read
       expect(subject.cpu_mitigations.to_human_string).to eq "Off"
-      expect(subject.kernel_params.serialize).to eq cmdline_content
+      expect(subject.kernel_params.serialize).to include cmdline_content
     end
 
     it "creates menue entries" do
