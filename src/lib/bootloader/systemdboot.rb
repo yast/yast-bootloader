@@ -112,9 +112,7 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
-      if Yast::Stage.initial # while new installation only (currently)
-        install_bootloader
-      end
+      install_bootloader if Yast::Stage.initial # while new installation only (currently)
 
       create_menue_entries
       write_menue_timeout
