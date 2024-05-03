@@ -71,7 +71,7 @@ describe Bootloader::SystemdBoot do
       # Checking written kernel parameters
       subject.read
       expect(subject.cpu_mitigations.to_human_string).to eq "Off"
-      expect(subject.kernel_params.serialize).to eq cmdline_content
+      expect(subject.kernel_params.serialize).to include cmdline_content
     end
 
     it "creates menue entries" do
@@ -137,7 +137,7 @@ describe Bootloader::SystemdBoot do
       expect(subject.secure_boot).to eq true
       expect(subject.menue_timeout).to eq 12
       expect(subject.cpu_mitigations.to_human_string).to eq "Auto"
-      expect(subject.kernel_params.serialize).to eq "security=apparmor splash=silent quiet mitigations=auto"
+      expect(subject.kernel_params.serialize).to include "security=apparmor splash=silent quiet mitigations=auto"
     end
   end
 

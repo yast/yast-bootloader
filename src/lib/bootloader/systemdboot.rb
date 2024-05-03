@@ -112,15 +112,10 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
-      if Yast::Stage.initial # while new installation only (currently)
-        install_bootloader
-        create_menue_entries
-      end
+      install_bootloader if Yast::Stage.initial # while new installation only (currently)
+      create_menue_entries
       write_menue_timeout
 
-      File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
-        fw.puts(kernel_params.serialize)
-      end
       true
     end
 
@@ -205,17 +200,15 @@ module Bootloader
     SDBOOTUTIL = "/usr/bin/sdbootutil"
 
     def create_menue_entries
-      cmdline_file = File.join(Yast::Installation.destdir, CMDLINE)
-      if Yast::Stage.initial
-        # sdbootutil script needs the "root=<device>" entry in kernel parameters.
-        # This will be written to CMDLINE which will be used in an
-        # installed system by the administrator only. So we can use it because
-        # the system will be installed new. This file will be deleted after
-        # calling sdbootutil.
-        File.open(cmdline_file, "w+") do |fw|
-          fw.puts("root=#{Yast::BootStorage.root_partitions.first.name}")
+      # writing kernel parameter to /etc/kernel/cmdline
+      File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
+        if Yast::Stage.initial # while new installation only
+          fw.puts("root=#{Yast::BootStorage.root_partitions.first.name} #{kernel_params.serialize}")
+        else # root entry is already available
+          fw.puts(kernel_params.serialize)
         end
       end
+
       begin
         Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
       rescue Cheetah::ExecutionFailed => e
@@ -227,7 +220,6 @@ module Bootloader
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
       end
-      File.delete(cmdline_file) if Yast::Stage.initial # see above
     end
 
     def read_menue_timeout
