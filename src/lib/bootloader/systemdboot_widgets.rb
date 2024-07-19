@@ -39,7 +39,7 @@ module Bootloader
           false,
           HBox(
             IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
-              systemdboot.menue_timeout.to_i),
+              systemdboot.menu_timeout.to_i),
             HStretch()
           )
         )
@@ -52,14 +52,14 @@ module Bootloader
       end
 
       def init
-        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menue_timeout >= 0)
-        systemdboot.menue_timeout = default_value if systemdboot.menue_timeout < 0
-        Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menue_timeout)
+        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menu_timeout >= 0)
+        systemdboot.menu_timeout = default_value if systemdboot.menu_timeout < 0
+        Yast::UI.ChangeWidget(Id(:seconds), :Value, systemdboot.menu_timeout)
       end
 
       def store
         cont_boot = Yast::UI.QueryWidget(Id(:cont_boot), :Value)
-        systemdboot.menue_timeout = cont_boot ? Yast::UI.QueryWidget(Id(:seconds), :Value) : -1
+        systemdboot.menu_timeout = cont_boot ? Yast::UI.QueryWidget(Id(:seconds), :Value) : -1
       end
 
     private

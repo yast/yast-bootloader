@@ -21,9 +21,9 @@ module Bootloader
 
     CMDLINE = "/etc/kernel/cmdline"
 
-    # @!attribute menue_timeout
-    #   @return [Integer] menue timeout
-    attr_accessor :menue_timeout
+    # @!attribute menu_timeout
+    #   @return [Integer] menu timeout
+    attr_accessor :menu_timeout
 
     # @!attribute secure_boot
     #   @return [Boolean] current secure boot setting
@@ -45,14 +45,14 @@ module Bootloader
 
     # rubocop:disable Metrics/AbcSize
     def merge(other)
-      log.info "merging: timeout: #{menue_timeout}=>#{other.menue_timeout}"
+      log.info "merging: timeout: #{menu_timeout}=>#{other.menu_timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
       super
-      self.menue_timeout = other.menue_timeout unless other.menue_timeout.nil?
+      self.menu_timeout = other.menu_timeout unless other.menu_timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
 
       kernel_serialize = kernel_params.serialize
@@ -71,7 +71,7 @@ module Bootloader
       # explicitly set mitigations means overwrite of our
       self.cpu_mitigations = other.cpu_mitigations if other.explicit_cpu_mitigations
 
-      log.info "merging result: timeout: #{menue_timeout}"
+      log.info "merging result: timeout: #{menu_timeout}"
       log.info "                secure_boot: #{secure_boot}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
@@ -95,7 +95,7 @@ module Bootloader
     def read
       super
 
-      read_menue_timeout
+      read_menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
 
       lines = ""
@@ -113,8 +113,8 @@ module Bootloader
       super
       log.info("Writing settings...")
       install_bootloader if Yast::Stage.initial # while new installation only (currently)
-      create_menue_entries
-      write_menue_timeout
+      create_menu_entries
+      write_menu_timeout
 
       true
     end
@@ -126,7 +126,7 @@ module Bootloader
         kernel_line = Yast::BootArch.DefaultKernelParams(Yast::BootStorage.propose_resume)
         @kernel_container.kernel_params.replace(kernel_line)
       end
-      self.menue_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+      self.menu_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
       self.secure_boot = Systeminfo.secure_boot_supported?
     end
 
@@ -199,7 +199,7 @@ module Bootloader
 
     SDBOOTUTIL = "/usr/bin/sdbootutil"
 
-    def create_menue_entries
+    def create_menu_entries
       # writing kernel parameter to /etc/kernel/cmdline
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         if Yast::Stage.initial # while new installation only
@@ -214,7 +214,7 @@ module Bootloader
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
-                   "Cannot create systemd-boot menue entry:\n" \
+                   "Cannot create systemd-boot menu entry:\n" \
                    "Command `%{command}`.\n" \
                    "Error output: %{stderr}"
                  ), command: e.commands.inspect, stderr: e.stderr)
@@ -222,23 +222,23 @@ module Bootloader
       end
     end
 
-    def read_menue_timeout
+    def read_menu_timeout
       config = CFA::SystemdBoot.load
-      return unless config.menue_timeout
+      return unless config.menu_timeout
 
-      self.menue_timeout = if config.menue_timeout == "menu-force"
+      self.menu_timeout = if config.menu_timeout == "menu-force"
         -1
       else
-        config.menue_timeout.to_i
+        config.menu_timeout.to_i
       end
     end
 
-    def write_menue_timeout
+    def write_menu_timeout
       config = CFA::SystemdBoot.load
-      config.menue_timeout = if menue_timeout == -1
+      config.menu_timeout = if menu_timeout == -1
         "menu-force"
       else
-        menue_timeout.to_s
+        menu_timeout.to_s
       end
       config.save
     end

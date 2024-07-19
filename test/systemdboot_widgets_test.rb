@@ -58,7 +58,7 @@ describe Bootloader::SystemdBootWidget::TimeoutWidget do
     it "sets timeout to -1 for using menu-force" do
       subject.store
 
-      expect(bootloader.menue_timeout).to eq(-1)
+      expect(bootloader.menu_timeout).to eq(-1)
     end
   end
 end

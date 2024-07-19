@@ -30,24 +30,24 @@ module CFA
   # @example Reading a value
   #   file = CFA::SystemdBoot.new
   #   file.load
-  #   file.menue_timeout #=> 10
+  #   file.menu_timeout #=> 10
   #
   # @example Writing a value
   #   file = CFA::SystemdBoot.new
-  #   file.menue_timeout = 5
+  #   file.menu_timeout = 5
   #   file.save
   #
   # @example Loading shortcut
   #   file = CFA::SystemdBoot.load
-  #   file.menue_timeout #=> 10
+  #   file.menu_timeout #=> 10
   class SystemdBoot < BaseModel
     extend Yast::Logger
     include Yast::Logger
 
     attributes(
-      menue_timeout: "timeout",
-      console_mode:  "console_mode",
-      default:       "default"
+      menu_timeout: "timeout",
+      console_mode: "console_mode",
+      default:      "default"
     )
 
     # Instantiates and loads a file when possible

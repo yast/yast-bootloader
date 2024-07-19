@@ -53,16 +53,16 @@ describe CFA::SystemdBoot do
     end
   end
 
-  describe "#menue_timeout" do
+  describe "#menu_timeout" do
     it "returns the timeout value" do
-      expect(subject.menue_timeout).to eq("10")
+      expect(subject.menu_timeout).to eq("10")
     end
   end
 
-  describe "#menue_timeout=" do
-    it "sets the menue_timeout value" do
-      expect { subject.menue_timeout = "15" }
-        .to change { subject.menue_timeout }.from("10").to("15")
+  describe "#menu_timeout=" do
+    it "sets the menu_timeout value" do
+      expect { subject.menu_timeout = "15" }
+        .to change { subject.menu_timeout }.from("10").to("15")
     end
   end
 
@@ -74,7 +74,7 @@ describe CFA::SystemdBoot do
       allow(file_handler).to receive(:read).with(file_path)
         .and_return("# Some comment\ntimeout 5")
       subject.load
-      subject.menue_timeout = timeout
+      subject.menu_timeout = timeout
     end
 
     it "writes changes to configuration file" do
