@@ -146,6 +146,22 @@ describe Bootloader::Systeminfo do
           expect(described_class.secure_boot_available?("grub2-efi")).to be true
         end
       end
+
+      context "and arch is arm" do
+        let(:arch) { "arm" }
+
+        it "returns false" do
+          expect(described_class.secure_boot_available?("grub2-efi")).to be false
+        end
+      end
+
+      context "and arch is riscv64" do
+        let(:arch) { "riscv64" }
+
+        it "returns false" do
+          expect(described_class.secure_boot_available?("grub2-efi")).to be false
+        end
+      end
     end
   end
 
