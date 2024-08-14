@@ -45,7 +45,7 @@ describe Bootloader::SystemdBoot do
       allow(Yast::Stage).to receive(:initial).and_return(true)
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
       subject.kernel_params.replace(cmdline_content)
-      subject.menue_timeout = 10
+      subject.menu_timeout = 10
     end
 
     it "installs the bootloader" do
@@ -74,25 +74,25 @@ describe Bootloader::SystemdBoot do
       expect(subject.kernel_params.serialize).to include cmdline_content
     end
 
-    it "creates menue entries" do
+    it "creates menu entries" do
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "install")
       allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
 
-      # create menue entries
+      # create menu entries
       expect(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
 
       subject.write
     end
 
-    it "saves menue timeout" do
+    it "saves menu timeout" do
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "install")
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
 
-      # Saving menue timeout
+      # Saving menu timeout
       expect_any_instance_of(CFA::SystemdBoot).to receive(:save)
 
       subject.write
@@ -121,21 +121,21 @@ describe Bootloader::SystemdBoot do
   end
 
   describe "#merge" do
-    it "overwrite secure boot, mitigations and menue timeout if specified in merged one" do
+    it "overwrite secure boot, mitigations and menu timeout if specified in merged one" do
       other_cmdline = "splash=silent quiet mitigations=auto"
       other = described_class.new
       other.secure_boot = true
-      other.menue_timeout = 12
+      other.menu_timeout = 12
       other.kernel_params.replace(other_cmdline)
 
       subject.secure_boot = false
-      subject.menue_timeout = 10
+      subject.menu_timeout = 10
       subject.kernel_params.replace(cmdline_content)
 
       subject.merge(other)
 
       expect(subject.secure_boot).to eq true
-      expect(subject.menue_timeout).to eq 12
+      expect(subject.menu_timeout).to eq 12
       expect(subject.cpu_mitigations.to_human_string).to eq "Auto"
       expect(subject.kernel_params.serialize).to include "security=apparmor splash=silent quiet mitigations=auto"
     end
@@ -147,7 +147,7 @@ describe Bootloader::SystemdBoot do
         .with("globals", "boot_timeout").and_return(2)
       subject.propose
 
-      expect(subject.menue_timeout).to eq 2
+      expect(subject.menu_timeout).to eq 2
     end
 
     it "proposes secure boot" do
