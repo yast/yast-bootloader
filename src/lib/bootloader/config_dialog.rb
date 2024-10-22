@@ -6,6 +6,7 @@ require "bootloader/bootloader_factory"
 require "bootloader/none_bootloader"
 require "bootloader/grub2_widgets"
 require "bootloader/systemdboot_widgets"
+require "bootloader/bls_boot_widgets"
 
 Yast.import "BootStorage"
 Yast.import "CWMTab"
@@ -90,9 +91,9 @@ module Bootloader
       return VBox(LoaderTypeWidget.new) if BootloaderFactory.current.is_a?(NoneBootloader)
 
       if BootloaderFactory.current.is_a?(SystemdBoot)
-        boot_code_tab = ::Bootloader::SystemdBootWidget::BootCodeTab.new
+        boot_code_tab = ::Bootloader::BlsBootWidget::BootCodeTab.new
         kernel_tab = ::Bootloader::BlsBootWidget::KernelTab.new
-        bootloader_tab = ::Bootloader::BlsBootWidget::BootloaderTab.new
+        bootloader_tab = ::Bootloader::SystemdBootWidget::BootloaderTab.new
       else
         boot_code_tab = ::Bootloader::Grub2Widget::BootCodeTab.new
         kernel_tab = ::Bootloader::Grub2Widget::KernelTab.new
