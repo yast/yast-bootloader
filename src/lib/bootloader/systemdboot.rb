@@ -3,6 +3,7 @@
 require "fileutils"
 require "yast"
 require "cfa/systemd_boot"
+require "bootloader/bls_boot"
 
 Yast.import "Report"
 Yast.import "Arch"
