@@ -91,8 +91,8 @@ module Bootloader
 
       if BootloaderFactory.current.is_a?(SystemdBoot)
         boot_code_tab = ::Bootloader::SystemdBootWidget::BootCodeTab.new
-        kernel_tab = ::Bootloader::SystemdBootWidget::KernelTab.new
-        bootloader_tab = ::Bootloader::SystemdBootWidget::BootloaderTab.new
+        kernel_tab = ::Bootloader::BlsBootWidget::KernelTab.new
+        bootloader_tab = ::Bootloader::BlsBootWidget::BootloaderTab.new
       else
         boot_code_tab = ::Bootloader::Grub2Widget::BootCodeTab.new
         kernel_tab = ::Bootloader::Grub2Widget::KernelTab.new
