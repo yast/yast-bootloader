@@ -1,15 +1,11 @@
 # frozen_string_literal: true
 
-require "fileutils"
 require "yast"
 require "cfa/systemd_boot"
 require "bootloader/bls_boot"
 
-Yast.import "Report"
 Yast.import "Arch"
 Yast.import "ProductFeatures"
-Yast.import "BootStorage"
-Yast.import "Stage"
 
 module Bootloader
   # Represents systemd bootloader with efi target

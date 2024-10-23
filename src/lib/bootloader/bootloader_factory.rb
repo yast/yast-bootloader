@@ -24,6 +24,7 @@ module Bootloader
     # Keyword used in autoyast for default bootloader used for given system.
     DEFAULT_KEYWORD = "default"
     SYSTEMDBOOT = "systemd-boot"
+    GRUB2BLS = "grub2-bls"
 
     class << self
       include Yast::Logger
@@ -58,6 +59,7 @@ module Bootloader
           # default means bootloader use what it think is the best
           result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
           result << SYSTEMDBOOT if use_systemd_boot?
+          result << GRUB2BLS if use_grub2_bls_boot?
           result << DEFAULT_KEYWORD
           return result
         end
@@ -73,6 +75,7 @@ module Bootloader
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
         ret << SYSTEMDBOOT if use_systemd_boot?
+        ret << GRUB2BLS if use_grub2_bls_boot?
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
@@ -105,6 +108,11 @@ module Bootloader
 
       def use_systemd_boot?
         Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
+          (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
+      end
+
+      def use_grub2_bls_boot?
+#        Yast::ProductFeatures.GetBooleanFeature("globals", "enable_grub2_bls_boot") &&
           (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
       end
 
