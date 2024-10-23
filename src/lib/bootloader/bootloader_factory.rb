@@ -5,6 +5,7 @@ require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
 require "bootloader/grub2"
 require "bootloader/grub2efi"
+require "bootloader/grub2bls"
 require "bootloader/systemdboot"
 require "bootloader/exceptions"
 
@@ -92,6 +93,8 @@ module Bootloader
           @cached_bootloaders["grub2-efi"] ||= Grub2EFI.new
         when "systemd-boot"
           @cached_bootloaders["systemd-boot"] ||= SystemdBoot.new
+        when "grub2-bls"
+          @cached_bootloaders["grub2-bls"] ||= Grub2BlsBoot.new
         when "none"
           @cached_bootloaders["none"] ||= NoneBootloader.new
         when String
