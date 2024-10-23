@@ -34,7 +34,7 @@ module Bootloader
           VSpacing(2),
           HBox(
             HSpacing(1),            
-            TimeoutWidget.new,
+            CWM::Empty.new("options"),
             HSpacing(1)            
           ),
           VStretch()
