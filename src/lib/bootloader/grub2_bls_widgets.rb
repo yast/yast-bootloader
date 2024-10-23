@@ -33,7 +33,9 @@ module Bootloader
         VBox(
           VSpacing(2),
           HBox(
-            CWM::Empty.new("options")
+            HSpacing(1),            
+            CWM::Empty.new("options"),
+            HSpacing(1)            
           ),
           VStretch()
         )
