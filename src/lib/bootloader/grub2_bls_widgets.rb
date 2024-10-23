@@ -27,6 +27,7 @@ module Bootloader
 
       def contents
         HBox(
+          Left(Label("")),
           CWM::Empty.new("BootloaderTab")
         )
 #        CheckBoxFrame(
@@ -54,9 +55,7 @@ module Bootloader
         VBox(
           VSpacing(2),
           HBox(
-            HSpacing(1),
-            TimeoutWidget.new,            
-            HSpacing(1)            
+            Left(Label("")),
           ),
           VStretch()
         )
