@@ -27,7 +27,6 @@ module Bootloader
 
       def contents
         HBox(
-          Left(Label("")),
           CWM::Empty.new("BootloaderTab")
         )
 #        CheckBoxFrame(
