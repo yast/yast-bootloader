@@ -10,39 +10,6 @@ Yast.import "Arch"
 module Bootloader
   module Grub2BlsBootWidget
 
-    # Represents bootloader timeout value
-    class TimeoutWidget < CWM::CustomWidget
-
-      def initialize
-        textdomain "bootloader"
-
-        super()
-
-        @minimum = 0
-        @maximum = 600
-        @default = 10
-      end
-
-      attr_reader :minimum, :maximum, :default
-
-      def contents
-        HBox(
-          Left(Label("")),
-          CWM::Empty.new("BootloaderTab")
-        )
-#        CheckBoxFrame(
-#          Id(:cont_boot),
-#          _("Automatically boot the default entry after a timeout"),
-#          false,
-#          HBox(
-#            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
-#                     1),
-#            HStretch()
-#          )
-#        )
-      end
-    end
-
     class BootloaderTab < CWM::Tab
 
       def label
@@ -55,7 +22,7 @@ module Bootloader
         VBox(
           VSpacing(2),
           HBox(
-            Left(Label("")),
+            Label("")
           ),
           VStretch()
         )
