@@ -12,6 +12,17 @@ module Bootloader
 
 
     class BootloaderTab < CWM::Tab
+
+      def initialize
+        textdomain "bootloader"
+
+        super()
+
+        @minimum = 0
+        @maximum = 600
+        @default = 10
+      end
+
       def label
         textdomain "bootloader"
 
