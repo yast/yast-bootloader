@@ -26,7 +26,9 @@ module Bootloader
       attr_reader :minimum, :maximum, :default
 
       def contents
-        CWM::Empty.new("BootloaderTab")
+        VBox(
+          CWM::Empty.new("BootloaderTab")          
+        )
 #        CheckBoxFrame(
 #          Id(:cont_boot),
 #          _("Automatically boot the default entry after a timeout"),
