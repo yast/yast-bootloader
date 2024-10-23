@@ -22,7 +22,7 @@ module Bootloader
         VBox(
           VSpacing(2),
           HBox(
-            Label("")
+            Left(Label(""))
           ),
           VStretch()
         )
