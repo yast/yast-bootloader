@@ -26,16 +26,17 @@ module Bootloader
       attr_reader :minimum, :maximum, :default
 
       def contents
-        CheckBoxFrame(
-          Id(:cont_boot),
-          _("Automatically boot the default entry after a timeout"),
-          false,
-          HBox(
-            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
-                     1),
-            HStretch()
-          )
-        )
+        CWM::Empty.new("BootloaderTab")
+#        CheckBoxFrame(
+#          Id(:cont_boot),
+#          _("Automatically boot the default entry after a timeout"),
+#          false,
+#          HBox(
+#            IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
+#                     1),
+#            HStretch()
+#          )
+#        )
       end
     end
 
