@@ -18,9 +18,9 @@ module Bootloader
 
         super()
 
-        @minimum = 0
+        @minimum = 600
         @maximum = 600
-        @default = 10
+        @default = 600
       end
 
       def label
@@ -34,7 +34,7 @@ module Bootloader
           VSpacing(2),
           HBox(
             HSpacing(1),            
-            CWM::Empty.new("options"),
+            TimeoutWidget.new,
             HSpacing(1)            
           ),
           VStretch()
