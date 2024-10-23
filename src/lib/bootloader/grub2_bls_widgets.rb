@@ -26,8 +26,9 @@ module Bootloader
       attr_reader :minimum, :maximum, :default
 
       def contents
-        VBox(
-          CWM::Empty.new("BootloaderTab")          
+        HBox(
+          Left(Label("")),
+          CWM::Empty.new("BootloaderTab")
         )
 #        CheckBoxFrame(
 #          Id(:cont_boot),
