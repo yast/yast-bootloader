@@ -93,7 +93,7 @@ module Bootloader
         boot_code_tab = ::Bootloader::SystemdBootWidget::BootCodeTab.new
         kernel_tab = ::Bootloader::SystemdBootWidget::KernelTab.new
         bootloader_tab = ::Bootloader::SystemdBootWidget::BootloaderTab.new
-      else
+      else # grub2, grub2-efi, grub2-bls
         boot_code_tab = ::Bootloader::Grub2Widget::BootCodeTab.new
         kernel_tab = ::Bootloader::Grub2Widget::KernelTab.new
         bootloader_tab = ::Bootloader::Grub2Widget::BootloaderTab.new

@@ -43,6 +43,7 @@ module Bootloader
       names = {
         "grub2"        => _("GRUB2"),
         "grub2-efi"    => _("GRUB2 for EFI"),
+        "grub2-bls"    => _("GRUB2 with BLS"),
         # Translators: option in combo box when bootloader is not managed by yast2
         "systemd-boot" => _("Systemd Boot"),
         "none"         => _("Not Managed"),
