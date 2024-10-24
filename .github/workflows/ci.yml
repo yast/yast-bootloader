@@ -47,11 +47,7 @@ jobs:
         distro: [ "tumbleweed" ]
 
     container:
-<<<<<<< HEAD
       image: registry.opensuse.org/yast/head/containers_${{matrix.distro}}/yast-ruby
-=======
-      image: registry.opensuse.org/yast/sle-15/sp7/containers/yast-ruby
->>>>>>> a4a03b8c (Adapt files for the SLE-15-SP7 branch)
 
     steps:
       - name: Git Checkout
@@ -72,11 +68,7 @@ jobs:
         distro: [ "tumbleweed" ]
 
     container:
-<<<<<<< HEAD
       image: registry.opensuse.org/yast/head/containers_${{matrix.distro}}/yast-ruby
-=======
-      image: registry.opensuse.org/yast/sle-15/sp7/containers/yast-ruby
->>>>>>> a4a03b8c (Adapt files for the SLE-15-SP7 branch)
 
     steps:
       - name: Git Checkout
@@ -94,11 +86,7 @@ jobs:
         distro: [ "tumbleweed" ]
 
     container:
-<<<<<<< HEAD
       image: registry.opensuse.org/yast/head/containers_${{matrix.distro}}/yast-ruby
-=======
-      image: registry.opensuse.org/yast/sle-15/sp7/containers/yast-ruby
->>>>>>> a4a03b8c (Adapt files for the SLE-15-SP7 branch)
 
     steps:
       - name: Git Checkout
@@ -118,11 +106,7 @@ jobs:
         distro: [ "tumbleweed" ]
 
     container:
-<<<<<<< HEAD
       image: registry.opensuse.org/yast/head/containers_${{matrix.distro}}/yast-ruby
-=======
-      image: registry.opensuse.org/yast/sle-15/sp7/containers/yast-ruby
->>>>>>> a4a03b8c (Adapt files for the SLE-15-SP7 branch)
 
     steps:
       - name: Git Checkout

@@ -130,14 +130,6 @@ module Bootloader
       self.secure_boot = Systeminfo.secure_boot_supported?
     end
 
-    def status_string(status)
-      if status
-        _("enabled")
-      else
-        _("disabled")
-      end
-    end
-
     # Secure boot setting shown in summary screen.
     # sdbootutil intialize secure boot if shim has been installed.
     #
@@ -199,7 +191,7 @@ module Bootloader
 
     SDBOOTUTIL = "/usr/bin/sdbootutil"
 
-    def create_menu_entries
+    def write_kernel_parameter
       # writing kernel parameter to /etc/kernel/cmdline
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         if Yast::Stage.initial # while new installation only
@@ -208,6 +200,10 @@ module Bootloader
           fw.puts(kernel_params.serialize)
         end
       end
+    end
+
+    def create_menu_entries
+      write_kernel_parameter
 
       begin
         Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")

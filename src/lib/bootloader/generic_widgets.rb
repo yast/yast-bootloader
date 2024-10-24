@@ -43,6 +43,7 @@ module Bootloader
       names = {
         "grub2"        => _("GRUB2"),
         "grub2-efi"    => _("GRUB2 for EFI"),
+        "grub2-bls"    => _("GRUB2 with BLS"),
         # Translators: option in combo box when bootloader is not managed by yast2
         "systemd-boot" => _("Systemd Boot"),
         "none"         => _("Not Managed"),
@@ -52,8 +53,6 @@ module Bootloader
       names[name] or raise "Unknown supported bootloader '#{name}'"
     end
 
-    # rubocop:disable Metrics/MethodLength
-    # It will be reduced again if systemd-boot is not anymore in beta phase.
     def handle
       old_bl = BootloaderFactory.current.name
       new_bl = value
@@ -67,20 +66,6 @@ module Bootloader
           "If you do not install any boot loader, the system\n" \
           "might not start.\n" \
           "\n" \
-          "Proceed?\n"
-        )
-
-        return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
-      end
-
-      if new_bl == "systemd-boot"
-        # popup - Continue/Cancel
-        popup_msg = _(
-          "\n" \
-          "Systemd-boot support is currently work in progress and\n" \
-          "may not work as expected. Use at your own risk.\n" \
-          "\n" \
-          "Currently we do not provide official maintenance or support.\n" \
           "Proceed?\n"
         )
 
@@ -101,7 +86,6 @@ module Bootloader
       :redraw
     end
 
-    # rubocop:enable Metrics/MethodLength
     def help
       _(
         "<p><b>Boot Loader</b>\n" \

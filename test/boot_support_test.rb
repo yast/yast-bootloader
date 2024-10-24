@@ -42,6 +42,13 @@ describe Yast::BootSupportCheck do
         expect(subject.SystemSupported).to eq false
       end
 
+      it "returns false if grub2-bls is used and UEFI is not supported" do
+        Bootloader::BootloaderFactory.current_name = "grub2-bls"
+        allow(subject).to receive(:efi?).and_return(false)
+
+        expect(subject.SystemSupported).to eq false
+      end
+
       it "returns false if systemd-boot is used and UEFI is not supported" do
         Bootloader::BootloaderFactory.current_name = "systemd-boot"
         allow(subject).to receive(:efi?).and_return(false)
