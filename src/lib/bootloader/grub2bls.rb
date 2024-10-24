@@ -7,7 +7,7 @@ Yast.import "Arch"
 
 module Bootloader
   # Represents grub2 bls bootloader with efi target
-  class Grub2BlsBoot < BlsBootloader
+  class Grub2Bls < BlsBootloader
     include Yast::Logger
     include Yast::I18n
 

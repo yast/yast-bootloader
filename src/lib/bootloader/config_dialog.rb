@@ -95,10 +95,10 @@ module Bootloader
         boot_code_tab = ::Bootloader::BlsBootWidget::BootCodeTab.new
         kernel_tab = ::Bootloader::BlsBootWidget::KernelTab.new
         bootloader_tab = ::Bootloader::SystemdBootWidget::BootloaderTab.new
-      elsif BootloaderFactory.current.is_a?(Grub2BlsBoot)
+      elsif BootloaderFactory.current.is_a?(Grub2Bls)
         boot_code_tab = ::Bootloader::BlsBootWidget::BootCodeTab.new
         kernel_tab = ::Bootloader::BlsBootWidget::KernelTab.new
-        bootloader_tab = ::Bootloader::Grub2BlsBootWidget::BootloaderTab.new
+        bootloader_tab = ::Bootloader::Grub2BlsWidget::BootloaderTab.new
       else
         boot_code_tab = ::Bootloader::Grub2Widget::BootCodeTab.new
         kernel_tab = ::Bootloader::Grub2Widget::KernelTab.new

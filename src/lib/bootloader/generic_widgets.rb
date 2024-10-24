@@ -194,7 +194,7 @@ module Bootloader
     def init
       current_bl = ::Bootloader::BootloaderFactory.current
       case current_bl
-      when ::Bootloader::SystemdBoot
+      when ::Bootloader::SystemdBoot, ::Bootloader::Grub2Bls
         self.value = current_bl.kernel_params.serialize.gsub(/mitigations=\S+/, "")
       when ::Bootloader::Grub2Base
         self.value = current_bl.grub_default.kernel_params.serialize.gsub(/mitigations=\S+/, "")
