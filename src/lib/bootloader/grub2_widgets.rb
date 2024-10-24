@@ -351,7 +351,7 @@ module Bootloader
       end
 
       def validate
-        return true if Yast::Mode.config || !value || grub2.name.include(["grub2-efi", "grub2-bls"])
+        return true if Yast::Mode.config || !value || grub2.name.include?(["grub2-efi", "grub2-bls"])
 
         tpm_files = Dir.glob("/sys/**/pcrs")
         if !tpm_files.empty? && !File.read(tpm_files[0], 1).nil?
@@ -1054,7 +1054,7 @@ module Bootloader
       end
 
       def generic_mbr_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && !(grub2.name.include(["grub2-efi", "grub2-bls"]))
+        (Yast::Arch.x86_64 || Yast::Arch.i386) && !(grub2.name.include?(["grub2-efi", "grub2-bls"]))
       end
 
       def secure_boot_widget?
@@ -1075,7 +1075,7 @@ module Bootloader
       end
 
       def device_map_button?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && !(grub2.name.include(["grub2-efi", "grub2-bls"]))
+        (Yast::Arch.x86_64 || Yast::Arch.i386) && !(grub2.name.include?(["grub2-efi", "grub2-bls"]))
       end
     end
 
