@@ -18,8 +18,6 @@ module Bootloader
       super
 
       textdomain "bootloader"
-      @stage1 = Stage1.new
-      @device_map = DeviceMap.new
     end
 
     # Display bootloader summary
