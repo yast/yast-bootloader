@@ -14,6 +14,13 @@ module Bootloader
     include Yast::Logger
     include Yast::I18n
 
+    def initialize
+      super
+
+      textdomain "bootloader"
+      @stage1 = Stage1.new
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
