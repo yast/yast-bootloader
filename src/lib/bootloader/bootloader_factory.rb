@@ -59,8 +59,8 @@ module Bootloader
         if Yast::Mode.config
           # default means bootloader use what it think is the best
           result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
-          result << SYSTEMDBOOT if use_systemd_boot?
           result << GRUB2BLS if use_grub2_bls_boot?
+          result << SYSTEMDBOOT if use_systemd_boot?
           result << DEFAULT_KEYWORD
           return result
         end
@@ -75,8 +75,8 @@ module Bootloader
         # grub2 everywhere except aarch64 or riscv64
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
-        ret << SYSTEMDBOOT if use_systemd_boot?
         ret << GRUB2BLS if use_grub2_bls_boot?
+        ret << SYSTEMDBOOT if use_systemd_boot?
         ret << "none"
         # avoid double entry for selected one
         ret.uniq
