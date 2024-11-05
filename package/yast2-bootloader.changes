@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov  5 09:57:58 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
+
+- Sync warning text from s390 secure boot to be identical in
+  installation proposal and on running system (bsc#1219989)
+- 4.7.1
+
+-------------------------------------------------------------------
 Fri Sep 06 07:14:32 UTC 2024 - Ladislav Slezák <lslezak@suse.com>
 
 - Branch package for SP7 (bsc#1230201)
