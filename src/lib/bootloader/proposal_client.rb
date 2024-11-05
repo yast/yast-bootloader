@@ -379,10 +379,15 @@ module Bootloader
         bootloader.secure_boot = value
         if value && Yast::Arch.s390
           Yast2::Popup.show(
+            # text is identical like one in grub2_widgets. Keep in sync!
+            # TRANSLATORS: IPL stands for Initial Program Load, IBM speak for system boot
             _(
-              "The new secure-boot enabled boot data format works only on z15 " \
-              "and later and only for zFCP disks.\n\n" \
-              "The system does not boot if these requirements are not met."
+              "Secure boot IPL has the following minimum system requirements,\n" \
+              "depending on the boot device to be IPLed:\n" \
+              "NVMe disk: IBM LinuxONE III or newer.\n" \
+              "FC-attached SCSI disk: IBM LinuxONE III, IBM z15 or newer.\n" \
+              "ECKD DASD with CDL layout: IBM z16, LinuxONE 4 or newer.\n" \
+              "If these requirements are not met, the system can be IPLed in non-secure mode only."
             ),
             headline: :warning, buttons: :ok
           )

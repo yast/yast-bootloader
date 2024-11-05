@@ -389,6 +389,7 @@ module Bootloader
         value == Systeminfo.secure_boot_active?
 
       Yast::Popup.ContinueCancel(
+        # text is identical like one in proposal client. Keep in sync!
         # TRANSLATORS: IPL stands for Initial Program Load, IBM speak for system boot
         _(
           "Secure boot IPL has the following minimum system requirements,\n" \

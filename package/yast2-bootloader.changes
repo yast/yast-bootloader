@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Nov  5 09:57:58 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
+
+- Sync warning text from s390 secure boot to be identical in
+  installation proposal and on running system (bsc#1219989)
+- 4.6.8
+
+-------------------------------------------------------------------
 Fri Apr  5 08:08:09 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
 
 - Follow up of previous change to use even more precise wording
