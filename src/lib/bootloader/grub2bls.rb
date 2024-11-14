@@ -122,7 +122,7 @@ module Bootloader
       res = super
       res << ("grub2-" + Yast::Arch.architecture + "-efi-bls")
       res << "sdbootutil"
-      res << "grub2"
+#      res << "grub2"
       res
     end
 
