@@ -106,7 +106,7 @@ describe Bootloader::Grub2Bls do
   end
 
   describe "#packages" do
-    it "adds grub2* and sdbootutil packages" do
+    it "adds grub2-<arch>-efi-bls and sdbootutil packages" do
       allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
       allow(Yast::Package).to receive(:Available).with("os-prober").and_return(true)
       expect(subject.packages).to include("grub2-" + Yast::Arch.architecture + "-efi-bls")
