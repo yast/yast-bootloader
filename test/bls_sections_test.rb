@@ -61,14 +61,14 @@ describe Bootloader::BlsSections do
     it "writes default value if set" do
       subject.default = "Snapper: *openSUSE Tumbleweed 20241107"
       expect(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/sdbootutil", "set-default", subject.default, { :allowed_exitstatus=>[0, 1] })
+        .with("/usr/bin/sdbootutil", "set-default", subject.default)
       subject.write
     end
 
     it "does not write default value if not set" do
       subject.default = ""
       expect(Yast::Execute).to_not receive(:on_target)
-        .with("/usr/bin/sdbootutil", "set-default", subject.default, { :allowed_exitstatus=>[0, 1] })
+        .with("/usr/bin/sdbootutil", "set-default", subject.default)
       subject.write
     end
 

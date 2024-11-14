@@ -56,8 +56,7 @@ describe Bootloader::Grub2Bls do
     it "installs the bootloader" do
       allow(Yast::Execute).to receive(:on_target)
         .with("/usr/bin/sdbootutil", "set-timeout",
-          subject.grub_default.timeout,
-          allowed_exitstatus: [0, 1])
+          subject.grub_default.timeout)
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-default", subject.sections.default)
 
@@ -75,8 +74,7 @@ describe Bootloader::Grub2Bls do
     it "writes kernel cmdline" do
       allow(Yast::Execute).to receive(:on_target)
         .with("/usr/bin/sdbootutil", "set-timeout",
-          subject.grub_default.timeout,
-          allowed_exitstatus: [0, 1])
+          subject.grub_default.timeout)
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-default", subject.sections.default)
       allow(Yast::Execute).to receive(:on_target!)
@@ -102,8 +100,7 @@ describe Bootloader::Grub2Bls do
       # Saving menu timeout
       expect(Yast::Execute).to receive(:on_target)
         .with("/usr/bin/sdbootutil", "set-timeout",
-          subject.grub_default.timeout,
-          allowed_exitstatus: [0, 1])
+          subject.grub_default.timeout)
       subject.write
     end
   end
