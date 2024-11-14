@@ -120,7 +120,7 @@ module Bootloader
     # @return [Array<String>] packages required to configure given bootloader
     def packages
       res = super
-      res << ("grub2-" + Yast::Arch.architecture + "-efi-bls")
+      res << ("grub2-" + grub2bls_architecture + "-efi-bls")
       res << "sdbootutil"
       res
     end
@@ -129,6 +129,33 @@ module Bootloader
 
     SDBOOTUTIL = "/usr/bin/sdbootutil"
     OS_RELEASE_PATH = "/etc/os-release"
+
+    def grub2bls_architecture
+      arch = Yast::Arch.architecture
+      table = { "x86_64"      => "x86_64",
+                "amd64"       => "x86_64",
+                "sparc"       => "sparc64",
+                "mipsel"      => "mipsel",
+                "mips64el"    => "mipsel",
+                "mips"        => "mips",
+                "mips64"      => "mips",
+                "loongarch64" => "loongarch64" }
+      ret = table[arch]
+      if ret.empty?
+        ret = if arch.start_with?("arm")
+          "arm"
+        elsif arch.start_with?("aarch64")
+          "arm64"
+        elsif arch.start_with?("riscv32")
+          "riscv32"
+        elsif arch.start_with?("riscv64")
+          "riscv64"
+        else
+          arch # fallback, but useful ?
+        end
+      end
+      ret
+    end
 
     def grubenv_path
       str = Yast::Misc.CustomSysconfigRead("ID_LIKE", "openSUSE",
