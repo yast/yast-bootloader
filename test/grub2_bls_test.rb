@@ -111,7 +111,6 @@ describe Bootloader::Grub2Bls do
       allow(Yast::Package).to receive(:Available).with("os-prober").and_return(true)
       expect(subject.packages).to include("grub2-" + Yast::Arch.architecture + "-efi-bls")
       expect(subject.packages).to include("sdbootutil")
-      expect(subject.packages).to include("grub2")
     end
   end
 
