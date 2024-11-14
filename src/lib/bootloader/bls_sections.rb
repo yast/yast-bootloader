@@ -71,15 +71,9 @@ module Bootloader
 
     # write default entry
     def write_default
-      ret = Yast::Execute.on_target("/usr/bin/sdbootutil",
-        "set-default", @default,
-        allowed_exitstatus: [0, 1])
-
-      return unless ret != 0
-
-      # fallback directly over grub2-editenv
-      Yast::Execute.on_target("/usr/bin/grub2-editenv", grubenv_path,
-        "set", "default=" + @default)
+      # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
+      # can continue with not selected default section.
+      Yast::Execute.on_target("/usr/bin/sdbootutil", "set-default", @default)
     end
 
     # @return [Array] return array of entries or []
