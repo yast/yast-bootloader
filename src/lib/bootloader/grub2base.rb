@@ -435,14 +435,6 @@ module Bootloader
 
       "#{_("Update NVRAM:")} #{status_string(update_nvram)} #{link}"
     end
-
-    def status_string(status)
-      if status
-        _("enabled")
-      else
-        _("disabled")
-      end
-    end
   end
   # rubocop:enable Metrics/ClassLength
 end
