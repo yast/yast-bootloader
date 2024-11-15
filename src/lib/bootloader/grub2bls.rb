@@ -2,6 +2,7 @@
 
 require "yast"
 require "bootloader/bootloader_base"
+require "bootloader/bls"
 require "bootloader/bls_sections"
 
 Yast.import "Arch"
@@ -85,11 +86,12 @@ module Bootloader
 
     # writes configuration to target disk
     def write(*)
-      install_bootloader if Yast::Stage.initial # while new installation only (currently)
-      create_menu_entries
-      install_bootloader
+      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
+      Bls.create_menu_entries
+      Bls.install_bootloader
       @sections.write
-      write_menu_timeout
+      Bls.write_menu_timeout(grub_default.timeout)
+
       # writing kernel parameter to /etc/kernel/cmdline
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         fw.puts(grub_default.kernel_params.serialize)
@@ -172,41 +174,10 @@ module Bootloader
       log.info "Boot timeout: #{grub_default.timeout}"
     end
 
-    def write_menu_timeout
-      # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
-      # can continue with not selected default section.
-      Yast::Execute.on_target(SDBOOTUTIL, "set-timeout", grub_default.timeout)
-    end
-
     def merge_sections(other)
       return if !other.sections.default || other.sections.default.empty?
 
       @sections.default = other.sections.default
-    end
-
-    def create_menu_entries
-      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
-    rescue Cheetah::ExecutionFailed => e
-      Yast::Report.Error(
-        format(_(
-                 "Cannot create grub2-bls menu entry:\n" \
-                 "Command `%{command}`.\n" \
-                 "Error output: %{stderr}"
-               ), command: e.commands.inspect, stderr: e.stderr)
-      )
-    end
-
-    def install_bootloader
-      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
-        "install")
-    rescue Cheetah::ExecutionFailed => e
-      Yast::Report.Error(
-        format(_(
-                 "Cannot install grub2-bls bootloader:\n" \
-                 "Command `%{command}`.\n" \
-                 "Error output: %{stderr}"
-               ), command: e.commands.inspect, stderr: e.stderr)
-      )
     end
   end
 end

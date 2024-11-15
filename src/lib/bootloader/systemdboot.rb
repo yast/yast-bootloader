@@ -4,6 +4,7 @@ require "fileutils"
 require "yast"
 require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
+require "bootloader/bls"
 require "cfa/systemd_boot"
 require "cfa/grub2/default"
 
@@ -112,9 +113,10 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
-      install_bootloader if Yast::Stage.initial # while new installation only (currently)
-      create_menu_entries
-      write_menu_timeout
+      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
+      write_kernel_parameter
+      Bls.create_menu_entries
+      Bls.write_menu_timeout
 
       true
     end
@@ -189,8 +191,6 @@ module Bootloader
 
   private
 
-    SDBOOTUTIL = "/usr/bin/sdbootutil"
-
     def write_kernel_parameter
       # writing kernel parameter to /etc/kernel/cmdline
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
@@ -199,22 +199,6 @@ module Bootloader
         else # root entry is already available
           fw.puts(kernel_params.serialize)
         end
-      end
-    end
-
-    def create_menu_entries
-      write_kernel_parameter
-
-      begin
-        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot create systemd-boot menu entry:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
       end
     end
 
@@ -227,30 +211,6 @@ module Bootloader
       else
         config.menu_timeout.to_i
       end
-    end
-
-    def write_menu_timeout
-      config = CFA::SystemdBoot.load
-      config.menu_timeout = if menu_timeout == -1
-        "menu-force"
-      else
-        menu_timeout.to_s
-      end
-      config.save
-    end
-
-    def install_bootloader
-      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
-        "install")
-    rescue Cheetah::ExecutionFailed => e
-      Yast::Report.Error(
-      format(_(
-               "Cannot install systemd bootloader:\n" \
-               "Command `%{command}`.\n" \
-               "Error output: %{stderr}"
-             ), command: e.commands.inspect, stderr: e.stderr)
-    )
-      nil
     end
   end
 end

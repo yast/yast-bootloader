@@ -3,6 +3,7 @@
 require "json"
 require "yast"
 require "yast2/execute"
+require "bootloader/bls"
 
 Yast.import "Misc"
 
@@ -42,7 +43,7 @@ module Bootloader
     def write
       return if @default.empty?
 
-      write_default
+      Bls.write_default_menu(@default)
     end
 
     def read
@@ -67,13 +68,6 @@ module Bootloader
     def read_default
       Yast::Misc.CustomSysconfigRead("default", "",
         grubenv_path)
-    end
-
-    # write default entry
-    def write_default
-      # Execute.on_target can return nil if call failed. It shows users error popup, but bootloader
-      # can continue with not selected default section.
-      Yast::Execute.on_target("/usr/bin/sdbootutil", "set-default", @default)
     end
 
     # @return [Array] return array of entries or []
