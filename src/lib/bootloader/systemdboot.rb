@@ -154,6 +154,7 @@ module Bootloader
         )
       ]
       log.warn("xxxxxxxxx #{Yast::BootStorage.root_partitions}")
+      log.warn("xxxxxxxxxboot #{Yast::BootStorage.boot_partitions}")      
       
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
       result
