@@ -153,6 +153,8 @@ module Bootloader
           "Systemd Boot"
         )
       ]
+      log.warn("xxxxxxxxx #{Yast::BootStorage.root_partitions}")
+      
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
       result
     end
@@ -193,6 +195,7 @@ module Bootloader
 
     def write_kernel_parameter
       # writing kernel parameter to /etc/kernel/cmdline
+      log.warn("xxxxxxxxx #{Yast::BootStorage.root_partitions}")
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         if Yast::Stage.initial # while new installation only
           fw.puts("root=#{Yast::BootStorage.root_partitions.first.name} #{kernel_params.serialize}")
