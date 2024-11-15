@@ -53,5 +53,17 @@ module Bootloader
              ), command: e.commands.inspect, stderr: e.stderr)
     )
     end
+
+    def self.write_default_menu(default)
+      Yast::Execute.on_target(SDBOOTUTIL, "set-default", default)
+    rescue Cheetah::ExecutionFailed => e
+      Yast::Report.Error(
+      format(_(
+               "Cannot write default boot menu entry:\n" \
+               "Command `%{command}`.\n" \
+               "Error output: %{stderr}"
+             ), command: e.commands.inspect, stderr: e.stderr)
+    )
+    end
   end
 end
