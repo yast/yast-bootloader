@@ -116,7 +116,7 @@ module Bootloader
       Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
       write_kernel_parameter
       Bls.create_menu_entries
-      Bls.write_menu_timeout
+      Bls.write_menu_timeout(menu_timeout)
 
       true
     end
