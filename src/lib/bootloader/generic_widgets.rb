@@ -72,11 +72,11 @@ module Bootloader
         return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
       end
 
-      if !Yast::Stage.initial && (old_bl == "systemd-boot")
-        Yast::Popup.Warning(_(
-        "Switching from systemd-boot to another bootloader\n" \
+      if !Yast::Stage.initial && ["systemd-boot", "grub2-bls"].include?(old_bl)
+        Yast::Popup.Warning(format(_(
+        "Switching from %s to another bootloader\n" \
         "is currently not supported.\n"
-      ))
+      ), old_bl))
         return :redraw
       end
 
