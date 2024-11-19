@@ -80,6 +80,14 @@ module Bootloader
         return :redraw
       end
 
+      if !Yast::Stage.initial && ["systemd-boot", "grub2-bls"].include?(new_bl)
+        Yast::Popup.Warning(format(_(
+        "Switching to bootloader %s \n" \
+        "is currently not supported.\n"
+      ), new_bl))
+        return :redraw
+      end
+
       BootloaderFactory.current_name = new_bl
       BootloaderFactory.current.propose
 
