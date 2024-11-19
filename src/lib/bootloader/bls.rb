@@ -13,7 +13,7 @@ module Bootloader
   # e.g. by grub2-bls and systemd-boot
   class Bls
     include Yast::Logger
-    include Yast::I18n
+    extend Yast::I18n
 
     SDBOOTUTIL = "/usr/bin/sdbootutil"
 
@@ -24,7 +24,6 @@ module Bootloader
     def self.create_menu_entries
       Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
     rescue Cheetah::ExecutionFailed => e
-      textdomain "bootloader"
       Yast::Report.Error(
         format(_(
                  "Cannot create boot menu entry:\n" \
