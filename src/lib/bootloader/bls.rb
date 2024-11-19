@@ -17,9 +17,14 @@ module Bootloader
 
     SDBOOTUTIL = "/usr/bin/sdbootutil"
 
+    def initialize
+      textdomain "bootloader"
+    end
+
     def self.create_menu_entries
       Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
     rescue Cheetah::ExecutionFailed => e
+      textdomain "bootloader"
       Yast::Report.Error(
         format(_(
                  "Cannot create boot menu entry:\n" \
