@@ -54,15 +54,6 @@ module Bootloader
 
   private
 
-    OS_RELEASE_PATH = "/etc/os-release"
-
-    def grubenv_path
-      str = Yast::Misc.CustomSysconfigRead("ID_LIKE", "openSUSE",
-        OS_RELEASE_PATH)
-      os = str.split.first
-      File.join("/boot/efi/EFI/", os, "/grubenv")
-    end
-
     # @return [Array] return array of entries or []
     def read_entries
       output = Yast::Execute.on_target(

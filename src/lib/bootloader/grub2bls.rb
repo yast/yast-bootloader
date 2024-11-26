@@ -47,7 +47,8 @@ module Bootloader
     # reads configuration from target disk
     def read
       @sections.read
-      read_menu_timeout
+      grub_default.timeout = Bls.menu_timeout
+      log.info "Boot timeout: #{grub_default.timeout}"
       lines = ""
       filename = File.join(Yast::Installation.destdir, CMDLINE)
       if File.exist?(filename)
@@ -156,13 +157,6 @@ module Bootloader
         end
       end
       ret
-    end
-
-    # @return [String] return default boot as string or "" if not set
-    # or something goes wrong
-    def read_menu_timeout
-      grub_default.timeout = @sections.menu_timeout
-      log.info "Boot timeout: #{grub_default.timeout}"
     end
 
     def merge_sections(other)

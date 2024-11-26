@@ -51,7 +51,6 @@ describe Bootloader::SystemdBoot do
     it "installs the bootloader" do
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
-      allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
 
       # install bootloader
       expect(Yast::Execute).to receive(:on_target!)
@@ -65,7 +64,6 @@ describe Bootloader::SystemdBoot do
         .with("/usr/bin/sdbootutil", "--verbose", "install")
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
-      allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
 
       subject.write
       # Checking written kernel parameters
@@ -77,7 +75,6 @@ describe Bootloader::SystemdBoot do
     it "creates menu entries" do
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
 
       # create menu entries
       expect(Yast::Execute).to receive(:on_target!)
@@ -93,7 +90,8 @@ describe Bootloader::SystemdBoot do
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
 
       # Saving menu timeout
-      expect_any_instance_of(CFA::SystemdBoot).to receive(:save)
+      allow(Yast::Execute).to receive(:on_target)
+        .with("/usr/bin/sdbootutil", "set-timeout", 10, stdout: :capture)
 
       subject.write
     end

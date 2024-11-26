@@ -19,22 +19,16 @@ describe Bootloader::Grub2Bls do
 
   describe "#read" do
     before do
-      allow(Yast::Misc).to receive(:CustomSysconfigRead)
-        .with("ID_LIKE", "openSUSE", "/etc/os-release")
-        .and_return("openSUSE")
-      allow(Yast::Misc).to receive(:CustomSysconfigRead)
-        .with("timeout", "", "/boot/efi/EFI/openSUSE/grubenv")
+      allow(Yast::Execute).to receive(:on_target)
+        .with("/usr/bin/sdbootutil", "get-timeout", stdout: :capture)
         .and_return("10")
-      allow(Yast::Misc).to receive(:CustomSysconfigRead)
-        .with("default", "", "/boot/efi/EFI/openSUSE/grubenv")
-        .and_return("")
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
     end
 
     it "reads menu timeout" do
       subject.read
 
-      expect(subject.grub_default.timeout).to eq "10"
+      expect(subject.grub_default.timeout).to eq 10
     end
 
     it "reads entries from /etc/kernel/cmdline" do

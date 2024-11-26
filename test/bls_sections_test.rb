@@ -20,8 +20,8 @@ describe Bootloader::BlsSections do
         .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
         .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true }," \
                     "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"isDefault\" : false}]")
-      allow(Yast::Misc).to receive(:CustomSysconfigRead)
-        .with("default", "", "/boot/efi/EFI/openSUSE/grubenv")
+      allow(Yast::Execute).to receive(:on_target)
+        .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
         .and_return("openSUSE Tumbleweed")
       subject.read
     end
@@ -41,9 +41,6 @@ describe Bootloader::BlsSections do
         .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
         .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true }," \
                     "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"isDefault\" : false}]")
-      allow(Yast::Misc).to receive(:CustomSysconfigRead)
-        .with("default", "", "/boot/efi/EFI/openSUSE/grubenv")
-        .and_return("openSUSE Tumbleweed")
       subject.read
     end
     it "sets new value for default" do
