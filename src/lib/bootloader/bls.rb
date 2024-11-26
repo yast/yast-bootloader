@@ -60,7 +60,7 @@ module Bootloader
 
     def self.menu_timeout
       begin
-        output = Yast::Execute.on_target(SDBOOTUTIL, "get-timeout", stdout: :capture)
+        output = Yast::Execute.on_target(SDBOOTUTIL, "get-timeout", stdout: :capture).to_i
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
