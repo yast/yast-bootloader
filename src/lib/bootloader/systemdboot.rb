@@ -96,7 +96,7 @@ module Bootloader
     def read
       super
 
-      read_menu_timeout
+      self.menu_timeout = Bls.menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
 
       lines = ""
@@ -202,15 +202,5 @@ module Bootloader
       end
     end
 
-    def read_menu_timeout
-      config = CFA::SystemdBoot.load
-      return unless config.menu_timeout
-
-      self.menu_timeout = if config.menu_timeout == "menu-force"
-        -1
-      else
-        config.menu_timeout.to_i
-      end
-    end
   end
 end
