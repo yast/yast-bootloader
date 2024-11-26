@@ -8,7 +8,6 @@ require "bootloader/bls_sections"
 Yast.import "Arch"
 Yast.import "Report"
 Yast.import "Stage"
-Yast.import "Misc"
 
 module Bootloader
   # Represents grub2 bls bootloader with efi target
@@ -47,8 +46,8 @@ module Bootloader
 
     # reads configuration from target disk
     def read
-      read_menu_timeout
       @sections.read
+      read_menu_timeout
       lines = ""
       filename = File.join(Yast::Installation.destdir, CMDLINE)
       if File.exist?(filename)
@@ -159,18 +158,10 @@ module Bootloader
       ret
     end
 
-    def grubenv_path
-      str = Yast::Misc.CustomSysconfigRead("ID_LIKE", "openSUSE",
-        OS_RELEASE_PATH)
-      os = str.split.first
-      File.join("/boot/efi/EFI/", os, "/grubenv")
-    end
-
     # @return [String] return default boot as string or "" if not set
     # or something goes wrong
     def read_menu_timeout
-      grub_default.timeout = Yast::Misc.CustomSysconfigRead("timeout", "",
-        grubenv_path)
+      grub_default.timeout = @sections.menu_timeout
       log.info "Boot timeout: #{grub_default.timeout}"
     end
 

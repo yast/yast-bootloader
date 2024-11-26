@@ -49,7 +49,7 @@ module Bootloader
     def read
       @data = read_entries
       @all = @data.map { |e| e["title"] }
-      @default = read_default
+      @default = Bls.default_menu
     end
 
   private
@@ -61,13 +61,6 @@ module Bootloader
         OS_RELEASE_PATH)
       os = str.split.first
       File.join("/boot/efi/EFI/", os, "/grubenv")
-    end
-
-    # @return [String] return default boot as string or "" if not set
-    # or something goes wrong
-    def read_default
-      Yast::Misc.CustomSysconfigRead("default", "",
-        grubenv_path)
     end
 
     # @return [Array] return array of entries or []
