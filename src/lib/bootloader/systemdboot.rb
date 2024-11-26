@@ -5,7 +5,6 @@ require "yast"
 require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
 require "bootloader/bls"
-require "cfa/systemd_boot"
 require "cfa/grub2/default"
 
 Yast.import "Report"
