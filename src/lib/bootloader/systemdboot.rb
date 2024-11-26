@@ -200,6 +200,5 @@ module Bootloader
         end
       end
     end
-
   end
 end
