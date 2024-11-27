@@ -47,7 +47,7 @@ module Bootloader
     end
 
     def self.write_menu_timeout(timeout)
-      Yast::Execute.on_target(SDBOOTUTIL, "set-timeout", timeout)
+      Yast::Execute.on_target!(SDBOOTUTIL, "set-timeout", timeout)
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
       format(_(
@@ -60,7 +60,7 @@ module Bootloader
 
     def self.menu_timeout
       begin
-        output = Yast::Execute.on_target(SDBOOTUTIL, "get-timeout", stdout: :capture).to_i
+        output = Yast::Execute.on_target!(SDBOOTUTIL, "get-timeout", stdout: :capture).to_i
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
@@ -75,7 +75,7 @@ module Bootloader
     end
 
     def self.write_default_menu(default)
-      Yast::Execute.on_target(SDBOOTUTIL, "set-default", default)
+      Yast::Execute.on_target!(SDBOOTUTIL, "set-default", default)
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
       format(_(
@@ -88,7 +88,7 @@ module Bootloader
 
     def self.default_menu
       begin
-        output = Yast::Execute.on_target(SDBOOTUTIL, "get-default", stdout: :capture)
+        output = Yast::Execute.on_target!(SDBOOTUTIL, "get-default", stdout: :capture)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
