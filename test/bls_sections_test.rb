@@ -12,20 +12,18 @@ describe Bootloader::BlsSections do
     allow(Yast::Misc).to receive(:CustomSysconfigRead)
       .with("ID_LIKE", "openSUSE", "/etc/os-release")
       .and_return("openSUSE")
+    allow(Yast::Execute).to receive(:on_target)
+      .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
+      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true }," \
+                  "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"isDefault\" : false}]")
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
+      .and_return("openSUSE Tumbleweed")
+
+    subject.read
   end
 
   describe "#read" do
-    before do
-      allow(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
-        .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true }," \
-                    "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"isDefault\" : false}]")
-      allow(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
-        .and_return("openSUSE Tumbleweed")
-      subject.read
-    end
-
     it "returns list of all available sections" do
       expect(subject.all).to eq(["openSUSE Tumbleweed", "Snapper: *openSUSE Tumbleweed 20241107"])
     end
@@ -36,13 +34,6 @@ describe Bootloader::BlsSections do
   end
 
   describe "#default=" do
-    before do
-      allow(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
-        .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true }," \
-                    "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"isDefault\" : false}]")
-      subject.read
-    end
     it "sets new value for default" do
       subject.default = "Snapper: *openSUSE Tumbleweed 20241107"
       expect(subject.default).to eq "Snapper: *openSUSE Tumbleweed 20241107"
@@ -57,14 +48,14 @@ describe Bootloader::BlsSections do
   describe "#write" do
     it "writes default value if set" do
       subject.default = "Snapper: *openSUSE Tumbleweed 20241107"
-      expect(Yast::Execute).to receive(:on_target)
+      expect(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-default", subject.default)
       subject.write
     end
 
     it "does not write default value if not set" do
       subject.default = ""
-      expect(Yast::Execute).to_not receive(:on_target)
+      expect(Yast::Execute).to_not receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-default", subject.default)
       subject.write
     end

@@ -15,11 +15,14 @@ describe Bootloader::Grub2Bls do
 
   before do
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
+      .and_return("openSUSE Tumbleweed")
   end
 
   describe "#read" do
     before do
-      allow(Yast::Execute).to receive(:on_target)
+      allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "get-timeout", stdout: :capture)
         .and_return("10")
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
@@ -48,7 +51,7 @@ describe Bootloader::Grub2Bls do
     end
 
     it "installs the bootloader" do
-      allow(Yast::Execute).to receive(:on_target)
+      allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-timeout",
           subject.grub_default.timeout)
       allow(Yast::Execute).to receive(:on_target!)
@@ -66,7 +69,13 @@ describe Bootloader::Grub2Bls do
     end
 
     it "writes kernel cmdline" do
-      allow(Yast::Execute).to receive(:on_target)
+      allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
+        .and_return("openSUSE Tumbleweed")
+      allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "get-timeout", stdout: :capture)
+        .and_return(10)
+      allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-timeout",
           subject.grub_default.timeout)
       allow(Yast::Execute).to receive(:on_target!)
@@ -92,7 +101,7 @@ describe Bootloader::Grub2Bls do
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
 
       # Saving menu timeout
-      expect(Yast::Execute).to receive(:on_target)
+      expect(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "set-timeout",
           subject.grub_default.timeout)
       subject.write

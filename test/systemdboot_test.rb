@@ -17,6 +17,12 @@ describe Bootloader::SystemdBoot do
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     allow(Yast::Package).to receive(:Available).and_return(true)
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/sdbootutil", "get-timeout", stdout: :capture)
+      .and_return(10)
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/sdbootutil", "set-timeout",
+        subject.menu_timeout)
   end
 
   describe "#read" do
@@ -50,6 +56,9 @@ describe Bootloader::SystemdBoot do
 
     it "installs the bootloader" do
       allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "set-timeout",
+          subject.menu_timeout)
+      allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
 
       # install bootloader
@@ -60,6 +69,9 @@ describe Bootloader::SystemdBoot do
     end
 
     it "writes kernel cmdline" do
+      allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "set-timeout",
+          subject.menu_timeout)
       allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "install")
       allow(Yast::Execute).to receive(:on_target!)
@@ -74,6 +86,9 @@ describe Bootloader::SystemdBoot do
 
     it "creates menu entries" do
       allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "set-timeout",
+          subject.menu_timeout)
+      allow(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "--verbose", "install")
 
       # create menu entries
@@ -84,14 +99,14 @@ describe Bootloader::SystemdBoot do
     end
 
     it "saves menu timeout" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
 
       # Saving menu timeout
-      allow(Yast::Execute).to receive(:on_target)
-        .with("/usr/bin/sdbootutil", "set-timeout", 10, stdout: :capture)
+      allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+      allow(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "--verbose", "install")
+      expect(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "set-timeout", subject.menu_timeout)
 
       subject.write
     end
