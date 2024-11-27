@@ -87,6 +87,15 @@ module Bootloader
           grub_default.timeout = value.to_s
         end
       end
+
+    private  
+      def hidden_menu_widget
+        if Systeminfo.hiding_menu_supported?(grub2.name)
+          HiddenMenuWidget.new
+        else
+          CWM::Empty.new("hidden_menu")
+        end
+      end
     end
 
     # Represents decision if bootloader need activated partition
@@ -989,6 +998,17 @@ module Bootloader
           VStretch()
         )
       end
+      
+    private
+      
+      def console_widget
+        if Systeminfo.console_supported?(grub2.name)
+          ConsoleWidget.new
+        else
+          CWM::Empty.new("console")
+        end
+      end
+
     end
 
     # Represent tab with options related to stage1 location and bootloader type
@@ -1121,22 +1141,6 @@ module Bootloader
           GrubPasswordWidget.new
         else
           CWM::Empty.new("password_widget")
-        end
-      end
-
-      def console_widget
-        if console_supported?(grub2.name)
-          ConsoleWidget.new
-        else
-          CWM::Empty.new("console")
-        end
-      end
-
-      def hidden_menu_widget
-        if hiding_menu_supported?(grub2.name)
-          HiddenMenuWidget.new
-        else
-          CWM::Empty.new("hidden_menu")
         end
       end
 
