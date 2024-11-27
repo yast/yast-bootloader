@@ -88,14 +88,6 @@ module Bootloader
         end
       end
 
-    private  
-      def hidden_menu_widget
-        if Systeminfo.hiding_menu_supported?(grub2.name)
-          HiddenMenuWidget.new
-        else
-          CWM::Empty.new("hidden_menu")
-        end
-      end
     end
 
     # Represents decision if bootloader need activated partition
@@ -1144,6 +1136,14 @@ module Bootloader
         end
       end
 
+      def hidden_menu_widget
+        if Systeminfo.hiding_menu_supported?(grub2.name)
+          HiddenMenuWidget.new
+        else
+          CWM::Empty.new("hidden_menu")
+        end
+      end      
+      
       def os_prober_widget
         # Checks !Arch.s390, not grub2-bls  and if package is available
         if OsProber.available?(grub2.name)
