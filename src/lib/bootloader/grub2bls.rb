@@ -129,9 +129,6 @@ module Bootloader
 
   private
 
-    SDBOOTUTIL = "/usr/bin/sdbootutil"
-    OS_RELEASE_PATH = "/etc/os-release"
-
     def grub2bls_architecture
       arch = Yast::Arch.architecture
       table = { "x86_64"      => "x86_64",
