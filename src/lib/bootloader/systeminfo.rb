@@ -69,16 +69,6 @@ module Bootloader
         (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && bootloader_name == "grub2"
       end
 
-      # Check if pmbr is configurable with a bootloader.
-      #
-      # @param bootloader_name [String] bootloader name
-      # @return [Boolean] true if available with this bootloader
-      def pmbr_available?(bootloader_name)
-        (Yast::Arch.x86_64 || Yast::Arch.i386) &&
-          Yast::BootStorage.gpt_boot_disk? &&
-          bootloader_name != "grub2-bls"
-      end
-
       # Check if setting device map is available.
       #
       # @param bootloader_name [String] bootloader name

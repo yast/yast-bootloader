@@ -79,22 +79,6 @@ module Bootloader
 
     # general functions
 
-    # set pmbr flags on boot disks
-    # TODO: move it to own place
-    def pmbr_setup(*devices)
-      return if @pmbr_action == :nothing
-
-      action_parted = case @pmbr_action
-      when :add    then "on"
-      when :remove then "off"
-      else raise "invalid action #{action}"
-      end
-
-      devices.each do |dev|
-        Yast::Execute.locally("/usr/sbin/parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
-      end
-    end
-
     def cpu_mitigations
       CpuMitigations.from_kernel_params(grub_default.kernel_params)
     end

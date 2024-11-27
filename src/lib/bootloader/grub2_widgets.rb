@@ -9,6 +9,7 @@ require "bootloader/cpu_mitigations"
 require "bootloader/systeminfo"
 require "bootloader/os_prober"
 require "bootloader/device_path"
+require "bootloader/pmbr"
 require "cfa/matcher"
 
 Yast.import "Initrd"
@@ -1084,7 +1085,7 @@ module Bootloader
       end
 
       def pmbr_widget?
-        Systeminfo.pmbr_available?(grub2.name)
+        Pmbr.available?
       end
 
       def device_map_button?

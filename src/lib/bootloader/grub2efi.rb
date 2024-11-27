@@ -4,6 +4,7 @@ require "yast"
 require "bootloader/grub2base"
 require "bootloader/grub_install"
 require "bootloader/sysconfig"
+require "bootloader/pmbr"
 require "y2storage"
 
 Yast.import "Arch"
@@ -27,7 +28,7 @@ module Bootloader
       # super have to called as first as grub install require some config written in ancestor
       super
 
-      pmbr_write if pmbr_action
+      Pmbr.write(pmbr_action, "grub2-efi")
 
       unless etc_only
         @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,
@@ -98,32 +99,6 @@ module Bootloader
         secure_boot: secure_boot, trusted_boot: trusted_boot,
         update_nvram: update_nvram)
       prewrite ? sysconfig.pre_write : sysconfig.write
-    end
-
-  private
-
-    # Filesystems in the staging (planned) devicegraph
-    #
-    # @return [Y2Storage::FilesystemsList]
-    def filesystems
-      staging = Y2Storage::StorageManager.instance.staging
-      staging.filesystems
-    end
-
-    # write pmbr flags
-    def pmbr_write
-      fs = filesystems
-      efi_partition = fs.find { |f| f.mount_path == "/boot/efi" }
-      efi_partition ||= fs.find { |f| f.mount_path == "/boot" }
-      efi_partition ||= fs.find { |f| f.mount_path == "/" }
-
-      raise "could not find boot partiton" unless efi_partition
-
-      disks = Yast::BootStorage.stage1_disks_for(efi_partition)
-      # set only gpt disks
-      disks.select! { |disk| disk.gpt? }
-
-      pmbr_setup(*disks.map(&:name))
     end
   end
 end
