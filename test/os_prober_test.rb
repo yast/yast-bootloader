@@ -45,7 +45,7 @@ describe Bootloader::OsProber do
         end
 
         it "os-prober is available" do
-          expect(subject.available?).to eq true
+          expect(subject.available?("grub2")).to eq true
         end
       end
 
@@ -55,9 +55,20 @@ describe Bootloader::OsProber do
         end
 
         it "os-prober is not available" do
-          expect(subject.available?).to eq false
+          expect(subject.available?("grub2")).to eq false
         end
       end
+
+      context "if grub2-bls bootloader" do
+        before do
+          allow(Yast::Package).to receive(:Available).and_return(true)
+        end
+
+        it "os-prober is not available for that bootloader" do
+          expect(subject.available?("grub2-bls")).to eq false
+        end
+      end
+
     end
   end
 end
