@@ -189,7 +189,7 @@ module Bootloader
     #
     # @return [Boolean] true if the os-prober package should be included; false otherwise.
     def include_os_prober_package?
-      OsProber.available?
+      OsProber.arch_supported? && OsProber.package_available?
     end
 
     def enable_serial_console(console_arg_string)
