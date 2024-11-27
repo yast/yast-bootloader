@@ -87,7 +87,6 @@ module Bootloader
           grub_default.timeout = value.to_s
         end
       end
-
     end
 
     # Represents decision if bootloader need activated partition
@@ -990,9 +989,9 @@ module Bootloader
           VStretch()
         )
       end
-      
+
     private
-      
+
       def console_widget
         if Systeminfo.console_supported?(grub2.name)
           ConsoleWidget.new
@@ -1000,7 +999,6 @@ module Bootloader
           CWM::Empty.new("console")
         end
       end
-
     end
 
     # Represent tab with options related to stage1 location and bootloader type
@@ -1142,8 +1140,8 @@ module Bootloader
         else
           CWM::Empty.new("hidden_menu")
         end
-      end      
-      
+      end
+
       def os_prober_widget
         # Checks !Arch.s390, not grub2-bls  and if package is available
         if OsProber.available?(grub2.name)
