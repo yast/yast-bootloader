@@ -11,7 +11,6 @@ require "bootloader/os_prober"
 require "bootloader/device_path"
 require "cfa/matcher"
 
-Yast.import "BootStorage"
 Yast.import "Initrd"
 Yast.import "Label"
 Yast.import "Report"
@@ -982,11 +981,6 @@ module Bootloader
       end
 
       def contents
-        console_widget = if Yast::Arch.s390 || grub2.name == "grub2-bls"
-          CWM::Empty.new("console")
-        else
-          ConsoleWidget.new
-        end
         VBox(
           VSpacing(1),
           MarginBox(1, 0.5, KernelAppendWidget.new),
@@ -1060,33 +1054,31 @@ module Bootloader
       end
 
       def loader_location_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name == "grub2"
+        Systeminfo.loader_location_available?(grub2.name)
       end
 
       def generic_mbr_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && !["grub2-efi", "grub2-bls"].include?(grub2.name)
+        Systeminfo.generic_mbr_available?(grub2.name)
       end
 
       def secure_boot_widget?
-        Systeminfo.secure_boot_available?(grub2.name) && grub2.name != "grub2-bls"
+        Systeminfo.secure_boot_available?(grub2.name)
       end
 
       def trusted_boot_widget?
-        Systeminfo.trusted_boot_available?(grub2.name) && grub2.name != "grub2-bls"
+        Systeminfo.trusted_boot_available?(grub2.name)
       end
 
       def update_nvram_widget?
-        Systeminfo.nvram_available?(grub2.name) && grub2.name != "grub2-bls"
+        Systeminfo.nvram_available?(grub2.name)
       end
 
       def pmbr_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) &&
-          Yast::BootStorage.gpt_boot_disk? &&
-          grub2.name != "grub2-bls"
+        Systeminfo.pmbr_available?(grub2.name)
       end
 
       def device_map_button?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && !["grub2-efi", "grub2-bls"].include?(grub2.name)
+        Systeminfo.device_map?(grub2.name)
       end
     end
 
@@ -1102,11 +1094,6 @@ module Bootloader
       end
 
       def contents
-        hidden_menu_widget = if grub2.name == "grub2-bls"
-          CWM::Empty.new("hidden_menu")
-        else
-          HiddenMenuWidget.new
-        end
         VBox(
           VSpacing(2),
           HBox(
@@ -1130,16 +1117,32 @@ module Bootloader
     private
 
       def grub_password_widget
-        if grub2.name == "grub2-bls"
-          CWM::Empty.new("password_widget")
-        else
+        if Systeminfo.password_supported?(grub2.name)
           GrubPasswordWidget.new
+        else
+          CWM::Empty.new("password_widget")
+        end
+      end
+
+      def console_widget
+        if console_supported?(grub2.name)
+          ConsoleWidget.new
+        else
+          CWM::Empty.new("console")
+        end
+      end
+
+      def hidden_menu_widget
+        if hiding_menu_supported?(grub2.name)
+          HiddenMenuWidget.new
+        else
+          CWM::Empty.new("hidden_menu")
         end
       end
 
       def os_prober_widget
-        if OsProber.available? && # Checks !Arch.s390 and if package is available
-            grub2.name != "grub2-bls"
+        # Checks !Arch.s390, not grub2-bls  and if package is available
+        if OsProber.available?(grub2.name)
           Left(OSProberWidget.new)
         else
           CWM::Empty.new("os_prober")
