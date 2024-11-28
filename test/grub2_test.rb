@@ -45,7 +45,7 @@ describe Bootloader::Grub2 do
   end
 
   describe "write" do
-    let(:stage1) { double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil) }
+    let(:stage1) { double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil, read: nil) }
 
     before do
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
@@ -56,7 +56,7 @@ describe Bootloader::Grub2 do
     end
 
     it "writes stage1 location" do
-      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false)
+      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false, read: nil)
       expect(stage1).to receive(:write)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
@@ -64,19 +64,21 @@ describe Bootloader::Grub2 do
     end
 
     it "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
-      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
+      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil, read: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
       devicegraph_stub("msdos_and_gpt.yaml")
 
-      expect(subject).to receive(:pmbr_setup).with("/dev/sdb")
+      expect(Yast::Execute).to receive(:locally)
+        .with("/usr/sbin/parted", "-s", "/dev/sdb", "disk_set", "pmbr_boot", "on")
+      subject.pmbr_action = :add
 
       subject.write
     end
 
     it "runs grub2-install for all configured stage1 locations on non-transactional systems" do
-      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
+      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil, read: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       grub2_install = double(Bootloader::GrubInstall)

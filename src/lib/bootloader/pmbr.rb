@@ -10,6 +10,8 @@ module Bootloader
   # Helper methods for PMBR
   class Pmbr
     class << self
+      include Yast::Logger
+
       def available?
         (Yast::Arch.x86_64 || Yast::Arch.i386) &&
           Yast::BootStorage.gpt_boot_disk?
