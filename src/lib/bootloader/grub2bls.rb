@@ -77,6 +77,8 @@ module Bootloader
       end
       grub_default.timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
       @is_proposed = true
+      # for UEFI always remove PMBR flag on disk (bnc#872054)
+      self.pmbr_action = :remove
     end
 
     # @return true if configuration is already proposed
@@ -96,6 +98,8 @@ module Bootloader
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         fw.puts(grub_default.kernel_params.serialize)
       end
+
+      Pmbr.write_efi(pmbr_action)
     end
 
     # merges other bootloader configuration into this one.
