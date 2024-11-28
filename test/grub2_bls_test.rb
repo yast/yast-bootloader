@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
-
+require "bootloader/bls"
 require "bootloader/grub2bls"
 
 describe Bootloader::Grub2Bls do
@@ -15,16 +15,14 @@ describe Bootloader::Grub2Bls do
 
   before do
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
-    allow(Yast::Execute).to receive(:on_target!)
-      .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
-      .and_return("openSUSE Tumbleweed")
+    allow(Bootloader::Bls).to receive(:default_menu)
+      .and_return(subject.sections.default)
   end
 
   describe "#read" do
     before do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "get-timeout", stdout: :capture)
-        .and_return("10")
+      allow(Bootloader::Bls).to receive(:menu_timeout)
+        .and_return(10)
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
     end
 
@@ -50,40 +48,52 @@ describe Bootloader::Grub2Bls do
       subject.grub_default.timeout = 10
     end
 
+    it "setups protective mbr to real disks containing /boot/efi" do
+      subject.pmbr_action = :add
+      allow(Bootloader::Bls).to receive(:default_menu)
+        .and_return(subject.sections.default)
+      allow(Bootloader::Bls).to receive(:write_default_menu)
+        .with(subject.sections.default)
+      allow(Bootloader::Bls).to receive(:menu_timeout)
+        .and_return(subject.grub_default.timeout)
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.grub_default.timeout)
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
+
+      expect(Yast::Execute).to receive(:locally)
+        .with("/usr/sbin/parted", "-s", "/dev/sda", "disk_set", "pmbr_boot", "on")
+
+      subject.write
+    end
+
     it "installs the bootloader" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-timeout",
-          subject.grub_default.timeout)
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-default", subject.sections.default)
+      allow(Bootloader::Bls).to receive(:write_default_menu)
+        .with(subject.sections.default)
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.grub_default.timeout)
 
       # install bootloader
-      expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
+      expect(Bootloader::Bls).to receive(:install_bootloader)
 
       # create menu entries
-      expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+      expect(Bootloader::Bls).to receive(:create_menu_entries)
 
       subject.write
     end
 
     it "writes kernel cmdline" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "get-default", stdout: :capture)
-        .and_return("openSUSE Tumbleweed")
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "get-timeout", stdout: :capture)
-        .and_return(10)
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-timeout",
-          subject.grub_default.timeout)
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-default", subject.sections.default)
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+      allow(Bootloader::Bls).to receive(:default_menu)
+        .and_return(subject.sections.default)
+      allow(Bootloader::Bls).to receive(:write_default_menu)
+        .with(subject.sections.default)
+      allow(Bootloader::Bls).to receive(:menu_timeout)
+        .and_return(subject.grub_default.timeout)
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.grub_default.timeout)
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
 
       subject.write
       # Checking written kernel parameters
@@ -93,17 +103,13 @@ describe Bootloader::Grub2Bls do
     end
 
     it "saves menu timeout" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-default", subject.sections.default)
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
-
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:write_default_menu)
+        .with(subject.sections.default)
       # Saving menu timeout
-      expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-timeout",
-          subject.grub_default.timeout)
+      expect(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.grub_default.timeout)
       subject.write
     end
   end
