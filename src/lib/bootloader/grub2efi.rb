@@ -28,7 +28,7 @@ module Bootloader
       # super have to called as first as grub install require some config written in ancestor
       super
 
-      Pmbr.write(pmbr_action, "grub2-efi")
+      Pmbr.write_efi(pmbr_action)
 
       unless etc_only
         @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,

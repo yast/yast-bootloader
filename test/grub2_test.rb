@@ -45,7 +45,7 @@ describe Bootloader::Grub2 do
   end
 
   describe "write" do
-    let(:stage1) { double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil, read: nil) }
+    let(:stage1) { double(Bootloader::Stage1, devices: [], generic_mbr?: false, write: nil) }
 
     before do
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
@@ -56,7 +56,7 @@ describe Bootloader::Grub2 do
     end
 
     it "writes stage1 location" do
-      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false, read: nil)
+      stage1 = double(Bootloader::Stage1, devices: [], generic_mbr?: false)
       expect(stage1).to receive(:write)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
@@ -64,7 +64,7 @@ describe Bootloader::Grub2 do
     end
 
     it "changes pmbr flag as specified in pmbr_action for all boot devices with gpt label" do
-      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil, read: nil)
+      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
@@ -78,7 +78,7 @@ describe Bootloader::Grub2 do
     end
 
     it "runs grub2-install for all configured stage1 locations on non-transactional systems" do
-      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil, read: nil)
+      stage1 = double(Bootloader::Stage1, devices: ["/dev/sda", "/dev/sdb1"], generic_mbr?: false, write: nil)
       allow(Bootloader::Stage1).to receive(:new).and_return(stage1)
 
       grub2_install = double(Bootloader::GrubInstall)

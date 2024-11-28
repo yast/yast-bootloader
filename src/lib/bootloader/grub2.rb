@@ -61,7 +61,7 @@ module Bootloader
       device_map.write if (Yast::Arch.x86_64 || Yast::Arch.i386) && !etc_only
 
       # set it only for gpt disk bsc#1008092
-      Pmbr.write(pmbr_action, "grub2")
+      Pmbr.write_none_efi(pmbr_action, stage1)
 
       # powernv must not call grub2-install (bnc#970582)
       if !Yast::Arch.board_powernv

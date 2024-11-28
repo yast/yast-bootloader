@@ -10,41 +10,12 @@ module Bootloader
   # Helper methods for PMBR
   class Pmbr
     class << self
-      include Yast::Logger
-
       def available?
         (Yast::Arch.x86_64 || Yast::Arch.i386) &&
           Yast::BootStorage.gpt_boot_disk?
       end
 
-      def write(action, boot_loader)
-        if ["grub2-efi", "grub2-bls", "systemd-boot"].include?(boot_loader)
-          write_efi(action)
-        else # grub2
-          write_none_efi(action)
-        end
-      end
-
-    private
-
-      # Filesystems in the staging (planned) devicegraph
-      #
-      # @return [Y2Storage::FilesystemsList]
-      def filesystems
-        staging = Y2Storage::StorageManager.instance.staging
-        staging.filesystems
-      end
-
-      def write_none_efi(action)
-        stage1 = Stage1.new
-        begin
-          stage1.read
-        rescue Errno::ENOENT
-          # grub_installdevice is not part of grub2 rpm, so it doesn't need to exist.
-          # In such case ignore exception and use empty stage1
-          log.info "grub_installdevice does not exist. Using empty one."
-          stage1 = Stage1.new
-        end
+      def write_none_efi(action, stage1)
         pmbr_setup(*::Yast::BootStorage.gpt_disks(stage1.devices), action)
       end
 
@@ -60,6 +31,16 @@ module Bootloader
         # set only gpt disks
         disks.select! { |disk| disk.gpt? }
         pmbr_setup(*disks.map(&:name), action)
+      end
+
+    private
+
+      # Filesystems in the staging (planned) devicegraph
+      #
+      # @return [Y2Storage::FilesystemsList]
+      def filesystems
+        staging = Y2Storage::StorageManager.instance.staging
+        staging.filesystems
       end
 
       # set pmbr flags on boot disks
