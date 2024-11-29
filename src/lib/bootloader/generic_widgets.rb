@@ -166,8 +166,6 @@ module Bootloader
 
   # Represents Protective MBR action
   class PMBRWidget < CWM::ComboBox
-    include Grub2Helper
-
     def initialize
       textdomain "bootloader"
 
