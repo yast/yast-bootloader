@@ -164,6 +164,59 @@ module Bootloader
     end
   end
 
+  # Represents Protective MBR action
+  class PMBRWidget < CWM::ComboBox
+    include Grub2Helper
+
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("&Protective MBR flag")
+    end
+
+    def help
+      _(
+        "<p><b>Protective MBR flag</b> is expert only settings, that is needed " \
+        "only on exotic hardware. For details see Protective MBR in GPT disks. " \
+        "Do not touch if you are not sure.</p>"
+      )
+    end
+
+    def init
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.respond_to?(:pmbr_action)
+        self.value = current_bl.pmbr_action
+      else
+        log.error("Bootloader #{current_bl} does not support PMBR.")
+        disable
+      end
+    end
+
+    def items
+      [
+        # TRANSLATORS: set flag on disk
+        [:add, _("set")],
+        # TRANSLATORS: remove flag from disk
+        [:remove, _("remove")],
+        # TRANSLATORS: do not change flag on disk
+        [:nothing, _("do not change")]
+      ]
+    end
+
+    def store
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.respond_to?(:pmbr_action)
+        current_bl.pmbr_action = value
+      else
+        log.error("Bootloader #{current_bl} does not support PMBR.")
+      end
+    end
+  end
+
   # represents kernel command line
   class KernelAppendWidget < CWM::InputField
     def initialize

@@ -210,48 +210,6 @@ module Bootloader
       end
     end
 
-    # Represents Protective MBR action
-    class PMBRWidget < CWM::ComboBox
-      include Grub2Helper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Protective MBR flag")
-      end
-
-      def help
-        _(
-          "<p><b>Protective MBR flag</b> is expert only settings, that is needed " \
-          "only on exotic hardware. For details see Protective MBR in GPT disks. " \
-          "Do not touch if you are not sure.</p>"
-        )
-      end
-
-      def init
-        self.value = grub2.pmbr_action
-      end
-
-      def items
-        [
-          # TRANSLATORS: set flag on disk
-          [:add, _("set")],
-          # TRANSLATORS: remove flag from disk
-          [:remove, _("remove")],
-          # TRANSLATORS: do not change flag on disk
-          [:nothing, _("do not change")]
-        ]
-      end
-
-      def store
-        grub2.pmbr_action = value
-      end
-    end
-
     # Represents switcher for secure boot on EFI
     class SecureBootWidget < CWM::CheckBox
       include Grub2Helper
