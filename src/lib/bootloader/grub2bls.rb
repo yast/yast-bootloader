@@ -111,15 +111,20 @@ module Bootloader
       log.info "merging: timeout: #{grub_default.timeout}=>#{other.grub_default.timeout}"
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
+      log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
+      log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
+               "#{other.grub_default.kernel_params.serialize}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
                "#{other.grub_default.kernel_params.serialize}"
 
       merge_sections(other)
       merge_grub_default(other)
+      merge_pmbr_action(other)
 
       log.info "merging result: timeout: #{grub_default.timeout}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{grub_default.kernel_params.serialize}"
+      log.info "                pmbr_action: #{pmbr_action}"
     end
     # rubocop:enable Metrics/AbcSize
 
