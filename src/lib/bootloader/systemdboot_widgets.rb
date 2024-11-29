@@ -3,6 +3,7 @@
 require "yast"
 require "bootloader/generic_widgets"
 require "bootloader/systeminfo"
+require "bootloader/pmbr"
 
 Yast.import "UI"
 Yast.import "Arch"
@@ -142,6 +143,8 @@ module Bootloader
           ),
           VSpacing(1),
           *widgets,
+          VSpacing(1),
+          pmbr_widget,
           VStretch()
         )
       end
@@ -160,12 +163,22 @@ module Bootloader
         end
       end
 
+      def pmbr_widget
+        return Empty() unless pmbr_widget?
+
+        MarginBox(1, 0, Left(PMBRWidget.new))
+      end
+
       def horizontal_margin
         @horizontal_margin ||= Yast::UI.TextMode ? 1 : 1.5
       end
 
       def secure_boot_widget?
         Systeminfo.secure_boot_available?(systemdboot.name)
+      end
+
+      def pmbr_widget?
+        Pmbr.available?
       end
     end
 

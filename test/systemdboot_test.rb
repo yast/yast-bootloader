@@ -63,6 +63,19 @@ describe Bootloader::SystemdBoot do
       subject.write
     end
 
+    it "setups protective mbr to real disks containing /boot/efi" do
+      subject.pmbr_action = :add
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.menu_timeout)
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
+
+      expect(Yast::Execute).to receive(:locally)
+        .with("/usr/sbin/parted", "-s", "/dev/sda", "disk_set", "pmbr_boot", "on")
+      subject.write
+    end
+
     it "writes kernel cmdline" do
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
         .with(subject.menu_timeout)
