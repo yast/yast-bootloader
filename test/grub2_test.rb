@@ -70,7 +70,9 @@ describe Bootloader::Grub2 do
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
       devicegraph_stub("msdos_and_gpt.yaml")
 
-      expect(subject).to receive(:pmbr_setup).with("/dev/sdb")
+      expect(Yast::Execute).to receive(:locally)
+        .with("/usr/sbin/parted", "-s", "/dev/sdb", "disk_set", "pmbr_boot", "on")
+      subject.pmbr_action = :add
 
       subject.write
     end

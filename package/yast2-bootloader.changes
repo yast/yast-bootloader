@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Nov 13 16:28:04 UTC 2024 - Stefan Schubert <schubi@suse.com>
+
+- Added grub2-bls support (jsc#PED-10703).
+- 5.0.13
+
+-------------------------------------------------------------------
 Tue Nov  5 09:57:58 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
 
 - Sync warning text from s390 secure boot to be identical in

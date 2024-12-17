@@ -238,32 +238,6 @@ describe Bootloader::KernelAppendWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::PMBRWidget do
-  before do
-    assign_bootloader
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to pmbr action" do
-    bootloader.pmbr_action = :add
-    expect(subject).to receive(:value=).with(:add)
-
-    subject.init
-  end
-
-  it "stores pmbr action" do
-    expect(subject).to receive(:value).and_return(:remove)
-    subject.store
-
-    expect(bootloader.pmbr_action).to eq :remove
-  end
-
-  it "offer set, remove and no action options" do
-    expect(subject.items.size).to eq 3
-  end
-end
-
 describe Bootloader::Grub2Widget::SecureBootWidget do
   before do
     assign_bootloader("grub2-efi")

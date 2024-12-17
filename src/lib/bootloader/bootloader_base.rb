@@ -11,7 +11,11 @@ Yast.import "Package"
 module Bootloader
   # Represents base for all kinds of bootloaders
   class BootloaderBase
+    include Yast::I18n
+
     def initialize
+      textdomain "bootloader"
+
       @read = false
       @proposed = false
       @initial_sysconfig = Sysconfig.from_system
@@ -112,6 +116,14 @@ module Bootloader
     # configuration
     def restore_initial_sysconfig
       @initial_sysconfig.write
+    end
+
+    def status_string(status)
+      if status
+        _("enabled")
+      else
+        _("disabled")
+      end
     end
   end
 end

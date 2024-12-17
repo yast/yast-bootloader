@@ -43,8 +43,10 @@ module Bootloader
       names = {
         "grub2"        => _("GRUB2"),
         "grub2-efi"    => _("GRUB2 for EFI"),
-        # Translators: option in combo box when bootloader is not managed by yast2
+        # Translators: Using Boot Loader Specification (BLS) snippets.
+        "grub2-bls"    => _("GRUB2 with BLS"),
         "systemd-boot" => _("Systemd Boot"),
+        # Translators: option in combo box when bootloader is not managed by yast2
         "none"         => _("Not Managed"),
         "default"      => _("Default")
       }
@@ -52,8 +54,6 @@ module Bootloader
       names[name] or raise "Unknown supported bootloader '#{name}'"
     end
 
-    # rubocop:disable Metrics/MethodLength
-    # It will be reduced again if systemd-boot is not anymore in beta phase.
     def handle
       old_bl = BootloaderFactory.current.name
       new_bl = value
@@ -73,25 +73,19 @@ module Bootloader
         return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
       end
 
-      if new_bl == "systemd-boot"
-        # popup - Continue/Cancel
-        popup_msg = _(
-          "\n" \
-          "Systemd-boot support is currently work in progress and\n" \
-          "may not work as expected. Use at your own risk.\n" \
-          "\n" \
-          "Currently we do not provide official maintenance or support.\n" \
-          "Proceed?\n"
-        )
-
-        return :redraw if !Yast::Popup.ContinueCancel(popup_msg)
+      if !Yast::Stage.initial && ["systemd-boot", "grub2-bls"].include?(old_bl)
+        Yast::Popup.Warning(format(_(
+        "Switching from %s to another bootloader\n" \
+        "is currently not supported.\n"
+      ), old_bl))
+        return :redraw
       end
 
-      if !Yast::Stage.initial && (old_bl == "systemd-boot")
-        Yast::Popup.Warning(_(
-        "Switching from systemd-boot to another bootloader\n" \
+      if !Yast::Stage.initial && ["systemd-boot", "grub2-bls"].include?(new_bl)
+        Yast::Popup.Warning(format(_(
+        "Switching to bootloader %s \n" \
         "is currently not supported.\n"
-      ))
+      ), new_bl))
         return :redraw
       end
 
@@ -101,7 +95,6 @@ module Bootloader
       :redraw
     end
 
-    # rubocop:enable Metrics/MethodLength
     def help
       _(
         "<p><b>Boot Loader</b>\n" \
@@ -168,6 +161,57 @@ module Bootloader
 
       Bootloader::BootloaderFactory.current.cpu_mitigations =
         ::Bootloader::CpuMitigations.new(value.to_sym)
+    end
+  end
+
+  # Represents Protective MBR action
+  class PMBRWidget < CWM::ComboBox
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("&Protective MBR flag")
+    end
+
+    def help
+      _(
+        "<p><b>Protective MBR flag</b> is expert only settings, that is needed " \
+        "only on exotic hardware. For details see Protective MBR in GPT disks. " \
+        "Do not touch if you are not sure.</p>"
+      )
+    end
+
+    def init
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.respond_to?(:pmbr_action)
+        self.value = current_bl.pmbr_action
+      else
+        log.error("Bootloader #{current_bl} does not support PMBR.")
+        disable
+      end
+    end
+
+    def items
+      [
+        # TRANSLATORS: set flag on disk
+        [:add, _("set")],
+        # TRANSLATORS: remove flag from disk
+        [:remove, _("remove")],
+        # TRANSLATORS: do not change flag on disk
+        [:nothing, _("do not change")]
+      ]
+    end
+
+    def store
+      current_bl = ::Bootloader::BootloaderFactory.current
+      if current_bl.respond_to?(:pmbr_action)
+        current_bl.pmbr_action = value
+      else
+        log.error("Bootloader #{current_bl} does not support PMBR.")
+      end
     end
   end
 

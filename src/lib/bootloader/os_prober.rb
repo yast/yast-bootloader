@@ -13,10 +13,10 @@ module Bootloader
         "os-prober"
       end
 
-      # Check if os-prober is supported on this architecture and if the package
-      # is available
-      def available?
-        arch_supported? && package_available?
+      # Check if os-prober is supported on this architecture
+      # no grub2-bls bootloader and if the package is available
+      def available?(bootloader)
+        arch_supported? && package_available? && bootloader != "grub2-bls"
       end
 
       # Check if the os-prober package is available for installation

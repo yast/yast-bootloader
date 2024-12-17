@@ -61,7 +61,7 @@ module Bootloader
       bootloader:   "\n" \
                     "## Path:\tSystem/Bootloader\n" \
                     "## Description:\tBootloader configuration\n" \
-                    "## Type:\tlist(grub,grub2,grub2-efi,systemd-boot,none)\n" \
+                    "## Type:\tlist(grub,grub2,grub2-efi,grub2-bls,systemd-boot,none)\n" \
                     "## Default:\tgrub2\n" \
                     "#\n" \
                     "# Type of bootloader in use.\n" \

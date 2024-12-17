@@ -2,6 +2,7 @@
 
 require_relative "test_helper"
 
+require "bootloader/bls"
 require "bootloader/systemdboot"
 
 describe Bootloader::SystemdBoot do
@@ -17,6 +18,10 @@ describe Bootloader::SystemdBoot do
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     allow(Yast::Package).to receive(:Available).and_return(true)
+    allow(Bootloader::Bls).to receive(:menu_timeout)
+      .and_return(subject.menu_timeout)
+    allow(Bootloader::Bls).to receive(:write_menu_timeout)
+      .with(subject.menu_timeout)
   end
 
   describe "#read" do
@@ -49,23 +54,33 @@ describe Bootloader::SystemdBoot do
     end
 
     it "installs the bootloader" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
-      allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
-
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.menu_timeout)
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
       # install bootloader
-      expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
+      expect(Bootloader::Bls).to receive(:install_bootloader)
 
       subject.write
     end
 
+    it "setups protective mbr to real disks containing /boot/efi" do
+      subject.pmbr_action = :add
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.menu_timeout)
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
+
+      expect(Yast::Execute).to receive(:locally)
+        .with("/usr/sbin/parted", "-s", "/dev/sda", "disk_set", "pmbr_boot", "on")
+      subject.write
+    end
+
     it "writes kernel cmdline" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
-      allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.menu_timeout)
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
 
       subject.write
       # Checking written kernel parameters
@@ -75,25 +90,23 @@ describe Bootloader::SystemdBoot do
     end
 
     it "creates menu entries" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow_any_instance_of(CFA::SystemdBoot).to receive(:save)
+      allow(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.menu_timeout)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
 
       # create menu entries
-      expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+      expect(Bootloader::Bls).to receive(:create_menu_entries)
 
       subject.write
     end
 
     it "saves menu timeout" do
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
-      allow(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+      allow(Bootloader::Bls).to receive(:create_menu_entries)
+      allow(Bootloader::Bls).to receive(:install_bootloader)
 
       # Saving menu timeout
-      expect_any_instance_of(CFA::SystemdBoot).to receive(:save)
+      expect(Bootloader::Bls).to receive(:write_menu_timeout)
+        .with(subject.menu_timeout)
 
       subject.write
     end
