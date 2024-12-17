@@ -123,10 +123,19 @@ module Bootloader
           ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
       end
 
+      def bls_installable?
+        ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
+      end
+
       def proposed_name
         prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals",
           "prefered_bootloader")
-        if supported_names.include?(prefered_bootloader) && prefered_bootloader != "grub2-efi"
+        if supported_names.include?(prefered_bootloader) &&
+            ["grub2-efi", "systemd-boot", "grub2-bls"].include?(prefered_bootloader)
+          return prefered_bootloader
+        end
+
+        if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
           return prefered_bootloader
         end
 
