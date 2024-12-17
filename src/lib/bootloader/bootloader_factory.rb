@@ -131,7 +131,7 @@ module Bootloader
         prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals",
           "prefered_bootloader")
         if supported_names.include?(prefered_bootloader) &&
-            ["grub2-efi", "systemd-boot", "grub2-bls"].include?(prefered_bootloader)
+            !["grub2-efi", "systemd-boot", "grub2-bls"].include?(prefered_bootloader)
           return prefered_bootloader
         end
 
