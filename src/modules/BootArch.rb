@@ -57,6 +57,8 @@ module Yast
         "additional_kernel_parameters"
       )
       kernel_cmdline = Kernel.GetCmdLine.dup
+      # filter out root= parameter as installation special root cannot work on target system
+      kernel_cmdline.gsub!(/root=\S+/, "")
 
       if Arch.i386 || Arch.x86_64 || Arch.aarch64 || Arch.arm || Arch.ppc || Arch.riscv64
         ret = kernel_cmdline
