@@ -30,6 +30,14 @@ describe Yast::BootArch do
         expect(subject.DefaultKernelParams("/dev/sda2")).to include("console=ttyS0")
       end
 
+      it "filters out root= parameter from boot command line" do
+        allow(Yast::Kernel).to receive(:GetCmdLine)
+          .and_return("root=live:http://example.com/agama-installer.x86_64-10.0.0-SLE-Build40.6.iso live.password=nots3cr3t console=ttyS1,115200")
+
+        expect(subject.DefaultKernelParams("/dev/sda2")).to include("live.password=nots3cr3t console=ttyS1,115200")
+        expect(subject.DefaultKernelParams("/dev/sda2")).to_not include("root=")
+      end
+
       it "adds additional parameters from Product file" do
         allow(Yast::ProductFeatures).to receive(:GetStringFeature)
           .with("globals", "additional_kernel_parameters").and_return("console=ttyS0")

@@ -1,7 +1,8 @@
 -------------------------------------------------------------------
-Wed Nov 13 16:28:04 UTC 2024 - Stefan Schubert <schubi@suse.com>
+Fri Dec 20 10:26:41 UTC 2024 - Josef Reidinger <jreidinger@suse.com>
 
-- Added grub2-bls support (jsc#PED-10703).
+- Always filter out from installation parameters "root=" as it
+  needs to be always changed to installed system (bsc#1234678)
 - 5.0.13
 
 -------------------------------------------------------------------
