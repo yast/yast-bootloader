@@ -9,9 +9,9 @@ require "bootloader/cpu_mitigations"
 require "bootloader/systeminfo"
 require "bootloader/os_prober"
 require "bootloader/device_path"
+require "bootloader/pmbr"
 require "cfa/matcher"
 
-Yast.import "BootStorage"
 Yast.import "Initrd"
 Yast.import "Label"
 Yast.import "Report"
@@ -78,7 +78,9 @@ module Bootloader
       end
 
       def store
-        if @hidden_menu_widget.checked?
+        if @hidden_menu_widget.is_a?(CWM::Empty)
+          grub_default.timeout = value.to_s
+        elsif @hidden_menu_widget.checked?
           grub_default.hidden_timeout = value.to_s
           grub_default.timeout = "0"
         else
@@ -208,48 +210,6 @@ module Bootloader
       end
     end
 
-    # Represents Protective MBR action
-    class PMBRWidget < CWM::ComboBox
-      include Grub2Helper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Protective MBR flag")
-      end
-
-      def help
-        _(
-          "<p><b>Protective MBR flag</b> is expert only settings, that is needed " \
-          "only on exotic hardware. For details see Protective MBR in GPT disks. " \
-          "Do not touch if you are not sure.</p>"
-        )
-      end
-
-      def init
-        self.value = grub2.pmbr_action
-      end
-
-      def items
-        [
-          # TRANSLATORS: set flag on disk
-          [:add, _("set")],
-          # TRANSLATORS: remove flag from disk
-          [:remove, _("remove")],
-          # TRANSLATORS: do not change flag on disk
-          [:nothing, _("do not change")]
-        ]
-      end
-
-      def store
-        grub2.pmbr_action = value
-      end
-    end
-
     # Represents switcher for secure boot on EFI
     class SecureBootWidget < CWM::CheckBox
       include Grub2Helper
@@ -352,7 +312,8 @@ module Bootloader
       end
 
       def validate
-        return true if Yast::Mode.config || !value || grub2.name == "grub2-efi"
+        return true if Yast::Mode.config || !value || ["grub2-efi",
+                                                       "grub2-bls"].include?(grub2.name)
 
         tpm_files = Dir.glob("/sys/**/pcrs")
         if !tpm_files.empty? && !File.read(tpm_files[0], 1).nil?
@@ -970,6 +931,8 @@ module Bootloader
 
     # represents Tab with kernel related configuration
     class KernelTab < CWM::Tab
+      include Grub2Helper
+
       def label
         textdomain "bootloader"
 
@@ -977,7 +940,6 @@ module Bootloader
       end
 
       def contents
-        console_widget = Yast::Arch.s390 ? CWM::Empty.new("console") : ConsoleWidget.new
         VBox(
           VSpacing(1),
           MarginBox(1, 0.5, KernelAppendWidget.new),
@@ -985,6 +947,16 @@ module Bootloader
           MarginBox(1, 0.5, console_widget),
           VStretch()
         )
+      end
+
+    private
+
+      def console_widget
+        if Systeminfo.console_supported?(grub2.name)
+          ConsoleWidget.new
+        else
+          CWM::Empty.new("console")
+        end
       end
     end
 
@@ -1051,11 +1023,11 @@ module Bootloader
       end
 
       def loader_location_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && grub2.name == "grub2"
+        Systeminfo.loader_location_available?(grub2.name)
       end
 
       def generic_mbr_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
+        Systeminfo.generic_mbr_available?(grub2.name)
       end
 
       def secure_boot_widget?
@@ -1071,18 +1043,19 @@ module Bootloader
       end
 
       def pmbr_widget?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) &&
-          Yast::BootStorage.gpt_boot_disk?
+        Pmbr.available?
       end
 
       def device_map_button?
-        (Yast::Arch.x86_64 || Yast::Arch.i386) && grub2.name != "grub2-efi"
+        Systeminfo.device_map?(grub2.name)
       end
     end
 
     # Represents bootloader specific options like its timeout,
     # default section or password protection
     class BootloaderTab < CWM::Tab
+      include Grub2Helper
+
       def label
         textdomain "bootloader"
 
@@ -1090,31 +1063,47 @@ module Bootloader
       end
 
       def contents
-        hiden_menu_widget = HiddenMenuWidget.new
         VBox(
           VSpacing(2),
           HBox(
             HSpacing(1),
-            TimeoutWidget.new(hiden_menu_widget),
+            TimeoutWidget.new(hidden_menu_widget),
             HSpacing(1),
             VBox(
               os_prober_widget,
               VSpacing(1),
-              Left(hiden_menu_widget)
+              Left(hidden_menu_widget)
             ),
             HSpacing(1)
           ),
           VSpacing(1),
-          MarginBox(1, 1, DefaultSectionWidget.new),
-          MarginBox(1, 1, GrubPasswordWidget.new),
+          MarginBox(1, 1, MinWidth(1, DefaultSectionWidget.new)),
+          MarginBox(1, 1, grub_password_widget),
           VStretch()
         )
       end
 
     private
 
+      def grub_password_widget
+        if Systeminfo.password_supported?(grub2.name)
+          GrubPasswordWidget.new
+        else
+          CWM::Empty.new("password_widget")
+        end
+      end
+
+      def hidden_menu_widget
+        if Systeminfo.hiding_menu_supported?(grub2.name)
+          HiddenMenuWidget.new
+        else
+          CWM::Empty.new("hidden_menu")
+        end
+      end
+
       def os_prober_widget
-        if OsProber.available? # Checks !Arch.s390 and if package is available
+        # Checks !Arch.s390, not grub2-bls  and if package is available
+        if OsProber.available?(grub2.name)
           Left(OSProberWidget.new)
         else
           CWM::Empty.new("os_prober")

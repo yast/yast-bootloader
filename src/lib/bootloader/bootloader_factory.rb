@@ -5,6 +5,7 @@ require "bootloader/sysconfig"
 require "bootloader/none_bootloader"
 require "bootloader/grub2"
 require "bootloader/grub2efi"
+require "bootloader/grub2bls"
 require "bootloader/systemdboot"
 require "bootloader/exceptions"
 
@@ -24,6 +25,7 @@ module Bootloader
     # Keyword used in autoyast for default bootloader used for given system.
     DEFAULT_KEYWORD = "default"
     SYSTEMDBOOT = "systemd-boot"
+    GRUB2BLS = "grub2-bls"
 
     class << self
       include Yast::Logger
@@ -57,6 +59,7 @@ module Bootloader
         if Yast::Mode.config
           # default means bootloader use what it think is the best
           result = BootloaderFactory::SUPPORTED_BOOTLOADERS.clone
+          result << GRUB2BLS if use_grub2_bls?
           result << SYSTEMDBOOT if use_systemd_boot?
           result << DEFAULT_KEYWORD
           return result
@@ -72,6 +75,7 @@ module Bootloader
         # grub2 everywhere except aarch64 or riscv64
         ret << "grub2" unless Systeminfo.efi_mandatory?
         ret << "grub2-efi" if Systeminfo.efi_supported?
+        ret << GRUB2BLS if use_grub2_bls?
         ret << SYSTEMDBOOT if use_systemd_boot?
         ret << "none"
         # avoid double entry for selected one
@@ -89,6 +93,8 @@ module Bootloader
           @cached_bootloaders["grub2-efi"] ||= Grub2EFI.new
         when "systemd-boot"
           @cached_bootloaders["systemd-boot"] ||= SystemdBoot.new
+        when "grub2-bls"
+          @cached_bootloaders["grub2-bls"] ||= Grub2Bls.new
         when "none"
           @cached_bootloaders["none"] ||= NoneBootloader.new
         when String
@@ -108,15 +114,28 @@ module Bootloader
           (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
       end
 
+      def use_grub2_bls?
+        (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
+      end
+
       def grub2_efi_installable?
         Systeminfo.efi_mandatory? ||
           ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
       end
 
+      def bls_installable?
+        ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
+      end
+
       def proposed_name
         prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals",
           "prefered_bootloader")
-        if supported_names.include?(prefered_bootloader) && prefered_bootloader != "grub2-efi"
+        if supported_names.include?(prefered_bootloader) &&
+            !["grub2-efi", "systemd-boot", "grub2-bls"].include?(prefered_bootloader)
+          return prefered_bootloader
+        end
+
+        if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
           return prefered_bootloader
         end
 

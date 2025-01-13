@@ -8,6 +8,7 @@ require "bootloader/device_map"
 require "bootloader/stage1"
 require "bootloader/grub_install"
 require "bootloader/systeminfo"
+require "bootloader/pmbr"
 
 Yast.import "Arch"
 Yast.import "BootStorage"
@@ -59,9 +60,8 @@ module Bootloader
 
       device_map.write if (Yast::Arch.x86_64 || Yast::Arch.i386) && !etc_only
 
-      # TODO: own class handling PBMR
       # set it only for gpt disk bsc#1008092
-      pmbr_setup(*::Yast::BootStorage.gpt_disks(stage1.devices))
+      Pmbr.write_none_efi(pmbr_action, stage1)
 
       # powernv must not call grub2-install (bnc#970582)
       if !Yast::Arch.board_powernv

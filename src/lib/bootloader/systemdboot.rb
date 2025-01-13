@@ -4,7 +4,7 @@ require "fileutils"
 require "yast"
 require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
-require "cfa/systemd_boot"
+require "bootloader/bls"
 require "cfa/grub2/default"
 
 Yast.import "Report"
@@ -29,6 +29,10 @@ module Bootloader
     #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
 
+    # @!attribute pmbr_action
+    #   @return [:remove, :add, :nothing]
+    attr_accessor :pmbr_action
+
     def initialize
       super
 
@@ -37,6 +41,7 @@ module Bootloader
       # like grub2 in order to be compatible with all calls.
       @kernel_container = ::CFA::Grub2::Default.new
       @explicit_cpu_mitigations = false
+      @pmbr_action = :nothing
     end
 
     def kernel_params
@@ -49,11 +54,13 @@ module Bootloader
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
+      log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
       super
       self.menu_timeout = other.menu_timeout unless other.menu_timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
+      self.pmbr_action = other.pmbr_action if other.pmbr_action
 
       kernel_serialize = kernel_params.serialize
       # handle specially noresume as it should lead to remove all other resume
@@ -75,6 +82,7 @@ module Bootloader
       log.info "                secure_boot: #{secure_boot}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
+      log.info "                pmbr_action: #{pmbr_action}"
     end
     # rubocop:enable Metrics/AbcSize
 
@@ -95,7 +103,7 @@ module Bootloader
     def read
       super
 
-      read_menu_timeout
+      self.menu_timeout = Bls.menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
 
       lines = ""
@@ -112,9 +120,11 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
-      install_bootloader if Yast::Stage.initial # while new installation only (currently)
-      create_menu_entries
-      write_menu_timeout
+      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
+      write_kernel_parameter
+      Bls.create_menu_entries
+      Bls.write_menu_timeout(menu_timeout)
+      Pmbr.write_efi(pmbr_action)
 
       true
     end
@@ -128,14 +138,8 @@ module Bootloader
       end
       self.menu_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
       self.secure_boot = Systeminfo.secure_boot_supported?
-    end
-
-    def status_string(status)
-      if status
-        _("enabled")
-      else
-        _("disabled")
-      end
+      # for UEFI always remove PMBR flag on disk (bnc#872054)
+      self.pmbr_action = :remove
     end
 
     # Secure boot setting shown in summary screen.
@@ -197,9 +201,7 @@ module Bootloader
 
   private
 
-    SDBOOTUTIL = "/usr/bin/sdbootutil"
-
-    def create_menu_entries
+    def write_kernel_parameter
       # writing kernel parameter to /etc/kernel/cmdline
       File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
         if Yast::Stage.initial # while new installation only
@@ -208,53 +210,6 @@ module Bootloader
           fw.puts(kernel_params.serialize)
         end
       end
-
-      begin
-        Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot create systemd-boot menu entry:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-      end
-    end
-
-    def read_menu_timeout
-      config = CFA::SystemdBoot.load
-      return unless config.menu_timeout
-
-      self.menu_timeout = if config.menu_timeout == "menu-force"
-        -1
-      else
-        config.menu_timeout.to_i
-      end
-    end
-
-    def write_menu_timeout
-      config = CFA::SystemdBoot.load
-      config.menu_timeout = if menu_timeout == -1
-        "menu-force"
-      else
-        menu_timeout.to_s
-      end
-      config.save
-    end
-
-    def install_bootloader
-      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
-        "install")
-    rescue Cheetah::ExecutionFailed => e
-      Yast::Report.Error(
-      format(_(
-               "Cannot install systemd bootloader:\n" \
-               "Command `%{command}`.\n" \
-               "Error output: %{stderr}"
-             ), command: e.commands.inspect, stderr: e.stderr)
-    )
-      nil
     end
   end
 end

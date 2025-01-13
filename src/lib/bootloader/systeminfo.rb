@@ -7,6 +7,7 @@ require "bootloader/sysconfig"
 require "yast2/execute"
 
 Yast.import "Arch"
+Yast.import "BootStorage"
 
 module Bootloader
   # Provide system and architecture dependent information
@@ -45,8 +46,36 @@ module Bootloader
         return false if efi_arch == "i386"
         # no shim neither secure boot support for 32 bit arm nor riscv64 (bsc#1229070)
         return false if Yast::Arch.arm || Yast::Arch.riscv64
+        # not for grub2-bls
+        return false if bootloader_name == "grub2-bls"
 
         efi_used?(bootloader_name) || s390_secure_boot_available? || ppc_secure_boot_available?
+      end
+
+      # Check if mbr configurable with a bootloader.
+      #
+      # @param bootloader_name [String] bootloader name
+      # @return [Boolean] true if available with this bootloader
+      def generic_mbr_available?(bootloader_name)
+        (Yast::Arch.x86_64 || Yast::Arch.i386) && !["grub2-efi",
+                                                    "grub2-bls"].include?(bootloader_name)
+      end
+
+      # Check if loader location is configurable with a bootloader.
+      #
+      # @param bootloader_name [String] bootloader name
+      # @return [Boolean] true if available with this bootloader
+      def loader_location_available?(bootloader_name)
+        (Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.ppc) && bootloader_name == "grub2"
+      end
+
+      # Check if setting device map is available.
+      #
+      # @param bootloader_name [String] bootloader name
+      # @return [Boolean] true if available with this bootloader
+      def device_map?(bootloader_name)
+        (Yast::Arch.x86_64 || Yast::Arch.i386) && !["grub2-efi",
+                                                    "grub2-bls"].include?(bootloader_name)
       end
 
       # Check current trusted boot state.
@@ -62,6 +91,9 @@ module Bootloader
 
       # Check if the system is expected to have nvram - ie. update_nvram_active? makes a difference
       def nvram_available?(bootloader_name = nil)
+        # not for grub2-bls
+        return false if bootloader_name == "grub2-bls"
+
         (bootloader_name ? efi_used?(bootloader_name) : efi_supported?) || Yast::Arch.ppc
       end
 
@@ -76,6 +108,8 @@ module Bootloader
       def trusted_boot_available?(bootloader_name)
         # TPM availability is must have
         return false unless File.exist?("/dev/tpm0")
+        # not for grub2-bls
+        return false if bootloader_name == "grub2-bls"
 
         # for details about grub2 efi trusted boot support see FATE#315831
         (
@@ -89,7 +123,7 @@ module Bootloader
       # param bootloader_name [String] bootloader name
       # @return [Boolean] true if UEFI will be used for booting with this bootloader
       def efi_used?(bootloader_name)
-        ["grub2-efi", "systemd-boot"].include?(bootloader_name)
+        ["grub2-efi", "systemd-boot", "grub2-bls"].include?(bootloader_name)
       end
 
       # Check if UEFI is available on this system.
@@ -106,6 +140,30 @@ module Bootloader
       # @return [Boolean] true if system must boot via EFI
       def efi_mandatory?
         Yast::Arch.aarch64 || Yast::Arch.arm || Yast::Arch.riscv64
+      end
+
+      # Check if console settings are supported
+      #
+      # param bootloader_name [String] bootloader name
+      # @return [Boolean] true if supported
+      def console_supported?(bootloader_name)
+        !Yast::Arch.s390 && bootloader_name != "grub2-bls"
+      end
+
+      # Check if hiding menu are supported
+      #
+      # param bootloader_name [String] bootloader name
+      # @return [Boolean] true if supported
+      def hiding_menu_supported?(bootloader_name)
+        bootloader_name != "grub2-bls"
+      end
+
+      # Check if setting password is supported
+      #
+      # param bootloader_name [String] bootloader name
+      # @return [Boolean] true if supported
+      def password_supported?(bootloader_name)
+        bootloader_name != "grub2-bls"
       end
 
       # Check if shim-install should be used instead of grub2-install.

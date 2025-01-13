@@ -38,8 +38,8 @@ describe Bootloader::Grub2EFI do
     it "setups protective mbr to real disks containing /boot/efi" do
       subject.pmbr_action = :add
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
-
-      expect(subject).to receive(:pmbr_setup).with("/dev/sda")
+      expect(Yast::Execute).to receive(:locally)
+        .with("/usr/sbin/parted", "-s", "/dev/sda", "disk_set", "pmbr_boot", "on")
 
       subject.write
     end

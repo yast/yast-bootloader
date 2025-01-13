@@ -79,22 +79,6 @@ module Bootloader
 
     # general functions
 
-    # set pmbr flags on boot disks
-    # TODO: move it to own place
-    def pmbr_setup(*devices)
-      return if @pmbr_action == :nothing
-
-      action_parted = case @pmbr_action
-      when :add    then "on"
-      when :remove then "off"
-      else raise "invalid action #{action}"
-      end
-
-      devices.each do |dev|
-        Yast::Execute.locally("/usr/sbin/parted", "-s", dev, "disk_set", "pmbr_boot", action_parted)
-      end
-    end
-
     def cpu_mitigations
       CpuMitigations.from_kernel_params(grub_default.kernel_params)
     end
@@ -189,7 +173,7 @@ module Bootloader
     #
     # @return [Boolean] true if the os-prober package should be included; false otherwise.
     def include_os_prober_package?
-      OsProber.available?
+      OsProber.arch_supported? && OsProber.package_available?
     end
 
     def enable_serial_console(console_arg_string)
@@ -434,14 +418,6 @@ module Bootloader
       end
 
       "#{_("Update NVRAM:")} #{status_string(update_nvram)} #{link}"
-    end
-
-    def status_string(status)
-      if status
-        _("enabled")
-      else
-        _("disabled")
-      end
     end
   end
   # rubocop:enable Metrics/ClassLength

@@ -83,11 +83,11 @@ module Yast
       # grub2 is sooo cool...
       return true if type == "grub2" && !::Bootloader::Systeminfo.efi_mandatory?
 
-      if (Arch.i386 || Arch.x86_64) && ["grub2-efi", "systemd-boot"].include?(type) && efi?
+      if (Arch.i386 || Arch.x86_64) && ["grub2-efi", "grub2-bls", "systemd-boot"].include?(type) && efi?
         return true
       end
 
-      if ["grub2-efi", "systemd-boot"].include?(type) && ::Bootloader::Systeminfo.efi_mandatory?
+      if ["grub2-efi", "grub2-bls", "systemd-boot"].include?(type) && ::Bootloader::Systeminfo.efi_mandatory?
         return true
       end
 
