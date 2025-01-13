@@ -2,8 +2,6 @@
 
 require_relative "../test_helper"
 
-require "cfa/systemd_boot"
-
 describe CFA::SystemdBoot do
   subject(:selinux_config_file) do
     described_class.load(file_path: file_path, file_handler: file_handler)
