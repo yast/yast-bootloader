@@ -47,7 +47,7 @@ module Bootloader
     end
 
     def self.write_menu_timeout(timeout)
-      Yast::Execute.on_target!(SDBOOTUTIL, "set-timeout", timeout)
+      Yast::Execute.on_target!(SDBOOTUTIL, "set-timeout", "--", timeout)
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
       format(_(

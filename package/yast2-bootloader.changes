@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 30 12:45:30 UTC 2025 - Stefan Schubert <schubi@suse.com>
+
+- Calling "sdbootutil set-timeout" with the correct parameters
+  (bsc#1236578).
+- 5.0.15
+
+-------------------------------------------------------------------
 Thu Jan  9 11:26:59 UTC 2025 - Stefan Schubert <schubi@suse.de>
 
 - Added grub2-bls support (jsc#PED-10703).
