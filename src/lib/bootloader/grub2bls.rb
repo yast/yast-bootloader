@@ -88,7 +88,10 @@ module Bootloader
 
     # writes configuration to target disk
     def write(*)
-      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
+      if Yast::Stage.initial # while new installation only (currently)
+        Bls.install_bootloader
+        Bls.enable_tpm2
+      end
       Bls.create_menu_entries
       Bls.install_bootloader
       @sections.write

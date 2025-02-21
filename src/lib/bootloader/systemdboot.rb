@@ -120,7 +120,10 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
-      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
+      if Yast::Stage.initial # while new installation only (currently)
+        Bls.install_bootloader
+        Bls.ble_tmp2
+      end
       write_kernel_parameter
       Bls.create_menu_entries
       Bls.write_menu_timeout(menu_timeout)
