@@ -106,13 +106,13 @@ module Bootloader
 
     # Enabe TPM2, if it is required
     def self.enable_tpm2
-      return unless StorageManager.instance.proposal
-      return unless StorageManager.instance.proposal.settings.encryption_use_tpm2
+      return unless Y2Storage::StorageManager.instance.proposal
+      return unless Y2Storage::StorageManager.instance.proposal.settings.encryption_use_tpm2
 
       begin
         Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll",
            "@u", stdout: :capture,
-           stdin: StorageManager.instance.proposal.settings.encryption_password)
+           stdin: Y2Storage::StorageManager.instance.proposal.settings.encryption_password)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
