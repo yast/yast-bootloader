@@ -45,13 +45,14 @@ module Bootloader
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
-      [
+      result = [
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2 BLS"
         )
       ]
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result
     end
 
     # @return bootloader name
