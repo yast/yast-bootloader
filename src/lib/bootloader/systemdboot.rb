@@ -182,7 +182,7 @@ module Bootloader
 
       case Yast::Arch.architecture
       when "x86_64"
-        res << "shim" if secure_boot
+        res << "shim"
       else
         log.warn "Unknown architecture #{Yast::Arch.architecture} for systemdboot"
       end
