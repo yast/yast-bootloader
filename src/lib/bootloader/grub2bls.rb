@@ -28,6 +28,20 @@ module Bootloader
       @is_proposed = false
     end
 
+    # Secure boot setting shown in summary screen.
+    # sdbootutil intialize secure boot if shim has been installed.
+    #
+    # @return [String]
+    def secure_boot_summary
+      link = if self.secure_boot
+        "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Secure Boot:")} #{status_string(self.secure_boot)} #{link}"
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
@@ -37,6 +51,7 @@ module Bootloader
           "GRUB2 BLS"
         )
       ]
+      result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
     end
 
     # @return bootloader name
