@@ -107,10 +107,7 @@ module Bootloader
 
     # writes configuration to target disk
     def write(*)
-      if Yast::Stage.initial # while new installation only (currently)
-        Bls.install_bootloader
-        Bls.enable_tpm2
-      end
+      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
       Bls.create_menu_entries
       Bls.install_bootloader
       @sections.write
@@ -158,7 +155,7 @@ module Bootloader
       res = super
       res << ("grub2-" + grub2bls_architecture + "-efi-bls")
       res << "sdbootutil"
-      res << "shim"
+      res << "shim" if secure_boot
       res
     end
 

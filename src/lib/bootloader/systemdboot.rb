@@ -120,10 +120,7 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
-      if Yast::Stage.initial # while new installation only (currently)
-        Bls.install_bootloader
-        Bls.ble_tmp2
-      end
+      Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
       write_kernel_parameter
       Bls.create_menu_entries
       Bls.write_menu_timeout(menu_timeout)
@@ -182,7 +179,7 @@ module Bootloader
 
       case Yast::Arch.architecture
       when "x86_64"
-        res << "shim"
+        res << "shim" if secure_boot
       else
         log.warn "Unknown architecture #{Yast::Arch.architecture} for systemdboot"
       end
