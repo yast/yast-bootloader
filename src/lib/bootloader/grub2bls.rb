@@ -33,13 +33,13 @@ module Bootloader
     #
     # @return [String]
     def secure_boot_summary
-      link = if self.secure_boot
+      link = if secure_boot
         "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
       else
         "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
       end
 
-      "#{_("Secure Boot:")} #{status_string(self.secure_boot)} #{link}"
+      "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
     end
 
     # Display bootloader summary
@@ -77,7 +77,8 @@ module Bootloader
       log.info "kernel params: #{grub_default.kernel_params}"
       log.info "bls sections:  #{@sections.all}"
       log.info "bls default:   #{@sections.default}"
-      log.info "secure boot:   #{self.secure_boot}"
+      log.info "secure boot:   #{secure_boot}"
+
       @is_read = true # flag that settings has been read
     end
 
@@ -149,7 +150,7 @@ module Bootloader
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{grub_default.kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
-      log.info "                secure boot: #{self.secure_boot}"
+      log.info "                secure boot: #{secure_boot}"
     end
     # rubocop:enable Metrics/AbcSize
 
@@ -165,7 +166,7 @@ module Bootloader
     # overwrite BootloaderBase version to save secure boot
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name,
-        secure_boot: self.secure_boot, trusted_boot: false,
+        secure_boot: secure_boot, trusted_boot: false,
         update_nvram: false)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
