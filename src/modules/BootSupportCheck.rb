@@ -52,6 +52,8 @@ module Yast
         supported = GRUB2EFI() && supported
       when "systemd-boot"
         supported = SYSTEMDBOOT() && supported
+      when "grub2-bls"
+        supported = GRUB2BLS() && supported
       end
 
       log.info "Configuration supported: #{supported}"
@@ -174,23 +176,36 @@ module Yast
       false
     end
 
+    def check_tpm2
+      return true unless Y2Storage::StorageManager.instance.encryption_use_tpm2
+
+      add_new_problem(_("This bootloader cannot handle encryption supported by a TPM2 chip. "))
+      false
+    end
+
     # GRUB2-related check
     def GRUB2
       ret = []
       ret << check_gpt_reserved_partition if Arch.x86_64
       ret << check_activate_partition if Arch.x86_64 || Arch.ppc64
       ret << check_mbr if Arch.x86_64
+      ret << check_tpm2
 
       ret.all?
     end
 
     # GRUB2EFI-related check
     def GRUB2EFI
-      true
+      check_tpm2
     end
 
     # systemd-boot-related check
     def SYSTEMDBOOT
+      true
+    end
+
+    # grub2-bls-related check
+    def GRUB2BLS
       true
     end
 

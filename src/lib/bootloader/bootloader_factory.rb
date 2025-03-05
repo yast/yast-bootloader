@@ -135,6 +135,10 @@ module Bootloader
           return prefered_bootloader
         end
 
+        if bls_installable? && Y2Storage::StorageManager.instance.encryption_use_tpm2
+          "grub2-bls" # TPM2 chips should be used by grub2-bls bootloader
+        end
+
         if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
           return prefered_bootloader
         end
