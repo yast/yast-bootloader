@@ -78,7 +78,6 @@ module Bootloader
       log.info "bls sections:  #{@sections.all}"
       log.info "bls default:   #{@sections.default}"
       log.info "secure boot:   #{secure_boot}"
-
       @is_read = true # flag that settings has been read
     end
 
