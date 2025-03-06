@@ -124,25 +124,32 @@ module Bootloader
         return
       end
 
-      # Yast::Execute.on_target! returns an error of missing machine-id
-      result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
-      if result["exit"] != 0
+      begin
+        Yast::Execute.on_target!("/usr/bin/sdbootutil",
+                                 "enroll", "--method=tpm2")
+      rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
-                   "Cannot enroll TPM method:\n" \
+                   "Cannot enroll TPM2 first method:\n" \
+                   "Command `%{command}`.\n" \
                    "Error output: %{stderr}"
-                 ), stderr: result["stderr"])
-        )        
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
       end
-      result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
-      if result["exit"] != 0
+
+      begin
+        Yast::Execute.on_target!("/usr/bin/sdbootutil",
+                                 "enroll", "--method=tpm2")
+      rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
                    "Cannot enroll TPM2 method:\n" \
+                   "Command `%{command}`.\n" \
                    "Error output: %{stderr}"
-                 ), stderr: result["stderr"])
-        )        
-      end
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+      end      
+      
     end
   end
 end
