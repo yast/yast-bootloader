@@ -124,20 +124,8 @@ module Bootloader
         return
       end
 
-      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
-      begin
-        Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
-                                 "--ensure=/etc/machine-id")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot Cannot create machine-id:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-      end      
-      
+      Yast::Execute.on_target("/usr/bin/sdbootutil",
+                              "enroll", "--method=tpm2")
       begin
         Yast::Execute.on_target!("/usr/bin/sdbootutil",
                                  "enroll", "--method=tpm2")
