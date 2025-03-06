@@ -129,6 +129,15 @@ module Bootloader
       if result["exit"] != 0
         Yast::Report.Error(
           format(_(
+                   "Cannot enroll TPM method:\n" \
+                   "Error output: %{stderr}"
+                 ), stderr: result["stderr"])
+        )        
+      end
+      result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
+      if result["exit"] != 0
+        Yast::Report.Error(
+          format(_(
                    "Cannot enroll TPM2 method:\n" \
                    "Error output: %{stderr}"
                  ), stderr: result["stderr"])
