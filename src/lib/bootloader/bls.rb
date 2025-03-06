@@ -126,18 +126,8 @@ module Bootloader
 
       Yast::Execute.on_target("/usr/bin/sdbootutil",
                               "enroll", "--method=tpm2")
-      begin
-        Yast::Execute.on_target!("/usr/bin/sdbootutil",
-                                 "enroll", "--method=tpm2")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot enroll TPM2 method:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-      end
+      Yast::Execute.on_target("/usr/bin/sdbootutil",
+                              "enroll", "--method=tpm2")
     end
   end
 end
