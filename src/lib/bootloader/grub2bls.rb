@@ -107,12 +107,11 @@ module Bootloader
 
     # writes configuration to target disk
     def write(*)
-      if Yast::Stage.initial # while new installation only (currently)
+      if Yast::Stage.initial # while new installation only
         Bls.install_bootloader
+        Bls.create_menu_entries
         Bls.enable_tpm2
       end
-      Bls.create_menu_entries
-      Bls.install_bootloader
       @sections.write
       Bls.write_menu_timeout(grub_default.timeout)
 

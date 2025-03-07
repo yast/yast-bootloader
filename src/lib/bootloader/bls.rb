@@ -23,7 +23,7 @@ module Bootloader
     end
 
     def self.create_menu_entries
-      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose", "add-all-kernels")
+      Yast::Execute.on_target!(SDBOOTUTIL,  "add-all-kernels")
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
         format(_(
@@ -35,8 +35,7 @@ module Bootloader
     end
 
     def self.install_bootloader
-      Yast::Execute.on_target!(SDBOOTUTIL, "--verbose",
-        "install")
+      Yast::Execute.on_target!(SDBOOTUTIL, "install")
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
       format(_(
@@ -76,15 +75,18 @@ module Bootloader
     end
 
     def self.write_default_menu(default)
-      Yast::Execute.on_target!(SDBOOTUTIL, "set-default", default)
-    rescue Cheetah::ExecutionFailed => e
-      Yast::Report.Error(
-      format(_(
-               "Cannot write default boot menu entry:\n" \
-               "Command `%{command}`.\n" \
-               "Error output: %{stderr}"
-             ), command: e.commands.inspect, stderr: e.stderr)
-    )
+      return if default.empty?
+      begin
+        Yast::Execute.on_target!(SDBOOTUTIL, "set-default", default)
+      rescue Cheetah::ExecutionFailed => e
+        Yast::Report.Error(
+          format(_(
+                   "Cannot write default boot menu entry:\n" \
+                   "Command `%{command}`.\n" \
+                   "Error output: %{stderr}"
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+      end
     end
 
     def self.default_menu
