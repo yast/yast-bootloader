@@ -173,12 +173,7 @@ module Bootloader
 #          end          
 #      end
 #
-#      Yast::Report.Error(
-#        format(_(
-#                 "end result:\n" \
-#                 "output: %{stderr}"
-#               ), stderr: result["stdout"]))
-
+      Yast::Report.Error("zwischenstop")
     end
   end
 end
