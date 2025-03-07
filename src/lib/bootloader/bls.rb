@@ -124,7 +124,7 @@ module Bootloader
       end
 
       Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
-      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/usr/bin/dbus-uuidgen --ensure=/etc/machine-id")
+      Yast::SCR.Execute(Yast::Path.new(".target.bash"), "/usr/bin/dbus-uuidgen --ensure=/etc/machine-id")
 
       result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
       if result["exit"] != 0
