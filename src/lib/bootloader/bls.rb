@@ -106,7 +106,6 @@ module Bootloader
 
     # Enabe TPM2, if it is required
     def self.enable_tpm2
-      return unless Y2Storage::StorageManager.instance.proposal
       return unless Y2Storage::StorageManager.instance.encryption_use_tpm2
 
       begin
@@ -124,10 +123,35 @@ module Bootloader
         return
       end
 
-      Yast::Execute.on_target("/usr/bin/sdbootutil",
-                              "enroll", "--method=tpm2")
-      Yast::Execute.on_target("/usr/bin/sdbootutil",
-                              "enroll", "--method=tpm2")
+      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
+      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/usr/bin/dbus-uuidgen --ensure=/etc/machine-id")
+
+      result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
+      if result["exit"] != 0
+       Yast::Report.Error(
+          format(_(
+                   "Cannot enroll TPM2 method via tagetbash first try:\n" \
+                   "Cannot enroll TPM2 method:\n" \
+                   "Error output: %{stderr}"
+                 ), stderr: result["stderr"]))
+          result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
+          if result["exit"] != 0
+            Yast::Report.Error(
+              format(_(
+                   "Cannot enroll TPM2 method via tagetbash second try:\n" \
+                   "Cannot enroll TPM2 method:\n" \
+                   "Error output: %{stderr}"
+                 ), stderr: result["stderr"])
+            )
+          end          
+      end
+
+      Yast::Report.Error(
+        format(_(
+                 "end result:\n" \
+                 "output: %{stderr}"
+               ), stderr: result["stdout"]))
+
     end
   end
 end
