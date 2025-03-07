@@ -150,29 +150,6 @@ module Bootloader
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
       end
-      
-#      Yast::SCR.Execute(Yast::Path.new(".target.bash"), "/usr/bin/dbus-uuidgen --ensure=/etc/machine-id")
-#
-#      result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
-#      if result["exit"] != 0
-#       Yast::Report.Error(
-#          format(_(
-#                   "Cannot enroll TPM2 method via tagetbash first try:\n" \
-#                   "Cannot enroll TPM2 method:\n" \
-#                   "Error output: %{stderr}"
-#                 ), stderr: result["stderr"]))
-#          result = Yast::SCR.Execute(Yast::Path.new(".target.bash_output"), "/usr/bin/sdbootutil enroll --method=tpm2")
-#          if result["exit"] != 0
-#            Yast::Report.Error(
-#              format(_(
-#                   "Cannot enroll TPM2 method via tagetbash second try:\n" \
-#                   "Cannot enroll TPM2 method:\n" \
-#                   "Error output: %{stderr}"
-#                 ), stderr: result["stderr"])
-#            )
-#          end          
-#      end
-#
     end
   end
 end
