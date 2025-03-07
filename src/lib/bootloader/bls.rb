@@ -173,7 +173,6 @@ module Bootloader
 #          end          
 #      end
 #
-      Yast::Report.Error("zwischenstop")
     end
   end
 end
