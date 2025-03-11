@@ -179,7 +179,7 @@ module Yast
     def check_tpm2
       return true unless Y2Storage::StorageManager.instance.encryption_use_tpm2
 
-      add_new_problem(_("This bootloader cannot handle encryption supported by a TPM2 chip. "))
+      add_new_problem(_("This bootloader cannot handle encryption supported by a TPM2 device. "))
       false
     end
 
