@@ -16,14 +16,22 @@ module Bootloader
     # or an empty array
     attr_reader :all
 
-    # @return [String] title of default boot section.
-    attr_reader :default
-
     def initialize
       @all = []
       @default = ""
     end
 
+    # @return [String] title of default boot section.
+    def default
+      # empty value mean no default specified
+      if all.empty? || @default.empty?
+        return ""
+      else
+        entry = @data.select {|d| d["id"] == @default }
+        return entry.first["title"]
+      end
+    end    
+    
     # Sets default section internally.
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
