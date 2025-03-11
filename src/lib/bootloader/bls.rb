@@ -102,7 +102,7 @@ module Bootloader
         )
         output = ""
       end
-      output
+      output.strip!
     end
 
 
