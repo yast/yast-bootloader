@@ -28,6 +28,7 @@ module Bootloader
         return ""
       else
         entry = @data.select {|d| d["id"] == @default }
+        if entry.
         return entry.first["title"]
       end
     end    
@@ -36,12 +37,11 @@ module Bootloader
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
-      # empty value mean no default specified
-      if !all.empty? && !all.include?(value)
+      entry = @data.select {|d| d["title"] == value }
+      if entry.empty?
         log.warn "Invalid value '#{value}'"
         @default = ""
       else
-        entry = @data.select {|d| d["title"] == value }
         @default = entry.first["id"]
         log.info "set new default to '#{value.inspect}' --> '#{@default}'"
       end
