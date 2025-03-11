@@ -28,15 +28,15 @@ module Bootloader
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
-      log.info "set new default to '#{value.inspect}'"
-
       # empty value mean no default specified
-      if !all.empty? && !all.include?(value) && !value.empty?
-        log.warn "Invalid value #{value} trying to set as default. Fallback to default"
-        value = ""
+      if !all.empty? && !all.include?(value)
+        log.warn "Invalid value '#{value}'"
+        @default = ""
+      else
+        entry = @data.select {|d| d["title"] == value }
+        @default = entry.first["id"]
+        log.info "set new default to '#{value.inspect}' --> '@default'"
       end
-
-      @default = value
     end
 
     # writes default to system making it persistent
