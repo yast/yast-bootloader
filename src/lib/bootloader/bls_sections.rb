@@ -23,12 +23,10 @@ module Bootloader
 
     # @return [String] title of default boot section.
     def default
-      # empty value mean no default specified
-      if all.empty? || @default.empty?
+      entry = @data.select {|d| d["id"] == @default }      
+      if entry.empty?
         return ""
       else
-        entry = @data.select {|d| d["id"] == @default }
-        if entry.
         return entry.first["title"]
       end
     end    
