@@ -85,7 +85,7 @@ module Bootloader
         # --regenerate-all is needed for generating initrd image for all kernels (bsc#1189915)
         Yast::Execute.on_target("/usr/bin/dracut", "--force", "--regenerate-all")
       end
-      Yast::Report.Error("zwischenstop")
+
       true
     end
 
