@@ -35,7 +35,7 @@ module Bootloader
       else
         entry = @data.select {|d| d["title"] == value }
         @default = entry.first["id"]
-        log.info "set new default to '#{value.inspect}' --> '@default'"
+        log.info "set new default to '#{value.inspect}' --> '#{@default}'"
       end
     end
 
