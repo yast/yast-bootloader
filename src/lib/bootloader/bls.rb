@@ -127,9 +127,10 @@ module Bootloader
       return unless Y2Storage::StorageManager.instance.encryption_use_tpm2
 
       begin
+        pwd = Y2Storage::StorageManager.instance.proposal.settings.encryption_password
         Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll",
           "@u", stdout: :capture,
-          stdin: Y2Storage::StorageManager.instance.proposal.settings.encryption_password)
+          stdin: pwd)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
