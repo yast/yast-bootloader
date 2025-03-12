@@ -23,19 +23,19 @@ module Bootloader
 
     # @return [String] title of default boot section.
     def default
-      entry = @data.select {|d| d["id"] == @default }      
+      entry = @data.select { |d| d["id"] == @default }
       if entry.empty?
-        return ""
+        ""
       else
-        return entry.first["title"]
+        entry.first["title"]
       end
-    end    
-    
+    end
+
     # Sets default section internally.
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
-      entry = @data.select {|d| d["title"] == value }
+      entry = @data.select { |d| d["title"] == value }
       if entry.empty?
         log.warn "Invalid value '#{value}'"
         @default = ""

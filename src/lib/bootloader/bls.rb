@@ -23,7 +23,7 @@ module Bootloader
     end
 
     def self.create_menu_entries
-      Yast::Execute.on_target!(SDBOOTUTIL,  "add-all-kernels")
+      Yast::Execute.on_target!(SDBOOTUTIL, "add-all-kernels")
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
         format(_(
@@ -76,6 +76,7 @@ module Bootloader
 
     def self.write_default_menu(default)
       return if default.empty?
+
       begin
         Yast::Execute.on_target!(SDBOOTUTIL, "set-default", default)
       rescue Cheetah::ExecutionFailed => e
@@ -105,6 +106,21 @@ module Bootloader
       output.strip!
     end
 
+    def self.generate_machine_id
+      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
+      begin
+        Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
+          "--ensure=/etc/machine-id")
+      rescue Cheetah::ExecutionFailed => e
+        Yast::Report.Error(
+          format(_(
+                   "Cannot Cannot create machine-id:\n" \
+                   "Command `%{command}`.\n" \
+                   "Error output: %{stderr}"
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+      end
+    end
 
     # Enabe TPM2, if it is required
     def self.enable_tpm2
@@ -112,8 +128,8 @@ module Bootloader
 
       begin
         Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll",
-           "@u", stdout: :capture,
-           stdin: Y2Storage::StorageManager.instance.proposal.settings.encryption_password)
+          "@u", stdout: :capture,
+          stdin: Y2Storage::StorageManager.instance.proposal.settings.encryption_password)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
@@ -125,24 +141,11 @@ module Bootloader
         return
       end
 
-      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
-      begin
-        Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
-                                 "--ensure=/etc/machine-id")
+      generate_machine_id
 
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot Cannot create machine-id:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-      end
-      
       begin
         Yast::Execute.on_target!("/usr/bin/sdbootutil",
-                                 "enroll", "--method=tpm2")
+          "enroll", "--method=tpm2")
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
