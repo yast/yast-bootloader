@@ -8,7 +8,7 @@ describe Bootloader::Bls do
   describe "#create_menu_entries" do
     it "calls sdbootutil add-all-kernels" do
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+        .with("/usr/bin/sdbootutil", "add-all-kernels")
       subject.create_menu_entries
     end
   end
@@ -16,7 +16,7 @@ describe Bootloader::Bls do
   describe "#install_bootloader" do
     it "calls sdbootutil install" do
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
+        .with("/usr/bin/sdbootutil", "install")
       subject.install_bootloader
     end
   end

@@ -103,7 +103,7 @@ module Bootloader
         )
         output = ""
       end
-      output.strip!
+      output.strip
     end
 
     def self.generate_machine_id
