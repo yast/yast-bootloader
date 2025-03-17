@@ -60,7 +60,7 @@ describe Bootloader::Bls do
     context "TPM2 is used for encryption" do
       before do
         allow(Y2Storage::StorageManager.instance).to receive(:encryption_use_tpm2).and_return(true)
-        allow(Y2Storage::StorageManager.instance).to receive(:encryption_password).and_return("123456")
+        allow(Y2Storage::StorageManager.instance.proposal.settings).to receive(:encryption_password).and_return("123456")
       end
 
       it "enrolls the TPM2" do
