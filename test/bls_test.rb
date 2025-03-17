@@ -56,4 +56,25 @@ describe Bootloader::Bls do
     end
   end
 
+  describe "#enable_tpm2" do
+    context "TPM2 is used for encryption" do
+      before do
+        allow(Y2Storage::StorageManager.instance).to receive(:encryption_use_tpm2).and_return(true)
+      end
+
+      it "enrolls the TPM2" do
+        expect(Yast::Execute).to receive(:on_target!)
+          .with("keyctl", "padd", "user", "cryptenroll", "@u",
+            stdout: :capture,
+            stdin:  pwd)
+        expect(Yast::Execute).to receive(:on_target!)
+          .with("/usr/bin/sdbootutil", "enroll", "--method=tpm2")
+        expect(Yast::Execute).to receive(:on_target!)
+          .with("/usr/bin/dbus-uuidgen",
+            "--ensure=/etc/machine-id")
+
+        subject.enable_tpm2
+      end
+    end
+  end
 end
