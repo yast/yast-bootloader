@@ -106,22 +106,6 @@ module Bootloader
       output.strip
     end
 
-    def self.generate_machine_id
-      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
-      begin
-        Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
-          "--ensure=/etc/machine-id")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot Cannot create machine-id:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-      end
-    end
-
     # Enabe TPM2, if it is required
     def self.enable_tpm2
       return unless Y2Storage::StorageManager.instance.encryption_use_tpm2
@@ -151,6 +135,24 @@ module Bootloader
         Yast::Report.Error(
           format(_(
                    "Cannot enroll TPM2 method:\n" \
+                   "Command `%{command}`.\n" \
+                   "Error output: %{stderr}"
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+      end
+    end
+
+  protected
+
+    def generate_machine_id
+      Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
+      begin
+        Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
+          "--ensure=/etc/machine-id")
+      rescue Cheetah::ExecutionFailed => e
+        Yast::Report.Error(
+          format(_(
+                   "Cannot Cannot create machine-id:\n" \
                    "Command `%{command}`.\n" \
                    "Error output: %{stderr}"
                  ), command: e.commands.inspect, stderr: e.stderr)
