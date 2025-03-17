@@ -23,6 +23,8 @@ module Bootloader
 
     # @return [String] title of default boot section.
     def default
+      return unless @data
+
       entry = @data.select { |d| d["id"] == @default }
       if entry.empty?
         ""

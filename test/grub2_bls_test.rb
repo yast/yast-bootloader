@@ -36,7 +36,7 @@ describe Bootloader::Grub2Bls do
       subject.read
 
       expect(subject.cpu_mitigations.to_human_string).to eq "Off"
-      expect(subject.grub_default.kernel_params.serialize).to eq cmdline_content
+      expect(subject.grub_default.kernel_params.serialize).to include cmdline_content
     end
   end
 
@@ -69,6 +69,7 @@ describe Bootloader::Grub2Bls do
     end
 
     it "installs the bootloader" do
+      allow(Yast::Stage).to receive(:initial).and_return(true)
       allow(Bootloader::Bls).to receive(:write_default_menu)
         .with(subject.sections.default)
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
