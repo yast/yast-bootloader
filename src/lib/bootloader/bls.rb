@@ -127,7 +127,7 @@ module Bootloader
       end
     end
 
-  protected
+  private
 
     def generate_machine_id
       Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
