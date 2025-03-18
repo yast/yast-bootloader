@@ -110,22 +110,7 @@ module Bootloader
     def self.enable_tpm2
       return unless Y2Storage::StorageManager.instance.encryption_use_tpm2
 
-      begin
-        pwd = Y2Storage::StorageManager.instance.encryption_tpm2_password
-        Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll", "@u",
-          stdout: :capture,
-          stdin:  pwd)
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot pass the password via the keyring:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
-        return
-      end
-
+      export_password
       generate_machine_id
 
       begin
@@ -153,6 +138,28 @@ module Bootloader
         Yast::Report.Error(
           format(_(
                    "Cannot Cannot create machine-id:\n" \
+                   "Command `%{command}`.\n" \
+                   "Error output: %{stderr}"
+                 ), command: e.commands.inspect, stderr: e.stderr)
+        )
+      end
+    end
+
+    def export_password
+      pwd = Y2Storage::StorageManager.instance.encryption_tpm2_password
+      if pwd.empty?
+        Yast::Report.Error(_("Cannot pass empty password via the keyring."))
+        return
+      end
+
+      begin
+        Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll", "@u",
+          stdout: :capture,
+          stdin:  pwd)
+      rescue Cheetah::ExecutionFailed => e
+        Yast::Report.Error(
+          format(_(
+                   "Cannot pass the password via the keyring:\n" \
                    "Command `%{command}`.\n" \
                    "Error output: %{stderr}"
                  ), command: e.commands.inspect, stderr: e.stderr)
