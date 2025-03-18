@@ -127,9 +127,9 @@ module Bootloader
       end
     end
 
-  private
+  protected
 
-    def generate_machine_id
+    def self.generate_machine_id
       Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
       begin
         Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
@@ -145,7 +145,7 @@ module Bootloader
       end
     end
 
-    def export_password
+    def self.export_password
       pwd = Y2Storage::StorageManager.instance.encryption_tpm2_password
       if pwd.empty?
         Yast::Report.Error(_("Cannot pass empty password via the keyring."))
