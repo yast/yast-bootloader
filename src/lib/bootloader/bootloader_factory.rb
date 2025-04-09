@@ -135,8 +135,9 @@ module Bootloader
           return prefered_bootloader
         end
 
-        if bls_installable? && Y2Storage::StorageManager.instance.encryption_use_tpm2
-          return "grub2-bls" # TPM2 chips should be used by grub2-bls bootloader
+        devicegraph = Y2Storage::StorageManager.instance.staging
+        if bls_installable? && devicegraph.encryptions&.any? { |e| e.method.id == :systemd_fde }
+          return "grub2-bls" # systemd_fde encryption prefers grub2-bls bootloader
         end
 
         if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
