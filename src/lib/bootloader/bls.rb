@@ -106,24 +106,36 @@ module Bootloader
       output.strip
     end
 
-    # Enabe TPM2, if it is required
-    def self.enable_tpm2
-      return unless Y2Storage::StorageManager.instance.encryption_use_tpm2
-
-      export_password
+    # Enable TPM2/FIDO2 if it is required
+    def self.set_authentication
       generate_machine_id
+      devicegraph = Y2Storage::StorageManager.instance.staging
 
-      begin
-        Yast::Execute.on_target!("/usr/bin/sdbootutil",
-          "enroll", "--method=tpm2")
-      rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot enroll TPM2 method:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
+      devicegraph.encryptions&.each do |d|
+        next unless d.method.id == :systemd_fde
+
+        export_password(d.password)
+
+        if d.authentication.value == "fido2"
+          Yast::Popup.Message(
+            _(
+              "Please ensure that a FIDO2 Key has been connected to your system."
+            )
+          )
+        end
+        begin
+          Yast::Execute.on_target!("/usr/bin/sdbootutil",
+            "enroll", "--method=#{d.authentication.value}",
+            "--devices=#{d.blk_device.name}")
+        rescue Cheetah::ExecutionFailed => e
+          Yast::Report.Error(
+            format(_(
+                     "Cannot enroll authentication:\n" \
+                     "Command `%{command}`.\n" \
+                     "Error output: %{stderr}"
+                   ), command: e.commands.inspect, stderr: e.stderr)
+          )
+        end
       end
     end
 
@@ -143,8 +155,7 @@ module Bootloader
       end
     end
 
-    def self.export_password
-      pwd = Y2Storage::StorageManager.instance.encryption_tpm2_password
+    def self.export_password(pwd)
       if pwd.empty?
         Yast::Report.Error(_("Cannot pass empty password via the keyring."))
         return
@@ -152,8 +163,7 @@ module Bootloader
 
       begin
         Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll", "@u",
-          stdout: :capture,
-          stdin:  pwd)
+          stdin: pwd)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(

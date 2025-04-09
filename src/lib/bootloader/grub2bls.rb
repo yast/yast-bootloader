@@ -110,7 +110,7 @@ module Bootloader
       if Yast::Stage.initial # while new installation only
         Bls.install_bootloader
         Bls.create_menu_entries
-        Bls.enable_tpm2
+        Bls.set_authentication
       end
       @sections.write
       Bls.write_menu_timeout(grub_default.timeout)

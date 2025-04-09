@@ -30,7 +30,7 @@ BuildRequires:  yast2 >= 4.5.16
 BuildRequires:  yast2-devtools >= 4.2.2
 # yast/rspec/helpers.rb
 BuildRequires:  yast2-ruby-bindings >= 4.4.7
-# Supporting LUKS2 encryption by TPM2 device
+# Supporting LUKS2 encryption by TPM2/FIDO2 device
 BuildRequires:  yast2-storage-ng >= 5.0.28
 # lenses needed also for tests
 BuildRequires:  augeas-lenses
@@ -47,7 +47,7 @@ Requires:       yast2 >= 4.5.16
 Requires:       yast2-core >= 2.18.7
 Requires:       yast2-packager >= 2.17.24
 Requires:       yast2-pkg-bindings >= 2.17.25
-# Supporting LUKS2 encryption by TPM2 device
+# Supporting LUKS2 encryption by TPM2/FIDO2 device
 Requires:       yast2-storage-ng >= 5.0.28
 # Support for multiple values in GRUB_TERMINAL
 Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 1.0.1

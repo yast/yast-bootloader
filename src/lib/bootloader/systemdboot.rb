@@ -122,7 +122,7 @@ module Bootloader
       log.info("Writing settings...")
       if Yast::Stage.initial # while new installation only (currently)
         Bls.install_bootloader
-        Bls.enable_tpm2
+        Bls.set_authentication
       end
       write_kernel_parameter
       Bls.create_menu_entries

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Fri Mar 14 14:06:16 UTC 2025 - Stefan Schubert <schubi@suse.de>
 
-- Selecting grub2-bls bootloader if a TPM2 device is used for
+- Selecting grub2-bls bootloader if a TPM2/FIDO2 device is used for
   checking encryptions (jsc#PED-10703).
 - 5.0.16
 
