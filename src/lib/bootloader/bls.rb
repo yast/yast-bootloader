@@ -114,6 +114,10 @@ module Bootloader
       devicegraph.encryptions&.each do |d|
         next unless d.method.id == :systemd_fde
 
+        # No enrollment is needed. Setting password while
+        # encryption is enough.
+        next unless d.authentication.value == "password"
+
         export_password(d.password)
 
         if d.authentication.value == "fido2"
