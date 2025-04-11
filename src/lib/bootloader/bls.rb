@@ -118,7 +118,8 @@ module Bootloader
         # encryption is enough.
         next if d.authentication.value == "password"
 
-        export_password(d.password)
+        export_password(d.password, "cryptenroll")
+        export_password(d.password, "sdbootutil") if d.authentication.value == "tpm2+pin"
 
         if d.authentication.value == "fido2"
           Yast::Popup.Message(
@@ -159,14 +160,14 @@ module Bootloader
       end
     end
 
-    def self.export_password(pwd)
+    def self.export_password(pwd, kind)
       if pwd.empty?
         Yast::Report.Error(_("Cannot pass empty password via the keyring."))
         return
       end
 
       begin
-        Yast::Execute.on_target!("keyctl", "padd", "user", "cryptenroll", "@u",
+        Yast::Execute.on_target!("keyctl", "padd", "user", kind, "@u",
           stdin: pwd)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
