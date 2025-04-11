@@ -116,7 +116,7 @@ module Bootloader
 
         # No enrollment is needed. Setting password while
         # encryption is enough.
-        next unless d.authentication.value == "password"
+        next if d.authentication.value == "password"
 
         export_password(d.password)
 
