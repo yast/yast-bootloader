@@ -123,9 +123,11 @@ module Bootloader
 
         if d.authentication.value == "fido2"
           Yast::Popup.Message(
-            _(
-              "Please ensure that a FIDO2 Key has been connected to your system."
-            )
+            format(_(
+              "Please ensure that a FIDO2 Key is connected to your system in order to " \
+              "enroll the authentication for device %{device}.\n" \
+              "You will have to push the FIDO2 key button twice for transfering the information."
+                   ), device: d.blk_device.name)
           )
         end
         begin
