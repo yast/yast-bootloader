@@ -168,6 +168,7 @@ module Bootloader
 
       begin
         Yast::Execute.on_target!("keyctl", "padd", "user", kind, "@u",
+          recorder: Yast::ReducedRecorder.new(skip: :stdin),
           stdin: pwd)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
