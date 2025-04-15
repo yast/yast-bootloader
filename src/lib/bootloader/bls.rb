@@ -126,7 +126,7 @@ module Bootloader
             format(_(
               "Please ensure that a FIDO2 Key is connected to your system in order to " \
               "enroll the authentication for device %{device}.\n" \
-              "You will have to push the FIDO2 key button twice for transfering the information."
+              "You will be asked to push the FIDO2 key button twice for transfering the information."
                    ), device: d.blk_device.name)
           )
         end
