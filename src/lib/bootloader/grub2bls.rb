@@ -28,15 +28,31 @@ module Bootloader
       @is_proposed = false
     end
 
+    # Secure boot setting shown in summary screen.
+    # sdbootutil intialize secure boot if shim has been installed.
+    #
+    # @return [String]
+    def secure_boot_summary
+      link = if secure_boot
+        "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
-      [
+      result = [
         Yast::Builtins.sformat(
           _("Boot Loader Type: %1"),
           "GRUB2 BLS"
         )
       ]
+      result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result
     end
 
     # @return bootloader name
@@ -56,10 +72,12 @@ module Bootloader
           lines = + line
         end
       end
+      self.secure_boot = Systeminfo.secure_boot_active?
       grub_default.kernel_params.replace(lines)
       log.info "kernel params: #{grub_default.kernel_params}"
-      log.info "bls sections: #{@sections.all}"
-      log.info "bls default:  #{@sections.default}"
+      log.info "bls sections:  #{@sections.all}"
+      log.info "bls default:   #{@sections.default}"
+      log.info "secure boot:   #{secure_boot}"
       @is_read = true # flag that settings has been read
     end
 
@@ -76,6 +94,7 @@ module Bootloader
         grub_default.kernel_params.replace(kernel_line)
       end
       grub_default.timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+      self.secure_boot = Systeminfo.secure_boot_supported?
       @is_proposed = true
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove
@@ -112,6 +131,7 @@ module Bootloader
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
       log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
+      log.info "         secure boot: #{other.secure_boot}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
                "#{other.grub_default.kernel_params.serialize}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
@@ -120,11 +140,13 @@ module Bootloader
       merge_sections(other)
       merge_grub_default(other)
       merge_pmbr_action(other)
+      self.secure_boot = other.secure_boot unless other.secure_boot.nil?
 
       log.info "merging result: timeout: #{grub_default.timeout}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{grub_default.kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
+      log.info "                secure boot: #{secure_boot}"
     end
     # rubocop:enable Metrics/AbcSize
 
@@ -133,7 +155,16 @@ module Bootloader
       res = super
       res << ("grub2-" + grub2bls_architecture + "-efi-bls")
       res << "sdbootutil"
+      res << "shim" if secure_boot
       res
+    end
+
+    # overwrite BootloaderBase version to save secure boot
+    def write_sysconfig(prewrite: false)
+      sysconfig = Bootloader::Sysconfig.new(bootloader: name,
+        secure_boot: secure_boot, trusted_boot: false,
+        update_nvram: false)
+      prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
   private

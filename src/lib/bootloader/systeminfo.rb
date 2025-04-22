@@ -46,8 +46,6 @@ module Bootloader
         return false if efi_arch == "i386"
         # no shim neither secure boot support for 32 bit arm nor riscv64 (bsc#1229070)
         return false if Yast::Arch.arm || Yast::Arch.riscv64
-        # not for grub2-bls
-        return false if bootloader_name == "grub2-bls"
 
         efi_used?(bootloader_name) || s390_secure_boot_available? || ppc_secure_boot_available?
       end
