@@ -60,18 +60,17 @@ describe Bootloader::Bls do
     it "enrolls the Fido2/TPM2" do
       devicegraph_stub("fido2-encryption.yaml")
         
-        expect(Yast::Execute).to receive(:on_target!)
-          .with("keyctl", "padd", "user", "cryptenroll", "@u",
-            stdout: :capture,
-            stdin:  "123456")
-        expect(Yast::Execute).to receive(:on_target!)
+      expect(Yast::Execute).to receive(:on_target!)
+                                 .with("keyctl", "padd", "user", "cryptenroll", "@u",
+                                       stdout: :capture,
+                                       stdin:  "123456")
+      expect(Yast::Execute).to receive(:on_target!)
           .with("/usr/bin/sdbootutil", "enroll", "--method=fido2")
-        expect(Yast::Execute).to receive(:on_target!)
+      expect(Yast::Execute).to receive(:on_target!)
           .with("/usr/bin/dbus-uuidgen",
             "--ensure=/etc/machine-id")
 
-        subject.set_authentication
-      end
+      subject.set_authentication
     end
   end
 end
