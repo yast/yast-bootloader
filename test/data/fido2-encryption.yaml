@@ -55,9 +55,8 @@
         encryption:
           type: LUKS2
           name: "/dev/mapper/cr_root"
-          pbkdf: argon2id
           authentication: fido2
-          password: "***"
+          password: "123456"
     - partition:
         size: 1197039.5 KiB (1.14 GiB)
         start: 19311 MiB (18.86 GiB)
@@ -69,9 +68,8 @@
         encryption:
           type: LUKS2
           name: "/dev/mapper/cr_swap"
-          pbkdf: argon2id
           authentication: fido2
-          password: "***"
+          password: "123456"
     - free:
         size: 16.5 KiB
         start: 20971503.5 KiB (20.00 GiB)
