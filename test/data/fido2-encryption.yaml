@@ -55,6 +55,7 @@
         encryption:
           type: LUKS2
           name: "/dev/mapper/cr_root"
+          pbkdf: argon2id
           authentication: fido2
           password: "123456"
     - partition:
@@ -68,6 +69,7 @@
         encryption:
           type: LUKS2
           name: "/dev/mapper/cr_swap"
+          pbkdf: argon2id
           authentication: fido2
           password: "123456"
     - free:
