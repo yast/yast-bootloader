@@ -185,7 +185,7 @@ module Yast
 
         add_new_problem(format(_("This bootloader cannot handle authentication " \
                                  "%{name} for device %{device}."),
-                               name: d.authentication.value, device: d.blk_device.name)) 
+          name: d.authentication.value, device: d.blk_device.name))
         ret = false
       end
       ret
