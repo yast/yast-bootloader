@@ -24,7 +24,7 @@ describe Bootloader::Bls do
   describe "#write_menu_timeout" do
     it "calls sdbootutil set-timeout" do
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "set-timeout",
+        .with("/usr/bin/sdbootutil", "set-timeout", "--",
           10)
       subject.write_menu_timeout(10)
     end
