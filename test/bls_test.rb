@@ -61,18 +61,18 @@ describe Bootloader::Bls do
       devicegraph_stub("fido2-encryption.yaml")
 
       expect(Yast::Execute).to receive(:on_target!)
-                                 .with("keyctl", "padd", "user", "cryptenroll", "@u",
-                                       anything).twice
+        .with("keyctl", "padd", "user", "cryptenroll", "@u",
+          anything).twice
       expect(Yast::Execute).to_not receive(:on_target!)
-                                 .with("keyctl", "padd", "user", "sdbootutil", "@u",
-                                       anything)
+        .with("keyctl", "padd", "user", "sdbootutil", "@u",
+          anything)
       expect(Yast::Execute).to receive(:on_target!)
-          .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda2")
+        .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda2")
       expect(Yast::Execute).to receive(:on_target!)
-          .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda3")
+        .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda3")
       expect(Yast::Execute).to receive(:on_target!)
-          .with("/usr/bin/dbus-uuidgen",
-            "--ensure=/etc/machine-id")
+        .with("/usr/bin/dbus-uuidgen",
+          "--ensure=/etc/machine-id")
 
       subject.set_authentication
     end
