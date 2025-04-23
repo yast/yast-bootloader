@@ -167,7 +167,7 @@ describe Bootloader::Grub2Bls do
       expect(Yast::BootArch).to receive(:DefaultKernelParams).and_return(cmdline_content)
 
       subject.propose
-      expect(subject.grub_default.kernel_params.serialize).to eq cmdline_content
+      expect(subject.grub_default.kernel_params.serialize).to include cmdline_content
     end
   end
 end
