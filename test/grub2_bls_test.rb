@@ -77,6 +77,7 @@ describe Bootloader::Grub2Bls do
 
       # install bootloader
       expect(Bootloader::Bls).to receive(:install_bootloader)
+      expect(Bootloader::Bls).to receive(:set_authentication)
 
       # create menu entries
       expect(Bootloader::Bls).to receive(:create_menu_entries)
