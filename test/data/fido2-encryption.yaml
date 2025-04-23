@@ -53,7 +53,7 @@
               path: "@/var"
               nocow: true
         encryption:
-          type: LUKS2
+          type: systemd_fde
           name: "/dev/mapper/cr_root"
           pbkdf: argon2id
           authentication: fido2
@@ -67,7 +67,7 @@
         file_system: swap
         mount_point: swap
         encryption:
-          type: LUKS2
+          type: systemd_fde
           name: "/dev/mapper/cr_swap"
           pbkdf: argon2id
           authentication: fido2
