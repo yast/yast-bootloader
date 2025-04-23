@@ -33,7 +33,7 @@ module Bootloader
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
-      entry = @data.find { |d| d["title"] == data }
+      entry = @data.find { |d| d["title"] == value }
       if entry
         @default = entry["id"]
         log.info "set new default to '#{value.inspect}' --> '#{@default}'"
