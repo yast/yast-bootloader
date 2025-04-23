@@ -11,7 +11,7 @@ describe Bootloader::Grub2Bls do
   end
 
   let(:destdir) { File.expand_path("data/", __dir__) }
-  let(:cmdline_content) { "splash=silent quiet security=apparmor mitigations=off" }
+  let(:cmdline_content) { "stefan splash=silent quiet security=apparmor mitigations=off" }
 
   before do
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
