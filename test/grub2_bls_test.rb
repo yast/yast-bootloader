@@ -36,7 +36,7 @@ describe Bootloader::Grub2Bls do
       subject.read
 
       expect(subject.cpu_mitigations.to_human_string).to eq "Off"
-      expect(subject.grub_default.kernel_params.serialize).to include cmdline_content
+      expect(subject.grub_default.kernel_params.serialize).to end_with cmdline_content
     end
   end
 
@@ -101,7 +101,7 @@ describe Bootloader::Grub2Bls do
       # Checking written kernel parameters
       subject.read
       expect(subject.cpu_mitigations.to_human_string).to eq "Off"
-      expect(subject.grub_default.kernel_params.serialize).to include cmdline_content
+      expect(subject.grub_default.kernel_params.serialize).to end_with cmdline_content
     end
 
     it "saves menu timeout" do
@@ -167,7 +167,7 @@ describe Bootloader::Grub2Bls do
       expect(Yast::BootArch).to receive(:DefaultKernelParams).and_return(cmdline_content)
 
       subject.propose
-      expect(subject.grub_default.kernel_params.serialize).to include cmdline_content
+      expect(subject.grub_default.kernel_params.serialize).to end_with cmdline_content
     end
   end
 end
