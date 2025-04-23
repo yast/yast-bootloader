@@ -126,8 +126,9 @@ module Bootloader
             format(_(
               "Please ensure that a FIDO2 Key is connected to your system in order to " \
               "enroll the authentication for device %{device}.\n" \
-              "You will be asked to push the FIDO2 key button twice for transfering the information."
-                   ), device: d.blk_device.name)
+              "You will be asked to push the FIDO2 key button twice for " \
+              "transfering the information."
+            ), device: d.blk_device.name)
           )
         end
         begin
@@ -171,7 +172,7 @@ module Bootloader
       begin
         Yast::Execute.on_target!("keyctl", "padd", "user", kind, "@u",
           recorder: Yast::ReducedRecorder.new(skip: :stdin),
-          stdin: pwd)
+          stdin:    pwd)
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
