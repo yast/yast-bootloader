@@ -25,25 +25,21 @@ module Bootloader
     def default
       return unless @data
 
-      entry = @data.select { |d| d["id"] == @default }
-      if entry.empty?
-        ""
-      else
-        entry.first["title"]
-      end
+      entry = @data.find { |d| d["id"] == @default }
+      entry ? entry["title"] : ""
     end
 
     # Sets default section internally.
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
-      entry = @data.select { |d| d["title"] == value }
-      if entry.empty?
+      entry = @data.find { |d| d["id"] == @default }
+      if entry
+        @default = entry["id"]
+        log.info "set new default to '#{value.inspect}' --> '#{@default}'"
+      else
         log.warn "Invalid value '#{value}'"
         @default = ""
-      else
-        @default = entry.first["id"]
-        log.info "set new default to '#{value.inspect}' --> '#{@default}'"
       end
     end
 
