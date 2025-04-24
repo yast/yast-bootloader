@@ -132,7 +132,7 @@ module Bootloader
           )
         end
         begin
-          Yast::Execute.on_target!("/usr/bin/sdbootutil",
+          Yast::Execute.on_target!(SDBOOTUTIL,
             "enroll", "--method=#{d.authentication.value}",
             "--devices=#{d.blk_device.name}")
         rescue Cheetah::ExecutionFailed => e
