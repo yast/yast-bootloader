@@ -135,6 +135,11 @@ module Bootloader
           return prefered_bootloader
         end
 
+        devicegraph = Y2Storage::StorageManager.instance.staging
+        if bls_installable? && devicegraph.encryptions&.any? { |e| e.method.id == :systemd_fde }
+          return "grub2-bls" # systemd_fde encryption prefers grub2-bls bootloader
+        end
+
         if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
           return prefered_bootloader
         end

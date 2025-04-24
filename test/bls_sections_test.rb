@@ -15,10 +15,10 @@ describe Bootloader::BlsSections do
       .and_return("openSUSE")
     allow(Yast::Execute).to receive(:on_target)
       .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
-      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true }," \
-                  "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"isDefault\" : false}]")
+      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"id\" : \"openSUSE.conf\", \"isDefault\" : true }," \
+                  "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"id\" : \"Snapper.conf\", \"isDefault\" : false}]")
     allow(Bootloader::Bls).to receive(:default_menu)
-      .and_return("openSUSE Tumbleweed")
+      .and_return("openSUSE.conf")
 
     subject.read
   end
@@ -49,7 +49,7 @@ describe Bootloader::BlsSections do
     it "writes default value if set" do
       subject.default = "Snapper: *openSUSE Tumbleweed 20241107"
       expect(Bootloader::Bls).to receive(:write_default_menu)
-        .with(subject.default)
+        .with("Snapper.conf")
 
       subject.write
     end
