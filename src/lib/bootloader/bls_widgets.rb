@@ -48,9 +48,10 @@ module Bootloader
       def init
         current_bl = ::Bootloader::BootloaderFactory.current
         if current_bl.respond_to?(:menu_timeout)
-          Yast::UI.ChangeWidget(Id(:cont_boot), :Value, current_bl.menu_timeout >= 0)          
+          menu_timeout = current_bl.menu_timeout
+          Yast::UI.ChangeWidget(Id(:cont_boot), :Value, menu_timeout >= 0)          
           Yast::UI.ChangeWidget(Id(:seconds), :Value,
-                                menu_timeout < 0 ? default_value : current_bl.menu_timeout)
+                                menu_timeout < 0 ? default_value : menu_timeout)
         else
           log.error("Bootloader #{current_bl} does not support menu_timeout")
           disable
