@@ -48,7 +48,7 @@ module Bootloader
       def init
         current_bl = ::Bootloader::BootloaderFactory.current
         if current_bl.respond_to?(:menu_timeout)
-          Yast::UI.ChangeWidget(Id(:cont_boot), :Value, systemdboot.menu_timeout >= 0)          
+          Yast::UI.ChangeWidget(Id(:cont_boot), :Value, current_bl.menu_timeout >= 0)          
           Yast::UI.ChangeWidget(Id(:seconds), :Value,
                                 menu_timeout < 0 ? default_value : current_bl.menu_timeout)
         else
