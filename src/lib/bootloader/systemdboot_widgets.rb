@@ -140,7 +140,7 @@ module Bootloader
           VSpacing(2),
           HBox(
             HSpacing(1),
-            BlsWidget::TimeoutWidget.new,
+            ::Bootloader::BlsWidget::TimeoutWidget.new,
             HSpacing(1)
           ),
           VStretch()
