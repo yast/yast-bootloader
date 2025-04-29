@@ -156,6 +156,14 @@ module Bootloader
         bootloader_name != "grub2-bls"
       end
 
+      # Using bls timeout settings
+      #
+      # param bootloader_name [String] bootloader name
+      # @return [Boolean] true if supported
+      def bls_timeout_supported?(bootloader_name)
+        bootloader_name == "grub2-bls"
+      end
+
       # Check if setting password is supported
       #
       # param bootloader_name [String] bootloader name

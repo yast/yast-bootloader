@@ -1063,11 +1063,16 @@ module Bootloader
       end
 
       def contents
+        timeout_widget = if bls_timeout_supported?
+          ::Bootloader::BlsWidget::TimeoutWidget.new
+        else
+          TimeoutWidget.new(hidden_menu_widget)
+        end
         VBox(
           VSpacing(2),
           HBox(
             HSpacing(1),
-            TimeoutWidget.new(hidden_menu_widget),
+            timeout_widget,
             HSpacing(1),
             VBox(
               os_prober_widget,
