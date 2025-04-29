@@ -43,13 +43,14 @@ module Bootloader
     def write
       return if @default.empty?
 
-      Bls.write_default_menu(@default)
+      Bls.write_default_menu(@data.select { |d| d["title"] == @default }["id"])
     end
 
     def read
       @data = read_entries
       @all = @data.map { |e| e["title"] }
-      @default = Bls.default_menu
+      file = Bls.default_menu
+      @default = @data.select { |d| d["id"] == file }["title"]
     end
 
   private
