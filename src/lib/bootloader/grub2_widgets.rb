@@ -1063,7 +1063,7 @@ module Bootloader
       end
 
       def contents
-        timeout_widget = if bls_timeout_supported?(grub2.name)
+        timeout_widget = if Systeminfo.bls_timeout_supported?(grub2.name)
           ::Bootloader::BlsWidget::TimeoutWidget.new
         else
           TimeoutWidget.new(hidden_menu_widget)
