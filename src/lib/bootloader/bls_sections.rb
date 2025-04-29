@@ -49,7 +49,7 @@ module Bootloader
     def read
       @data = read_entries
       @all = @data.map { |e| e["title"] }
-      file = Bls.default_menu
+      file = Bls.default_menu.strip
       @default = @data.find { |d| d["id"] == file }["title"]
     end
 
