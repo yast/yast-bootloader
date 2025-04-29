@@ -21,9 +21,9 @@ module Bootloader
 
     CMDLINE = "/etc/kernel/cmdline"
 
-    # @!attribute menu_timeout
+    # @!attribute timeout
     #   @return [Integer] menu timeout
-    attr_accessor :menu_timeout
+    attr_accessor :timeout
 
     # @!attribute secure_boot
     #   @return [Boolean] current secure boot setting
@@ -50,7 +50,7 @@ module Bootloader
 
     # rubocop:disable Metrics/AbcSize
     def merge(other)
-      log.info "merging: timeout: #{menu_timeout}=>#{other.menu_timeout}"
+      log.info "merging: timeout: #{timeout}=>#{other.timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
@@ -58,7 +58,7 @@ module Bootloader
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
       super
-      self.menu_timeout = other.menu_timeout unless other.menu_timeout.nil?
+      self.timeout = other.timeout unless other.timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
       self.pmbr_action = other.pmbr_action if other.pmbr_action
 
@@ -78,7 +78,7 @@ module Bootloader
       # explicitly set mitigations means overwrite of our
       self.cpu_mitigations = other.cpu_mitigations if other.explicit_cpu_mitigations
 
-      log.info "merging result: timeout: #{menu_timeout}"
+      log.info "merging result: timeout: #{timeout}"
       log.info "                secure_boot: #{secure_boot}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
@@ -103,7 +103,7 @@ module Bootloader
     def read
       super
 
-      self.menu_timeout = Bls.menu_timeout
+      self.timeout = Bls.menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
 
       lines = ""
@@ -123,7 +123,7 @@ module Bootloader
       Bls.install_bootloader if Yast::Stage.initial # while new installation only (currently)
       write_kernel_parameter
       Bls.create_menu_entries
-      Bls.write_menu_timeout(menu_timeout)
+      Bls.write_menu_timeout(timeout)
       Pmbr.write_efi(pmbr_action)
 
       true
@@ -136,7 +136,7 @@ module Bootloader
         kernel_line = Yast::BootArch.DefaultKernelParams(Yast::BootStorage.propose_resume)
         @kernel_container.kernel_params.replace(kernel_line)
       end
-      self.menu_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+      self.timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
       self.secure_boot = Systeminfo.secure_boot_supported?
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove
