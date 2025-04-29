@@ -105,6 +105,43 @@ module Bootloader
     end
   end
 
+  # represent choosing default section to boot
+  class DefaultSectionWidget < CWM::ComboBox
+    include Grub2Helper
+
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("&Default Boot Section")
+    end
+
+    def help
+      _(
+        "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
+        " If sections are not generated yet ( e.g. during installation) \n" \
+        "then the box is empty and the default is picked by grub2 itself.</p>\n"
+      )
+    end
+
+    def init
+      self.value = Bootloader::BootloaderFactory.current.sections.default
+    end
+
+    def items
+      Bootloader::BootloaderFactory.current.sections.all.map do |section|
+        [section, section]
+      end
+    end
+
+    def store
+      Bootloader::BootloaderFactory.current.sections.default = value
+    end
+  end
+
   # Represents decision if smt is enabled
   class CpuMitigationsWidget < CWM::ComboBox
     def initialize

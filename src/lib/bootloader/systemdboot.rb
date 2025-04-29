@@ -5,6 +5,7 @@ require "yast"
 require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
 require "bootloader/bls"
+require "bootloader/bls_sections"
 require "cfa/grub2/default"
 
 Yast.import "Report"
@@ -29,6 +30,8 @@ module Bootloader
     #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
 
+    attr_reader :sections
+
     # @!attribute pmbr_action
     #   @return [:remove, :add, :nothing]
     attr_accessor :pmbr_action
@@ -42,6 +45,7 @@ module Bootloader
       @kernel_container = ::CFA::Grub2::Default.new
       @explicit_cpu_mitigations = false
       @pmbr_action = :nothing
+      @sections = ::Bootloader::BlsSections.new
     end
 
     def kernel_params
@@ -57,6 +61,8 @@ module Bootloader
       log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
+      log.info "         default menu: #{@sections.default}=>" \
+               "#{other.sections.default}"
       super
       self.timeout = other.timeout unless other.timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
@@ -78,11 +84,14 @@ module Bootloader
       # explicitly set mitigations means overwrite of our
       self.cpu_mitigations = other.cpu_mitigations if other.explicit_cpu_mitigations
 
+      @sections.default = other.sections.default if other.sections.default
+
       log.info "merging result: timeout: #{timeout}"
       log.info "                secure_boot: #{secure_boot}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
+      log.info "                default menu: #{@sections.default}"
     end
     # rubocop:enable Metrics/AbcSize
 
@@ -103,6 +112,7 @@ module Bootloader
     def read
       super
 
+      @sections.read
       self.timeout = Bls.menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
 
@@ -124,6 +134,7 @@ module Bootloader
       write_kernel_parameter
       Bls.create_menu_entries
       Bls.write_menu_timeout(timeout)
+      @sections.write
       Pmbr.write_efi(pmbr_action)
 
       true

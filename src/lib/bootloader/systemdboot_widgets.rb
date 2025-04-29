@@ -143,6 +143,8 @@ module Bootloader
             ::Bootloader::BlsWidget::TimeoutWidget.new,
             HSpacing(1)
           ),
+          VSpacing(1),
+          MarginBox(1, 1, MinWidth(1, DefaultSectionWidget.new)),
           VStretch()
         )
       end

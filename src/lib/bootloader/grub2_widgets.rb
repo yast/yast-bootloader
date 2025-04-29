@@ -35,10 +35,6 @@ module Bootloader
         BootloaderFactory.current.password
       end
 
-      def sections
-        BootloaderFactory.current.sections
-      end
-
       def grub2
         BootloaderFactory.current
       end
@@ -685,43 +681,6 @@ module Bootloader
             HStretch()
           )
         )
-      end
-    end
-
-    # represent choosing default section to boot
-    class DefaultSectionWidget < CWM::ComboBox
-      include Grub2Helper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Default Boot Section")
-      end
-
-      def help
-        _(
-          "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
-          " If sections are not generated yet ( e.g. during installation) \n" \
-          "then the box is empty and the default is picked by grub2 itself.</p>\n"
-        )
-      end
-
-      def init
-        self.value = sections.default
-      end
-
-      def items
-        sections.all.map do |section|
-          [section, section]
-        end
-      end
-
-      def store
-        sections.default = value
       end
     end
 
