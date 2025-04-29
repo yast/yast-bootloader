@@ -10,10 +10,8 @@ Yast.import "Arch"
 
 module Bootloader
   module BlsWidget
-
     # Represents bootloader timeout value
     class TimeoutWidget < CWM::CustomWidget
-
       def initialize
         textdomain "bootloader"
 
@@ -33,7 +31,7 @@ module Bootloader
           false,
           HBox(
             IntField(Id(:seconds), _("&Timeout in Seconds"), @minimum, @maximum,
-                     default_value),
+              default_value),
             HStretch()
           )
         )
@@ -49,20 +47,26 @@ module Bootloader
         current_bl = ::Bootloader::BootloaderFactory.current
         if current_bl.respond_to?(:timeout)
           timeout = current_bl.timeout
-          Yast::UI.ChangeWidget(Id(:cont_boot), :Value, timeout >= 0)          
-          Yast::UI.ChangeWidget(Id(:seconds), :Value,
-                                timeout < 0 ? default_value : timeout)
+        elsif current_bl.respond_to?(:grub_default) && current_bl.grub_default.respond_to?(:timeout)
+          timeout = current_bl.grub_default.timeout
         else
           log.error("Bootloader #{current_bl} does not support timeout")
           disable
+          return
         end
+        Yast::UI.ChangeWidget(Id(:cont_boot), :Value, timeout >= 0)
+        Yast::UI.ChangeWidget(Id(:seconds), :Value,
+          timeout < 0 ? default_value : timeout)
       end
 
       def store
         current_bl = ::Bootloader::BootloaderFactory.current
+        cont_boot = Yast::UI.QueryWidget(Id(:cont_boot), :Value)
+        value = cont_boot ? Yast::UI.QueryWidget(Id(:seconds), :Value) : -1
         if current_bl.respond_to?(:timeout)
-          cont_boot = Yast::UI.QueryWidget(Id(:cont_boot), :Value)
-          current_bl.timeout = cont_boot ? Yast::UI.QueryWidget(Id(:seconds), :Value) : -1
+          current_bl.timeout = value
+        elsif current_bl.respond_to?(:grub_default) && current_bl.grub_default.respond_to?(:timeout)
+          current_bl.grub_default.timeout = value
         else
           log.error("Bootloader #{current_bl} does not support timeout")
         end
