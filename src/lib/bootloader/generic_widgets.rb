@@ -107,8 +107,6 @@ module Bootloader
 
   # represent choosing default section to boot
   class DefaultSectionWidget < CWM::ComboBox
-    include Grub2Helper
-
     def initialize
       textdomain "bootloader"
 
