@@ -49,7 +49,7 @@ module Bootloader
 
     def read
       @data = read_entries
-      @all = @data.map { |e| e["title"] }
+      @all = @data.map { |e| e["title"] if e["type"] == "type1" }.compact
       file = Bls.default_menu.strip
       set = @data.find { |d| d["id"] == file }
       set ||= @data.first
