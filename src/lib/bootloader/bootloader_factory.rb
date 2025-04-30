@@ -128,15 +128,15 @@ module Bootloader
       end
 
       def proposed_name
-        prefered_bootloader = Yast::ProductFeatures.GetStringFeature("globals",
-          "prefered_bootloader")
-        if supported_names.include?(prefered_bootloader) &&
-            !["grub2-efi", "systemd-boot", "grub2-bls"].include?(prefered_bootloader)
-          return prefered_bootloader
+        preferred_bootloader = Yast::ProductFeatures.GetStringFeature("globals",
+          "preferred_bootloader")
+        if supported_names.include?(preferred_bootloader) &&
+            !["grub2-efi", "systemd-boot", "grub2-bls"].include?(preferred_bootloader)
+          return preferred_bootloader
         end
 
-        if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
-          return prefered_bootloader
+        if ["systemd-boot", "grub2-bls"].include?(preferred_bootloader) && bls_installable?
+          return preferred_bootloader
         end
 
         return "grub2-efi" if grub2_efi_installable?
