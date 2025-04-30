@@ -18,38 +18,6 @@ module Bootloader
       end
     end
 
-    # Represents switcher for secure boot on EFI
-    class SecureBootWidget < CWM::CheckBox
-      include SystemdBootHelper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Secure Boot Support")
-      end
-
-      def help
-        _(
-          "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
-          "This does not turn on secure booting. " \
-          "It only sets up the boot loader in a way that supports secure booting. " \
-          "You still have to enable Secure Boot in the UEFI Firmware.</p> "
-        )
-      end
-
-      def init
-        self.value = systemdboot.secure_boot
-      end
-
-      def store
-        systemdboot.secure_boot = value
-      end
-    end
-
     # represents Tab with kernel related configuration
     class KernelTab < CWM::Tab
       def label
