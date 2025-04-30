@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Apr 30 06:25:27 UTC 2025 - Stefan Schubert <schubi@suse.de>
+
+- Fixed typo "prefered_bootloader" (jsc#PED-1906).
+- 5.0.17
+
+-------------------------------------------------------------------
 Tue Apr 22 06:50:13 UTC 2025 - Stefan Schubert <schubi@suse.de>
 
 - Calling "sdbootutil set-timeout" with the correct parameters
