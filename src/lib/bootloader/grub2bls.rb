@@ -180,18 +180,16 @@ module Bootloader
                 "mips64"      => "mips",
                 "loongarch64" => "loongarch64" }
       ret = table[arch]
-      unless ret
-        ret = if arch.start_with?("arm")
-          "arm"
-        elsif arch.start_with?("aarch64")
-          "arm64"
-        elsif arch.start_with?("riscv32")
-          "riscv32"
-        elsif arch.start_with?("riscv64")
-          "riscv64"
-        else
-          arch # fallback, but useful ?
-        end
+      ret ||= if arch.start_with?("arm")
+        "arm"
+      elsif arch.start_with?("aarch64")
+        "arm64"
+      elsif arch.start_with?("riscv32")
+        "riscv32"
+      elsif arch.start_with?("riscv64")
+        "riscv64"
+      else
+        arch # fallback, but useful ?
       end
       ret
     end
