@@ -677,42 +677,6 @@ describe Bootloader::Grub2Widget::ConsoleWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::DefaultSectionWidget do
-  before do
-    sections = [
-      { title: "openSUSE", path: "openSUSE" },
-      { title: "windows", path: "windows" }
-    ]
-    grub_cfg = double(boot_entries: sections)
-    assign_bootloader
-    sections = Bootloader::Sections.new(grub_cfg)
-    # fake section list
-    allow(bootloader).to receive(:sections).and_return(sections)
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to current default section" do
-    bootloader.sections.default = "openSUSE"
-    expect(subject).to receive(:value=).with("openSUSE")
-
-    subject.init
-  end
-
-  it "stores default section" do
-    expect(subject).to receive(:value).and_return("openSUSE")
-    subject.store
-
-    expect(bootloader.sections.default).to eq "openSUSE"
-  end
-
-  it "enlists all available sections" do
-    sections = [["openSUSE", "openSUSE"], ["windows", "windows"]]
-
-    expect(subject.items).to eq(sections)
-  end
-end
-
 describe Bootloader::Grub2Widget::LoaderLocationWidget do
   before do
     assign_bootloader

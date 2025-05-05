@@ -29,40 +29,6 @@ shared_examples "labeled widget" do
   end
 end
 
-describe Bootloader::SystemdBootWidget::TimeoutWidget do
-
-  before do
-    assign_systemd_bootloader
-  end
-
-  it_behaves_like "CWM::CustomWidget"
-
-  it "has minimal value to 0 as unlimited" do
-    expect(subject.minimum).to eq(0)
-  end
-
-  it "has maximum value to 600" do
-    expect(subject.maximum).to eq 600
-  end
-
-  it "has own complex content" do
-    expect(subject.contents).to be_a Yast::Term
-  end
-
-  context "storing content" do
-    before do
-      stub_widget_value(:cont_boot, false)
-      stub_widget_value(:seconds, 15)
-    end
-
-    it "sets timeout to -1 for using menu-force" do
-      subject.store
-
-      expect(bootloader.menu_timeout).to eq(-1)
-    end
-  end
-end
-
 describe Bootloader::SystemdBootWidget::SecureBootWidget do
   before do
     assign_systemd_bootloader
