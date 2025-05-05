@@ -238,28 +238,6 @@ describe Bootloader::KernelAppendWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::SecureBootWidget do
-  before do
-    assign_bootloader("grub2-efi")
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to secure boot flag" do
-    bootloader.secure_boot = true
-    expect(subject).to receive(:value=).with(true)
-
-    subject.init
-  end
-
-  it "stores secure boot flag flag" do
-    expect(subject).to receive(:value).and_return(true)
-    subject.store
-
-    expect(bootloader.secure_boot).to eq true
-  end
-end
-
 describe Bootloader::Grub2Widget::UpdateNvramWidget do
   before do
     assign_bootloader("grub2-efi")
