@@ -20,6 +20,8 @@ describe Bootloader::SystemdBoot do
     allow(Yast::Package).to receive(:Available).and_return(true)
     allow(Bootloader::Bls).to receive(:menu_timeout)
       .and_return(subject.timeout)
+    allow(Bootloader::Bls).to receive(:default_menu)
+      .and_return("Snapper: *openSUSE Tumbleweed 20241107")
     allow(Bootloader::Bls).to receive(:write_menu_timeout)
       .with(subject.timeout)
   end
