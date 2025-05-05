@@ -18,7 +18,7 @@ describe Bootloader::BlsSections do
       .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true," \
                   " \"type\" : \"type1\", \"id\" : \"file1.conf\" }," \
                   "{\"title\" : \"Snapper: 20241107\", \"isDefault\" : false,"\
-                  " \"type\" : \"type1\", \"id\" : \"file1.conf\"}]")
+                  " \"type\" : \"type1\", \"id\" : \"file2.conf\"}]")
     allow(Bootloader::Bls).to receive(:default_menu)
       .and_return("openSUSE Tumbleweed")
 
@@ -51,7 +51,7 @@ describe Bootloader::BlsSections do
     it "writes default value if set" do
       subject.default = "Snapper: 20241107"
       expect(Bootloader::Bls).to receive(:write_default_menu)
-        .with(subject.default)
+        .with("file2.conf")
 
       subject.write
     end
