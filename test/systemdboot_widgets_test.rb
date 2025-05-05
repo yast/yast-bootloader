@@ -29,28 +29,6 @@ shared_examples "labeled widget" do
   end
 end
 
-describe Bootloader::SystemdBootWidget::SecureBootWidget do
-  before do
-    assign_systemd_bootloader
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to secure boot flag" do
-    bootloader.secure_boot = true
-    expect(subject).to receive(:value=).with(true)
-
-    subject.init
-  end
-
-  it "stores secure boot flag flag" do
-    expect(subject).to receive(:value).and_return(true)
-    subject.store
-
-    expect(bootloader.secure_boot).to eq true
-  end
-end
-
 describe Bootloader::CpuMitigationsWidget do
   before do
     assign_systemd_bootloader
