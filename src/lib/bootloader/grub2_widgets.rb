@@ -35,10 +35,6 @@ module Bootloader
         BootloaderFactory.current.password
       end
 
-      def sections
-        BootloaderFactory.current.sections
-      end
-
       def grub2
         BootloaderFactory.current
       end
@@ -207,70 +203,6 @@ module Bootloader
 
       def store
         grub_default.os_prober.value = checked?
-      end
-    end
-
-    # Represents switcher for secure boot on EFI
-    class SecureBootWidget < CWM::CheckBox
-      include Grub2Helper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Secure Boot Support")
-      end
-
-      def help
-        if Yast::Arch.s390
-          _(
-            "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
-            "This does not turn on secure booting. " \
-            "It only switches to the new secure-boot enabled boot data format. " \
-            "Note that this new format works only on z15 or later and "\
-            "only for some disk types. " \
-            "For more details see the requirements at  " \
-            "https://www.ibm.com/docs/en/linux-on-systems?topic=introduction-requirements</p>"
-          )
-        else
-          _(
-            "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
-            "This does not turn on secure booting. " \
-            "It only sets up the boot loader in a way that supports secure booting. " \
-            "You still have to enable Secure Boot in the UEFI Firmware.</p> "
-          )
-        end
-      end
-
-      def init
-        self.value = grub2.secure_boot
-      end
-
-      def store
-        grub2.secure_boot = value
-      end
-
-      def validate
-        return true if Yast::Mode.config ||
-          !Yast::Arch.s390 ||
-          !value ||
-          value == Systeminfo.secure_boot_active?
-
-        Yast::Popup.ContinueCancel(
-          # text is identical like one in proposal client. Keep in sync!
-          # TRANSLATORS: IPL stands for Initial Program Load, IBM speak for system boot
-          _(
-            "Secure boot IPL has the following minimum system requirements,\n" \
-            "depending on the boot device to be IPLed:\n" \
-            "NVMe disk: IBM LinuxONE III or newer.\n" \
-            "FC-attached SCSI disk: IBM LinuxONE III, IBM z15 or newer.\n" \
-            "ECKD DASD with CDL layout: IBM z16, LinuxONE 4 or newer.\n" \
-            "If these requirements are not met, the system can be IPLed in non-secure mode only."
-          )
-        )
       end
     end
 
@@ -688,43 +620,6 @@ module Bootloader
       end
     end
 
-    # represent choosing default section to boot
-    class DefaultSectionWidget < CWM::ComboBox
-      include Grub2Helper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Default Boot Section")
-      end
-
-      def help
-        _(
-          "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
-          " If sections are not generated yet ( e.g. during installation) \n" \
-          "then the box is empty and the default is picked by grub2 itself.</p>\n"
-        )
-      end
-
-      def init
-        self.value = sections.default
-      end
-
-      def items
-        sections.all.map do |section|
-          [section, section]
-        end
-      end
-
-      def store
-        sections.default = value
-      end
-    end
-
     # Represents stage1 location for bootloader
     class LoaderLocationWidget < CWM::CustomWidget
       include Grub2Helper
@@ -1063,11 +958,16 @@ module Bootloader
       end
 
       def contents
+        timeout_widget = if Systeminfo.bls_timeout_supported?(grub2.name)
+          ::Bootloader::BlsWidget::TimeoutWidget.new
+        else
+          TimeoutWidget.new(hidden_menu_widget)
+        end
         VBox(
           VSpacing(2),
           HBox(
             HSpacing(1),
-            TimeoutWidget.new(hidden_menu_widget),
+            timeout_widget,
             HSpacing(1),
             VBox(
               os_prober_widget,

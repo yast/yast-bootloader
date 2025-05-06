@@ -69,7 +69,7 @@ module Bootloader
                    "Error output: %{stderr}"
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
-        output = -1
+        output = -2 # -1 will be returned from sdbootutil for menu-force
       end
       output
     end
