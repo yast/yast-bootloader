@@ -26,6 +26,7 @@ module Bootloader
     #   @return [Integer] menu timeout
     attr_accessor :timeout
     alias_method :menu_timeout, :timeout # Agama compatible
+    alias_method :menu_timeout=, :timeout= # Agama compatible
 
     # @!attribute secure_boot
     #   @return [Boolean] current secure boot setting
