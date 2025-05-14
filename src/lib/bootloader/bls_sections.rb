@@ -23,7 +23,7 @@ module Bootloader
 
     # @return [String] title of default boot section.
     def default
-      return unless @data
+      return "" unless @data
 
       entry = @data.find { |d| d["id"] == @default }
       entry ? entry["title"] : ""
@@ -33,6 +33,8 @@ module Bootloader
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
+      return unless @data
+
       entry = @data.find { |d| d["title"] == value }
       if entry
         @default = entry["id"]
