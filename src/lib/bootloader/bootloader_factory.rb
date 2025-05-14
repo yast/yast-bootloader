@@ -140,8 +140,8 @@ module Bootloader
           return "grub2-bls" # systemd_fde encryption prefers grub2-bls bootloader
         end
 
-        if ["systemd-boot", "grub2-bls"].include?(prefered_bootloader) && bls_installable?
-          return prefered_bootloader
+        if ["systemd-boot", "grub2-bls"].include?(preferred_bootloader) && bls_installable?
+          return preferred_bootloader
         end
 
         return "grub2-efi" if grub2_efi_installable?
