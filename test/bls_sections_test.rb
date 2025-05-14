@@ -15,8 +15,10 @@ describe Bootloader::BlsSections do
       .and_return("openSUSE")
     allow(Yast::Execute).to receive(:on_target)
       .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
-      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"id\" : \"openSUSE.conf\", \"isDefault\" : true }," \
-                  "{\"title\" : \"Snapper: *openSUSE Tumbleweed 20241107\", \"id\" : \"Snapper.conf\", \"isDefault\" : false}]")
+      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true," \
+                  " \"type\" : \"type1\", \"id\" : \"file1.conf\" }," \
+                  "{\"title\" : \"Snapper: 20241107\", \"isDefault\" : false,"\
+                  " \"type\" : \"type1\", \"id\" : \"file2.conf\"}]")
     allow(Bootloader::Bls).to receive(:default_menu)
       .and_return("openSUSE.conf")
 
@@ -25,7 +27,7 @@ describe Bootloader::BlsSections do
 
   describe "#read" do
     it "returns list of all available sections" do
-      expect(subject.all).to eq(["openSUSE Tumbleweed", "Snapper: *openSUSE Tumbleweed 20241107"])
+      expect(subject.all).to eq(["openSUSE Tumbleweed", "Snapper: 20241107"])
     end
 
     it "reads default menu entry" do
@@ -35,8 +37,8 @@ describe Bootloader::BlsSections do
 
   describe "#default=" do
     it "sets new value for default" do
-      subject.default = "Snapper: *openSUSE Tumbleweed 20241107"
-      expect(subject.default).to eq "Snapper: *openSUSE Tumbleweed 20241107"
+      subject.default = "Snapper: 20241107"
+      expect(subject.default).to eq "Snapper: 20241107"
     end
 
     it "sets default to empty if section do not exists" do
@@ -47,9 +49,9 @@ describe Bootloader::BlsSections do
 
   describe "#write" do
     it "writes default value if set" do
-      subject.default = "Snapper: *openSUSE Tumbleweed 20241107"
+      subject.default = "Snapper: 20241107"
       expect(Bootloader::Bls).to receive(:write_default_menu)
-        .with("Snapper.conf")
+        .with("file2.conf")
 
       subject.write
     end

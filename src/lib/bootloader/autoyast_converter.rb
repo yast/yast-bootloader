@@ -51,7 +51,7 @@ module Bootloader
             bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations)
           end
         when "systemd-boot"
-          bootloader.menu_timeout = data.global.timeout
+          bootloader.timeout = data.global.timeout
           bootloader.secure_boot = data.global.secure_boot
         else
           raise UnsupportedBootloader, bootloader.name
@@ -82,7 +82,7 @@ module Bootloader
           export_default(global, config.grub_default)
           res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         when "systemd-boot"
-          res["global"]["timeout"] = config.menu_timeout
+          res["global"]["timeout"] = config.timeout
           res["global"]["secure_boot"] = config.secure_boot
         else
           raise UnsupportedBootloader, config.name

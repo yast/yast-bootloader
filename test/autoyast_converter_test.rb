@@ -127,7 +127,7 @@ describe Bootloader::AutoyastConverter do
       section = Bootloader::AutoinstProfile::BootloaderSection.new_from_hashes(data)
       bootloader = subject.import(section)
       expect(bootloader).to be_a(Bootloader::SystemdBoot)
-      expect(bootloader.menu_timeout).to eq 30
+      expect(bootloader.timeout).to eq 30
       expect(bootloader.secure_boot).to eq true
     end
   end
@@ -194,7 +194,7 @@ describe Bootloader::AutoyastConverter do
         expect(subject.export(bootloader)["global"]["secure_boot"]).to eq true
       end
       it "exports timeout key" do
-        bootloader.menu_timeout = 20
+        bootloader.timeout = 20
         expect(subject.export(bootloader)["global"]["timeout"]).to eq 20
       end
     end

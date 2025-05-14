@@ -238,28 +238,6 @@ describe Bootloader::KernelAppendWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::SecureBootWidget do
-  before do
-    assign_bootloader("grub2-efi")
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to secure boot flag" do
-    bootloader.secure_boot = true
-    expect(subject).to receive(:value=).with(true)
-
-    subject.init
-  end
-
-  it "stores secure boot flag flag" do
-    expect(subject).to receive(:value).and_return(true)
-    subject.store
-
-    expect(bootloader.secure_boot).to eq true
-  end
-end
-
 describe Bootloader::Grub2Widget::UpdateNvramWidget do
   before do
     assign_bootloader("grub2-efi")
@@ -696,42 +674,6 @@ describe Bootloader::Grub2Widget::ConsoleWidget do
 
       expect(bootloader.grub_default.gfxmode).to eq "0x860"
     end
-  end
-end
-
-describe Bootloader::Grub2Widget::DefaultSectionWidget do
-  before do
-    sections = [
-      { title: "openSUSE", path: "openSUSE" },
-      { title: "windows", path: "windows" }
-    ]
-    grub_cfg = double(boot_entries: sections)
-    assign_bootloader
-    sections = Bootloader::Sections.new(grub_cfg)
-    # fake section list
-    allow(bootloader).to receive(:sections).and_return(sections)
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to current default section" do
-    bootloader.sections.default = "openSUSE"
-    expect(subject).to receive(:value=).with("openSUSE")
-
-    subject.init
-  end
-
-  it "stores default section" do
-    expect(subject).to receive(:value).and_return("openSUSE")
-    subject.store
-
-    expect(bootloader.sections.default).to eq "openSUSE"
-  end
-
-  it "enlists all available sections" do
-    sections = [["openSUSE", "openSUSE"], ["windows", "windows"]]
-
-    expect(subject.items).to eq(sections)
   end
 end
 

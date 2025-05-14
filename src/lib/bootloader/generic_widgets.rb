@@ -105,6 +105,103 @@ module Bootloader
     end
   end
 
+  # represent choosing default section to boot
+  class DefaultSectionWidget < CWM::ComboBox
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("&Default Boot Section")
+    end
+
+    def help
+      _(
+        "<p><b>Default Boot Section</b> selects the default section for booting.\n" \
+        " If sections are not generated yet ( e.g. during installation) \n" \
+        "then the box is empty and the default is picked by grub2 itself.</p>\n"
+      )
+    end
+
+    def init
+      self.value = Bootloader::BootloaderFactory.current.sections.default
+    end
+
+    def items
+      Bootloader::BootloaderFactory.current.sections.all.map do |section|
+        [section, section]
+      end
+    end
+
+    def store
+      Bootloader::BootloaderFactory.current.sections.default = value
+    end
+  end
+
+  # Represents switcher for secure boot on EFI
+  class SecureBootWidget < CWM::CheckBox
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("&Secure Boot Support")
+    end
+
+    def help
+      if Yast::Arch.s390
+        _(
+          "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
+          "This does not turn on secure booting. " \
+          "It only switches to the new secure-boot enabled boot data format. " \
+          "Note that this new format works only on z15 or later and "\
+          "only for some disk types. " \
+          "For more details see the requirements at  " \
+          "https://www.ibm.com/docs/en/linux-on-systems?topic=introduction-requirements</p>"
+        )
+      else
+        _(
+          "<p><b>Secure Boot Support</b> if checked enables Secure Boot support.<br>" \
+          "This does not turn on secure booting. " \
+          "It only sets up the boot loader in a way that supports secure booting. " \
+          "You still have to enable Secure Boot in the UEFI Firmware.</p> "
+        )
+      end
+    end
+
+    def init
+      self.value = Bootloader::BootloaderFactory.current.secure_boot
+    end
+
+    def store
+      Bootloader::BootloaderFactory.current.secure_boot = value
+    end
+
+    def validate
+      return true if Yast::Mode.config ||
+        !Yast::Arch.s390 ||
+        !value ||
+        value == Systeminfo.secure_boot_active?
+
+      Yast::Popup.ContinueCancel(
+        # text is identical like one in proposal client. Keep in sync!
+        # TRANSLATORS: IPL stands for Initial Program Load, IBM speak for system boot
+        _(
+          "Secure boot IPL has the following minimum system requirements,\n" \
+          "depending on the boot device to be IPLed:\n" \
+          "NVMe disk: IBM LinuxONE III or newer.\n" \
+          "FC-attached SCSI disk: IBM LinuxONE III, IBM z15 or newer.\n" \
+          "ECKD DASD with CDL layout: IBM z16, LinuxONE 4 or newer.\n" \
+          "If these requirements are not met, the system can be IPLed in non-secure mode only."
+        )
+      )
+    end
+  end
+
   # Represents decision if smt is enabled
   class CpuMitigationsWidget < CWM::ComboBox
     def initialize

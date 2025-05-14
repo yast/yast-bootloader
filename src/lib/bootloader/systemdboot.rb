@@ -5,6 +5,7 @@ require "yast"
 require "bootloader/sysconfig"
 require "bootloader/cpu_mitigations"
 require "bootloader/bls"
+require "bootloader/bls_sections"
 require "cfa/grub2/default"
 
 Yast.import "Report"
@@ -21,13 +22,17 @@ module Bootloader
 
     CMDLINE = "/etc/kernel/cmdline"
 
-    # @!attribute menu_timeout
+    # @!attribute timeout
     #   @return [Integer] menu timeout
-    attr_accessor :menu_timeout
+    attr_accessor :timeout
+    alias_method :menu_timeout, :timeout # Agama compatible
+    alias_method :menu_timeout=, :timeout= # Agama compatible
 
     # @!attribute secure_boot
     #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
+
+    attr_reader :sections
 
     # @!attribute pmbr_action
     #   @return [:remove, :add, :nothing]
@@ -42,6 +47,7 @@ module Bootloader
       @kernel_container = ::CFA::Grub2::Default.new
       @explicit_cpu_mitigations = false
       @pmbr_action = :nothing
+      @sections = ::Bootloader::BlsSections.new
     end
 
     def kernel_params
@@ -50,15 +56,17 @@ module Bootloader
 
     # rubocop:disable Metrics/AbcSize
     def merge(other)
-      log.info "merging: timeout: #{menu_timeout}=>#{other.menu_timeout}"
+      log.info "merging: timeout: #{timeout}=>#{other.timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
       log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
       log.info "         kernel_params: #{kernel_params.serialize}=>" \
                "#{other.kernel_params.serialize}"
+      log.info "         default menu: #{@sections.default}=>" \
+               "#{other.sections.default}"
       super
-      self.menu_timeout = other.menu_timeout unless other.menu_timeout.nil?
+      self.timeout = other.timeout unless other.timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
       self.pmbr_action = other.pmbr_action if other.pmbr_action
 
@@ -78,11 +86,14 @@ module Bootloader
       # explicitly set mitigations means overwrite of our
       self.cpu_mitigations = other.cpu_mitigations if other.explicit_cpu_mitigations
 
-      log.info "merging result: timeout: #{menu_timeout}"
+      @sections.default = other.sections.default if other.sections.default
+
+      log.info "merging result: timeout: #{timeout}"
       log.info "                secure_boot: #{secure_boot}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
+      log.info "                default menu: #{@sections.default}"
     end
     # rubocop:enable Metrics/AbcSize
 
@@ -103,7 +114,8 @@ module Bootloader
     def read
       super
 
-      self.menu_timeout = Bls.menu_timeout
+      @sections.read
+      self.timeout = Bls.menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
 
       lines = ""
@@ -126,7 +138,8 @@ module Bootloader
       end
       write_kernel_parameter
       Bls.create_menu_entries
-      Bls.write_menu_timeout(menu_timeout)
+      Bls.write_menu_timeout(timeout)
+      @sections.write
       Pmbr.write_efi(pmbr_action)
 
       true
@@ -139,7 +152,7 @@ module Bootloader
         kernel_line = Yast::BootArch.DefaultKernelParams(Yast::BootStorage.propose_resume)
         @kernel_container.kernel_params.replace(kernel_line)
       end
-      self.menu_timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
+      self.timeout = Yast::ProductFeatures.GetIntegerFeature("globals", "boot_timeout").to_i
       self.secure_boot = Systeminfo.secure_boot_supported?
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove

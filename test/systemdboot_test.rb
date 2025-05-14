@@ -19,9 +19,11 @@ describe Bootloader::SystemdBoot do
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     allow(Yast::Package).to receive(:Available).and_return(true)
     allow(Bootloader::Bls).to receive(:menu_timeout)
-      .and_return(subject.menu_timeout)
+      .and_return(subject.timeout)
+    allow(Bootloader::Bls).to receive(:default_menu)
+      .and_return("Snapper: *openSUSE Tumbleweed 20241107")
     allow(Bootloader::Bls).to receive(:write_menu_timeout)
-      .with(subject.menu_timeout)
+      .with(subject.timeout)
   end
 
   describe "#read" do
@@ -50,12 +52,12 @@ describe Bootloader::SystemdBoot do
       allow(Yast::Stage).to receive(:initial).and_return(true)
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
       subject.kernel_params.replace(cmdline_content)
-      subject.menu_timeout = 10
+      subject.timeout = 10
     end
 
     it "installs the bootloader" do
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
-        .with(subject.menu_timeout)
+        .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       # install bootloader
       expect(Bootloader::Bls).to receive(:install_bootloader)
@@ -67,7 +69,7 @@ describe Bootloader::SystemdBoot do
     it "setups protective mbr to real disks containing /boot/efi" do
       subject.pmbr_action = :add
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
-        .with(subject.menu_timeout)
+        .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
       allow(Bootloader::Bls).to receive(:set_authentication)
@@ -80,7 +82,7 @@ describe Bootloader::SystemdBoot do
 
     it "writes kernel cmdline" do
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
-        .with(subject.menu_timeout)
+        .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
       allow(Bootloader::Bls).to receive(:set_authentication)
@@ -94,7 +96,7 @@ describe Bootloader::SystemdBoot do
 
     it "creates menu entries" do
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
-        .with(subject.menu_timeout)
+        .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:install_bootloader)
       allow(Bootloader::Bls).to receive(:set_authentication)
 
@@ -111,7 +113,7 @@ describe Bootloader::SystemdBoot do
 
       # Saving menu timeout
       expect(Bootloader::Bls).to receive(:write_menu_timeout)
-        .with(subject.menu_timeout)
+        .with(subject.timeout)
 
       subject.write
     end
@@ -143,17 +145,17 @@ describe Bootloader::SystemdBoot do
       other_cmdline = "splash=silent quiet mitigations=auto"
       other = described_class.new
       other.secure_boot = true
-      other.menu_timeout = 12
+      other.timeout = 12
       other.kernel_params.replace(other_cmdline)
 
       subject.secure_boot = false
-      subject.menu_timeout = 10
+      subject.timeout = 10
       subject.kernel_params.replace(cmdline_content)
 
       subject.merge(other)
 
       expect(subject.secure_boot).to eq true
-      expect(subject.menu_timeout).to eq 12
+      expect(subject.timeout).to eq 12
       expect(subject.cpu_mitigations.to_human_string).to eq "Auto"
       expect(subject.kernel_params.serialize).to include "security=apparmor splash=silent quiet mitigations=auto"
     end
@@ -165,7 +167,7 @@ describe Bootloader::SystemdBoot do
         .with("globals", "boot_timeout").and_return(2)
       subject.propose
 
-      expect(subject.menu_timeout).to eq 2
+      expect(subject.timeout).to eq 2
     end
 
     it "proposes secure boot" do
