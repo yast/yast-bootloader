@@ -16,33 +16,27 @@ module Bootloader
     # or an empty array
     attr_reader :all
 
+    # @return [String] title of default boot section.
+    attr_reader :default
+
     def initialize
       @all = []
       @default = ""
-    end
-
-    # @return [String] title of default boot section.
-    def default
-      return "" unless @data
-
-      entry = @data.find { |d| d["id"] == @default }
-      entry ? entry["title"] : ""
     end
 
     # Sets default section internally.
     # @param [String] value of new boot title to boot
     # @note to write it to system use #write later
     def default=(value)
-      return unless @data
+      log.info "set new default to '#{value.inspect}'"
 
-      entry = @data.find { |d| d["title"] == value }
-      if entry
-        @default = entry["id"]
-        log.info "set new default to '#{value.inspect}' --> '#{@default}'"
-      else
-        log.warn "Invalid value '#{value}'"
-        @default = ""
+      # empty value mean no default specified
+      if !all.empty? && !all.include?(value) && !value.empty?
+        log.warn "Invalid value #{value} trying to set as default. Fallback to default"
+        value = ""
       end
+
+      @default = value
     end
 
     # writes default to system making it persistent
