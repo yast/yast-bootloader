@@ -14,6 +14,7 @@ describe Bootloader::ProposalClient do
   before do
     Bootloader::BootloaderFactory.clear_cache
 
+    allow(Y2Storage::StorageManager.instance.arch).to receive(:ram_size).and_return(4 * 1024 * 1024)
     allow(Yast::Bootloader).to receive(:Reset)
     allow(Yast::Package).to receive(:Available).and_return(true)
   end

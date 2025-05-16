@@ -8,7 +8,7 @@ describe Bootloader::Bls do
   describe "#create_menu_entries" do
     it "calls sdbootutil add-all-kernels" do
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "add-all-kernels")
+        .with("/usr/bin/sdbootutil", "add-all-kernels")
       subject.create_menu_entries
     end
   end
@@ -16,7 +16,7 @@ describe Bootloader::Bls do
   describe "#install_bootloader" do
     it "calls sdbootutil install" do
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/sdbootutil", "--verbose", "install")
+        .with("/usr/bin/sdbootutil", "install")
       subject.install_bootloader
     end
   end
@@ -56,4 +56,25 @@ describe Bootloader::Bls do
     end
   end
 
+  describe "#set_authentication" do
+    it "enrolls the Fido2/TPM2" do
+      devicegraph_stub("fido2-encryption.yaml")
+
+      expect(Yast::Execute).to receive(:on_target!)
+        .with("keyctl", "padd", "user", "cryptenroll", "@u",
+          anything).twice
+      expect(Yast::Execute).to_not receive(:on_target!)
+        .with("keyctl", "padd", "user", "sdbootutil", "@u",
+          anything)
+      expect(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda2")
+      expect(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda3")
+      expect(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/dbus-uuidgen",
+          "--ensure=/etc/machine-id")
+
+      subject.set_authentication
+    end
+  end
 end

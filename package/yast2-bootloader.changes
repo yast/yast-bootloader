@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed May 14 14:30:17 UTC 2025 - Stefan Schubert <schubi@suse.de>
+
+- Selecting grub2-bls bootloader if a TPM2/FIDO2 device is used for
+  checking encryptions (jsc#PED-10703).
+- 5.0.19
+
+-------------------------------------------------------------------
 Tue May  6 07:33:02 UTC 2025 - Stefan Schubert <schubi@suse.de>
 
 - Fixed following bugs:

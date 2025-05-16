@@ -52,6 +52,8 @@ module Yast
         supported = GRUB2EFI() && supported
       when "systemd-boot"
         supported = SYSTEMDBOOT() && supported
+      when "grub2-bls"
+        supported = GRUB2BLS() && supported
       end
 
       log.info "Configuration supported: #{supported}"
@@ -174,23 +176,44 @@ module Yast
       false
     end
 
+    def check_fido2_tpm2
+      ret = true
+      devicegraph = Y2Storage::StorageManager.instance.staging
+      devicegraph.encryptions&.each do |d|
+        next unless d.method.id == :systemd_fde
+        next if d.authentication.value == "password"
+
+        add_new_problem(format(_("This bootloader cannot handle authentication " \
+                                 "%{name} for device %{device}."),
+          name: d.authentication.value, device: d.blk_device.name))
+        ret = false
+      end
+      ret
+    end
+
     # GRUB2-related check
     def GRUB2
       ret = []
       ret << check_gpt_reserved_partition if Arch.x86_64
       ret << check_activate_partition if Arch.x86_64 || Arch.ppc64
       ret << check_mbr if Arch.x86_64
+      ret << check_fido2_tpm2
 
       ret.all?
     end
 
     # GRUB2EFI-related check
     def GRUB2EFI
-      true
+      check_fido2_tpm2
     end
 
     # systemd-boot-related check
     def SYSTEMDBOOT
+      true
+    end
+
+    # grub2-bls-related check
+    def GRUB2BLS
       true
     end
 

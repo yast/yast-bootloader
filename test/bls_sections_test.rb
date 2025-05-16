@@ -20,7 +20,7 @@ describe Bootloader::BlsSections do
                   "{\"title\" : \"Snapper: 20241107\", \"isDefault\" : false,"\
                   " \"type\" : \"type1\", \"id\" : \"file2.conf\"}]")
     allow(Bootloader::Bls).to receive(:default_menu)
-      .and_return("openSUSE Tumbleweed")
+      .and_return("openSUSE.conf")
 
     subject.read
   end

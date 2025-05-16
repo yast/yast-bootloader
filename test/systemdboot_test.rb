@@ -61,6 +61,7 @@ describe Bootloader::SystemdBoot do
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       # install bootloader
       expect(Bootloader::Bls).to receive(:install_bootloader)
+      expect(Bootloader::Bls).to receive(:set_authentication)
 
       subject.write
     end
@@ -71,6 +72,7 @@ describe Bootloader::SystemdBoot do
         .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:set_authentication)
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
 
       expect(Yast::Execute).to receive(:locally)
@@ -83,6 +85,7 @@ describe Bootloader::SystemdBoot do
         .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:set_authentication)
 
       subject.write
       # Checking written kernel parameters
@@ -95,6 +98,7 @@ describe Bootloader::SystemdBoot do
       allow(Bootloader::Bls).to receive(:write_menu_timeout)
         .with(subject.timeout)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:set_authentication)
 
       # create menu entries
       expect(Bootloader::Bls).to receive(:create_menu_entries)
@@ -105,6 +109,7 @@ describe Bootloader::SystemdBoot do
     it "saves menu timeout" do
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:set_authentication)
 
       # Saving menu timeout
       expect(Bootloader::Bls).to receive(:write_menu_timeout)
