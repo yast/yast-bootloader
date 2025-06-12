@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jun 12 11:56:30 UTC 2025 - Stefan Schubert <schubi@suse.de>
+
+- grub2-bls/systemdboot: Writing kernel parameters before installing
+  the bootloader (bsc#1244399)
+- 5.0.20
+
+-------------------------------------------------------------------
 Wed May 14 14:30:17 UTC 2025 - Stefan Schubert <schubi@suse.de>
 
 - Selecting grub2-bls bootloader if a TPM2/FIDO2 device is used for
