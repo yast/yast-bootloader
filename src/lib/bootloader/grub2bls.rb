@@ -107,6 +107,11 @@ module Bootloader
 
     # writes configuration to target disk
     def write(*)
+      # writing kernel parameter to /etc/kernel/cmdline
+      File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
+        fw.puts(grub_default.kernel_params.serialize)
+      end
+
       if Yast::Stage.initial # while new installation only
         Bls.install_bootloader
         Bls.create_menu_entries
@@ -114,11 +119,6 @@ module Bootloader
       end
       @sections.write
       Bls.write_menu_timeout(grub_default.timeout)
-
-      # writing kernel parameter to /etc/kernel/cmdline
-      File.open(File.join(Yast::Installation.destdir, CMDLINE), "w+") do |fw|
-        fw.puts(grub_default.kernel_params.serialize)
-      end
 
       Pmbr.write_efi(pmbr_action)
     end
