@@ -132,11 +132,12 @@ module Bootloader
     def write(etc_only: false)
       super
       log.info("Writing settings...")
+      write_kernel_parameter
       if Yast::Stage.initial # while new installation only (currently)
         Bls.install_bootloader
         Bls.set_authentication
       end
-      write_kernel_parameter
+
       Bls.create_menu_entries
       Bls.write_menu_timeout(timeout)
       @sections.write
