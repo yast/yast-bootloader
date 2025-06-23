@@ -18,38 +18,8 @@ describe Bootloader::NoneBootloader do
   end
 
   describe "#packages" do
-    context "live-installation" do
-      before do
-        allow(Yast::Mode).to receive(:live_installation).and_return(true)
-      end
-
-      it "returns empty package list" do
-        expect(subject.packages).to eq([])
-      end
-    end
-
-    context "kexec_reboot flag is not set" do
-      before do
-        allow(Yast::Linuxrc).to receive(:InstallInf)
-          .with("kexec_reboot")
-          .and_return("0")
-      end
-
-      it "returns empty package list" do
-        expect(subject.packages).to eq([])
-      end
-    end
-
-    context "kexec_reboot flag is set" do
-      before do
-        allow(Yast::Linuxrc).to receive(:InstallInf)
-          .with("kexec_reboot")
-          .and_return("1")
-      end
-
-      it "returns list containing kexec-tools package" do
-        expect(subject.packages).to include("kexec-tools")
-      end
+    it "returns empty package list" do
+      expect(subject.packages).to eq([])
     end
   end
 end
