@@ -28,7 +28,7 @@ module Bootloader
     end
 
     def packages
-      # explicitelly empty as it is often used with network bootstrapping
+      # explicitly empty as it is often used with network bootstrapping
       # so no bootloader related packages is needed, including dracut
       []
     end
