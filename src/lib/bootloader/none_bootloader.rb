@@ -26,5 +26,11 @@ module Bootloader
     def name
       "none"
     end
+
+    def packages
+      # explicitly empty as it is often used with network bootstrapping
+      # so no bootloader related packages is needed, including dracut
+      []
+    end
   end
 end

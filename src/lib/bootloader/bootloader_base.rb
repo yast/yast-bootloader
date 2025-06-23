@@ -77,7 +77,8 @@ module Bootloader
 
     # @return [Array<String>] packages required to configure given bootloader
     def packages
-      res = []
+      # require dracut to have initrd to be able to boot
+      res = ["dracut"]
 
       # added kexec-tools fate#303395
       res << "kexec-tools" if include_kexec_tools_package?

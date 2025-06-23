@@ -42,14 +42,14 @@ describe Bootloader::BootloaderBase do
       let(:normal_mode) { true }
 
       it "tries to install required packages" do
-        expect(Yast::Package).to receive(:InstallAll).with(["kexec-tools"])
+        expect(Yast::Package).to receive(:InstallAll).with(["dracut", "kexec-tools"])
 
         subject.prepare
       end
 
       context "and the user accepts the installation" do
         before do
-          allow(Yast::Package).to receive(:InstallAll).with(["kexec-tools"]).and_return(true)
+          allow(Yast::Package).to receive(:InstallAll).with(["dracut", "kexec-tools"]).and_return(true)
         end
 
         it "returns true" do
@@ -111,8 +111,8 @@ describe Bootloader::BootloaderBase do
         allow(Yast::Mode).to receive(:live_installation).and_return(true)
       end
 
-      it "returns empty package list" do
-        expect(subject.packages).to eq([])
+      it "returns package list with dracut" do
+        expect(subject.packages).to eq(["dracut"])
       end
     end
 
@@ -123,8 +123,8 @@ describe Bootloader::BootloaderBase do
           .and_return("0")
       end
 
-      it "returns empty package list" do
-        expect(subject.packages).to eq([])
+      it "returns list with dracut" do
+        expect(subject.packages).to eq(["dracut"])
       end
     end
 
