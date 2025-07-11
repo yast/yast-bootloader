@@ -124,7 +124,7 @@ module Bootloader
       end
 
       def bls_installable?
-        ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
+        ((Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64) && Systeminfo.efi?)
       end
 
       def proposed_name
