@@ -194,11 +194,10 @@ module Bootloader
       res = super
       res << "sdbootutil" << "systemd-boot"
 
-      case Yast::Arch.architecture
-      when "x86_64"
+      if ["x86_64", "aarch64"].include?(Yast::Arch.architecture)
         res << "shim"
       else
-        log.warn "Unknown architecture #{Yast::Arch.architecture} for systemdboot"
+        log.warn "Unknown architecture #{Yast::Arch.architecture} for systemd-boot"
       end
 
       res
