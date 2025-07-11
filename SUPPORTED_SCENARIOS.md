@@ -81,7 +81,7 @@ This option requires packages based on the architecture of the system:
 
 ## systemd-boot
 If you're running a multiboot EFI system, systemd-boot can provide easier boot management and may even reduce your boot times.
-Systemd-boot will be supported on x86_64 EFI architecture only.
+Systemd-boot will be supported on x86_64/aarch64 EFI architecture only.
 
 ## none
 This option has no additional package requirement.
