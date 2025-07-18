@@ -136,11 +136,10 @@ module Bootloader
         end
 
         if bls_installable?
-          if ["systemd-boot", "grub2-bls"].include?(preferred_bootloader)
-            return preferred_bootloader
-          else
-            return "grub2-bls"
-          end
+          return preferred_bootloader if ["systemd-boot",
+                                          "grub2-bls"].include?(preferred_bootloader)
+
+          return "grub2-bls"
         end
 
         return "grub2-efi" if grub2_efi_installable?
