@@ -140,6 +140,7 @@ module Bootloader
             return preferred_bootloader
           else
             return "grub2-bls"
+          end
         end
 
         return "grub2-efi" if grub2_efi_installable?
