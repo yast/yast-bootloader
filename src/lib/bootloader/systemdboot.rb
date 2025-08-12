@@ -32,6 +32,10 @@ module Bootloader
     #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
 
+    # @!attribute update_nvram
+    #   @return [Boolean] current update nvram setting
+    attr_accessor :update_nvram
+
     attr_reader :sections
 
     # @!attribute pmbr_action
@@ -48,6 +52,7 @@ module Bootloader
       @explicit_cpu_mitigations = false
       @pmbr_action = :nothing
       @sections = ::Bootloader::BlsSections.new
+      @update_nvram = true
     end
 
     def kernel_params
@@ -58,6 +63,7 @@ module Bootloader
     def merge(other)
       log.info "merging: timeout: #{timeout}=>#{other.timeout}"
       log.info "         secure_boot: #{secure_boot}=>#{other.secure_boot}"
+      log.info "         update_nvram: #{update_nvram}=>#{other.update_nvram}"
       log.info "         mitigations: #{cpu_mitigations.to_human_string}=>" \
                "#{other.cpu_mitigations.to_human_string}"
       log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
@@ -69,6 +75,7 @@ module Bootloader
       self.timeout = other.timeout unless other.timeout.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
       self.pmbr_action = other.pmbr_action if other.pmbr_action
+      self.update_nvram = other.update_nvram unless other.update_nvram.nil?
 
       kernel_serialize = kernel_params.serialize
       # handle specially noresume as it should lead to remove all other resume
@@ -90,6 +97,7 @@ module Bootloader
 
       log.info "merging result: timeout: #{timeout}"
       log.info "                secure_boot: #{secure_boot}"
+      log.info "                update_nvram: #{update_nvram}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
@@ -117,6 +125,7 @@ module Bootloader
       @sections.read
       self.timeout = Bls.menu_timeout
       self.secure_boot = Systeminfo.secure_boot_active?
+      self.update_nvram = Systeminfo.update_nvram_active?
 
       lines = ""
       filename = File.join(Yast::Installation.destdir, CMDLINE)
@@ -157,6 +166,7 @@ module Bootloader
       self.secure_boot = Systeminfo.secure_boot_supported?
       # for UEFI always remove PMBR flag on disk (bnc#872054)
       self.pmbr_action = :remove
+      self.update_nvram = true
     end
 
     # Secure boot setting shown in summary screen.
@@ -173,6 +183,19 @@ module Bootloader
       "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
     end
 
+    # Update nvram shown in summary screen
+    #
+    # @return [String]
+    def update_nvram_summary
+      link = if update_nvram
+        "<a href=\"disable_update_nvram\">(#{_("disable")})</a>"
+      else
+        "<a href=\"enable_update_nvram\">(#{_("enable")})</a>"
+      end
+
+      "#{_("Update NVRAM:")} #{status_string(update_nvram)} #{link}"
+    end
+
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
@@ -183,6 +206,7 @@ module Bootloader
         )
       ]
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result << update_nvram_summary if Systeminfo.nvram_available?(name)
       result
     end
 
