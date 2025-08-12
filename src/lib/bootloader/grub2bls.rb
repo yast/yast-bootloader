@@ -48,6 +48,7 @@ module Bootloader
     end
 
     # reads configuration from target disk
+    # rubocop:disable Metrics/AbcSize
     def read
       @sections.read
       grub_default.timeout = Bls.menu_timeout
@@ -60,13 +61,16 @@ module Bootloader
         end
       end
       self.secure_boot = Systeminfo.secure_boot_active?
+      self.update_nvram = Systeminfo.update_nvram_active?
       grub_default.kernel_params.replace(lines)
       log.info "kernel params: #{grub_default.kernel_params}"
       log.info "bls sections:  #{@sections.all}"
       log.info "bls default:   #{@sections.default}"
       log.info "secure boot:   #{secure_boot}"
+      log.info "update nvram:   #{update_nvram}"
       @is_read = true # flag that settings has been read
     end
+    # rubocop:enable Metrics/AbcSize
 
     # @return true if configuration is already read
     def read?
