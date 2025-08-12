@@ -106,17 +106,6 @@ module Bootloader
       output.strip
     end
 
-    def ask_for_fido2_key
-      Yast::Popup.Message(
-        format(_(
-          "Please ensure that a FIDO2 Key is connected to your system in order to " \
-          "enroll the authentication for device %{device}.\n" \
-          "You will be asked to push the FIDO2 key button twice for " \
-          "transfering the information."
-        ), device: d.blk_device.name)
-      )
-    end
-
     # Enable TPM2/FIDO2 if it is required
     # rubocop:disable Metrics/AbcSize
     def self.set_authentication
@@ -192,6 +181,19 @@ module Bootloader
                  ), command: e.commands.inspect, stderr: e.stderr)
         )
       end
+    end
+
+  protected
+
+    def ask_for_fido2_key
+      Yast::Popup.Message(
+        format(_(
+          "Please ensure that a FIDO2 Key is connected to your system in order to " \
+          "enroll the authentication for device %{device}.\n" \
+          "You will be asked to push the FIDO2 key button twice for " \
+          "transfering the information."
+        ), device: d.blk_device.name)
+      )
     end
   end
 end
