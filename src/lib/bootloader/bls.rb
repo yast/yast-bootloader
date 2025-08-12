@@ -128,7 +128,7 @@ module Bootloader
         # Password used by sdbootutil as a TPM2 PIN
         export_password(d.password, "sdbootutil-pin") if d.authentication.value == "tpm2+pin"
 
-        ask_for_fido2_key if d.authentication.value == "fido2"
+        ask_for_fido2_key(d.blk_device.name) if d.authentication.value == "fido2"
         begin
           Yast::Execute.on_target!(SDBOOTUTIL,
             "enroll", "--method=#{d.authentication.value}",
@@ -183,14 +183,14 @@ module Bootloader
       end
     end
 
-    def self.ask_for_fido2_key
+    def self.ask_for_fido2_key(device_name)
       Yast::Popup.Message(
         format(_(
           "Please ensure that a FIDO2 Key is connected to your system in order to " \
           "enroll the authentication for device %{device}.\n" \
           "You will be asked to push the FIDO2 key button twice for " \
           "transfering the information."
-        ), device: d.blk_device.name)
+        ), device: device_name)
       )
     end
   end
