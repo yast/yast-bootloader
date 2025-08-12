@@ -128,7 +128,7 @@ module Bootloader
         # Password used by sdbootutil as a TPM2 PIN
         export_password(d.password, "sdbootutil-pin") if d.authentication.value == "tpm2+pin"
 
-        ask_for_fido2_key if d.authentication.value == "fido2"
+        self.ask_for_fido2_key if d.authentication.value == "fido2"
         begin
           Yast::Execute.on_target!(SDBOOTUTIL,
             "enroll", "--method=#{d.authentication.value}",
