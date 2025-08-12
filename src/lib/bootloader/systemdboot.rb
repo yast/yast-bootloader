@@ -235,7 +235,7 @@ module Bootloader
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name,
         secure_boot: secure_boot, trusted_boot: false,
-        update_nvram: false)
+        update_nvram: update_nvram)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 
