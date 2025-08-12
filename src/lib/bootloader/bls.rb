@@ -107,6 +107,7 @@ module Bootloader
     end
 
     # Enable TPM2/FIDO2 if it is required
+    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
     def self.set_authentication
       generate_machine_id
       devicegraph = Y2Storage::StorageManager.instance.staging
@@ -118,8 +119,14 @@ module Bootloader
         # encryption is enough.
         next if d.authentication.value == "password"
 
+        # Password used by systemd-cryptenroll to unlock the device (LUKS2)
         export_password(d.password, "cryptenroll")
-        export_password(d.password, "sdbootutil") if d.authentication.value == "tpm2+pin"
+        # Password used by sdbootutil as a recovery PIN
+        if d.authentication.value == "tpm2" || d.authentication.value == "tpm2+pin"
+          export_password(d.password, "sdbootutil")
+        end
+        # Password used by sdbootutil as a TPM2 PIN
+        export_password(d.password, "sdbootutil-pin") if d.authentication.value == "tpm2+pin"
 
         if d.authentication.value == "fido2"
           Yast::Popup.Message(
@@ -146,6 +153,7 @@ module Bootloader
         end
       end
     end
+    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
     def self.generate_machine_id
       Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
