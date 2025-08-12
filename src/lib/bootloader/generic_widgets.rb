@@ -107,8 +107,6 @@ module Bootloader
 
   # Represents switcher for NVRAM update
   class UpdateNvramWidget < CWM::CheckBox
-    include Grub2Helper
-
     def initialize
       textdomain "bootloader"
 
