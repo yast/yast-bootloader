@@ -86,6 +86,10 @@ module Bootloader
         Systeminfo.secure_boot_available?(systemdboot.name)
       end
 
+      def update_nvram_widget?
+        Systeminfo.nvram_available?(systemdboot.name)
+      end
+
       def pmbr_widget?
         Pmbr.available?
       end
