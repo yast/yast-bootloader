@@ -106,8 +106,19 @@ module Bootloader
       output.strip
     end
 
+    def ask_for_fido2_key
+      Yast::Popup.Message(
+        format(_(
+          "Please ensure that a FIDO2 Key is connected to your system in order to " \
+          "enroll the authentication for device %{device}.\n" \
+          "You will be asked to push the FIDO2 key button twice for " \
+          "transfering the information."
+        ), device: d.blk_device.name)
+      )
+    end
+
     # Enable TPM2/FIDO2 if it is required
-    # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+    # rubocop:disable Metrics/AbcSize
     def self.set_authentication
       generate_machine_id
       devicegraph = Y2Storage::StorageManager.instance.staging
@@ -128,16 +139,7 @@ module Bootloader
         # Password used by sdbootutil as a TPM2 PIN
         export_password(d.password, "sdbootutil-pin") if d.authentication.value == "tpm2+pin"
 
-        if d.authentication.value == "fido2"
-          Yast::Popup.Message(
-            format(_(
-              "Please ensure that a FIDO2 Key is connected to your system in order to " \
-              "enroll the authentication for device %{device}.\n" \
-              "You will be asked to push the FIDO2 key button twice for " \
-              "transfering the information."
-            ), device: d.blk_device.name)
-          )
-        end
+        ask_for_fido2_key if d.authentication.value == "fido2"
         begin
           Yast::Execute.on_target!(SDBOOTUTIL,
             "enroll", "--method=#{d.authentication.value}",
@@ -153,7 +155,7 @@ module Bootloader
         end
       end
     end
-    # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+    # rubocop:enable Metrics/AbcSize
 
     def self.generate_machine_id
       Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
