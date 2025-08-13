@@ -89,9 +89,6 @@ module Bootloader
 
       # Check if the system is expected to have nvram - ie. update_nvram_active? makes a difference
       def nvram_available?(bootloader_name = nil)
-        # not for grub2-bls
-        return false if bootloader_name == "grub2-bls"
-
         (bootloader_name ? efi_used?(bootloader_name) : efi_supported?) || Yast::Arch.ppc
       end
 

@@ -238,43 +238,6 @@ describe Bootloader::KernelAppendWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::UpdateNvramWidget do
-  before do
-    assign_bootloader("grub2-efi")
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "is initialized to update nvram flag" do
-    bootloader.update_nvram = false
-    expect(subject).to receive(:value=).with(false)
-
-    subject.init
-  end
-
-  it "stores update nvram flag" do
-    expect(subject).to receive(:value).and_return(true)
-    subject.store
-
-    expect(bootloader.update_nvram).to eq true
-  end
-
-  it "is initialized to update nvram flag" do
-    bootloader.update_nvram = true
-    expect(subject).to receive(:value=).with(true)
-
-    subject.init
-  end
-
-  it "stores update nvram flag" do
-    expect(subject).to receive(:value).and_return(false)
-    subject.store
-
-    expect(bootloader.update_nvram).to eq false
-  end
-
-end
-
 describe Bootloader::Grub2Widget::TrustedBootWidget do
   include_examples "CWM::AbstractWidget"
 end

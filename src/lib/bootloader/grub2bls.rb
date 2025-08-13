@@ -28,20 +28,6 @@ module Bootloader
       @is_proposed = false
     end
 
-    # Secure boot setting shown in summary screen.
-    # sdbootutil intialize secure boot if shim has been installed.
-    #
-    # @return [String]
-    def secure_boot_summary
-      link = if secure_boot
-        "<a href=\"disable_secure_boot\">(#{_("disable")})</a>"
-      else
-        "<a href=\"enable_secure_boot\">(#{_("enable")})</a>"
-      end
-
-      "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
-    end
-
     # Display bootloader summary
     # @return a list of summary lines
     def summary(*)
@@ -52,6 +38,7 @@ module Bootloader
         )
       ]
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
+      result << update_nvram_summary if Systeminfo.nvram_available?(name)
       result
     end
 
@@ -61,6 +48,7 @@ module Bootloader
     end
 
     # reads configuration from target disk
+    # rubocop:disable Metrics/AbcSize
     def read
       @sections.read
       grub_default.timeout = Bls.menu_timeout
@@ -73,13 +61,16 @@ module Bootloader
         end
       end
       self.secure_boot = Systeminfo.secure_boot_active?
+      self.update_nvram = Systeminfo.update_nvram_active?
       grub_default.kernel_params.replace(lines)
       log.info "kernel params: #{grub_default.kernel_params}"
       log.info "bls sections:  #{@sections.all}"
       log.info "bls default:   #{@sections.default}"
       log.info "secure boot:   #{secure_boot}"
+      log.info "update nvram:   #{update_nvram}"
       @is_read = true # flag that settings has been read
     end
+    # rubocop:enable Metrics/AbcSize
 
     # @return true if configuration is already read
     def read?
@@ -134,6 +125,7 @@ module Bootloader
                "#{other.cpu_mitigations.to_human_string}"
       log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
       log.info "         secure boot: #{other.secure_boot}"
+      log.info "         update_nvram: #{update_nvram}=>#{other.update_nvram}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
                "#{other.grub_default.kernel_params.serialize}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
@@ -143,12 +135,14 @@ module Bootloader
       merge_grub_default(other)
       merge_pmbr_action(other)
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
+      self.update_nvram = other.update_nvram unless other.update_nvram.nil?
 
       log.info "merging result: timeout: #{grub_default.timeout}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{grub_default.kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
       log.info "                secure boot: #{secure_boot}"
+      log.info "                update_nvram: #{update_nvram}"
     end
     # rubocop:enable Metrics/AbcSize
 
@@ -165,7 +159,7 @@ module Bootloader
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name,
         secure_boot: secure_boot, trusted_boot: false,
-        update_nvram: false)
+        update_nvram: update_nvram)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
 

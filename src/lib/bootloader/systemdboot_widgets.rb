@@ -66,6 +66,7 @@ module Bootloader
       def widgets
         w = []
         w << SecureBootWidget.new if secure_boot_widget?
+        w << UpdateNvramWidget.new if update_nvram_widget?
         w.map do |widget|
           MarginBox(horizontal_margin, 0, Left(widget))
         end
@@ -83,6 +84,10 @@ module Bootloader
 
       def secure_boot_widget?
         Systeminfo.secure_boot_available?(systemdboot.name)
+      end
+
+      def update_nvram_widget?
+        Systeminfo.nvram_available?(systemdboot.name)
       end
 
       def pmbr_widget?

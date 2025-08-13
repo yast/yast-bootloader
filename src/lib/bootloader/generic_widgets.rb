@@ -105,6 +105,34 @@ module Bootloader
     end
   end
 
+  # Represents switcher for NVRAM update
+  class UpdateNvramWidget < CWM::CheckBox
+    def initialize
+      textdomain "bootloader"
+
+      super
+    end
+
+    def label
+      _("Update &NVRAM Entry")
+    end
+
+    def help
+      _("<p><b>Update NVRAM Entry</b> will add nvram entry for the bootloader\n" \
+        "in the firmware.\n" \
+        "This is usually desirable unless you want to preserve specific settings\n" \
+        "or need to work around firmware issues.</p>\n")
+    end
+
+    def init
+      self.value = Bootloader::BootloaderFactory.current.update_nvram
+    end
+
+    def store
+      Bootloader::BootloaderFactory.current.update_nvram = value
+    end
+  end
+
   # represent choosing default section to boot
   class DefaultSectionWidget < CWM::ComboBox
     def initialize
