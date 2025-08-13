@@ -140,7 +140,7 @@ describe Bootloader::Grub2Bls do
   end
 
   describe "#merge" do
-    it "overwrite  mitigations and menu timeout if specified in merged one" do
+    it "overwrite mitigations, nvram handling and menu timeout if specified in merged one" do
       other_cmdline = "splash=silent quiet mitigations=auto"
       other = described_class.new
       other.grub_default.timeout = 12

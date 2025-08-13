@@ -125,6 +125,7 @@ module Bootloader
                "#{other.cpu_mitigations.to_human_string}"
       log.info "         pmbr_action: #{pmbr_action}=>#{other.pmbr_action}"
       log.info "         secure boot: #{other.secure_boot}"
+      log.info "         update_nvram: #{update_nvram}=>#{other.update_nvram}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
                "#{other.grub_default.kernel_params.serialize}"
       log.info "         grub_default.kernel_params: #{grub_default.kernel_params.serialize}=>" \
@@ -134,12 +135,14 @@ module Bootloader
       merge_grub_default(other)
       merge_pmbr_action(other)
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
+      self.update_nvram = other.update_nvram unless other.update_nvram.nil?
 
       log.info "merging result: timeout: #{grub_default.timeout}"
       log.info "                mitigations: #{cpu_mitigations.to_human_string}"
       log.info "                kernel_params: #{grub_default.kernel_params.serialize}"
       log.info "                pmbr_action: #{pmbr_action}"
       log.info "                secure boot: #{secure_boot}"
+      log.info "                update_nvram: #{update_nvram}"
     end
     # rubocop:enable Metrics/AbcSize
 
