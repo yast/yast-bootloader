@@ -24,12 +24,19 @@ describe Bootloader::Grub2Bls do
       allow(Bootloader::Bls).to receive(:menu_timeout)
         .and_return(10)
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
+      allow(Bootloader::Systeminfo).to receive(:update_nvram_active?).and_return(true)
     end
 
     it "reads menu timeout" do
       subject.read
 
       expect(subject.grub_default.timeout).to eq 10
+    end
+
+    it "reads update nvram configuration from sysconfig" do
+      subject.read
+
+      expect(subject.update_nvram).to eq true
     end
 
     it "reads entries from /etc/kernel/cmdline" do
@@ -137,13 +144,16 @@ describe Bootloader::Grub2Bls do
       other_cmdline = "splash=silent quiet mitigations=auto"
       other = described_class.new
       other.grub_default.timeout = 12
+      other.update_nvram = true
       other.grub_default.kernel_params.replace(other_cmdline)
 
       subject.grub_default.timeout = 10
       subject.grub_default.kernel_params.replace(cmdline_content)
+      subject.update_nvram = false
 
       subject.merge(other)
 
+      expect(subject.update_nvram).to eq true
       expect(subject.grub_default.timeout).to eq 12
       expect(subject.cpu_mitigations.to_human_string).to eq "Auto"
       expect(subject.grub_default.kernel_params.serialize).to include "security=apparmor splash=silent quiet mitigations=auto"
