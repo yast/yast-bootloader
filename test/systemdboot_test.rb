@@ -29,6 +29,7 @@ describe Bootloader::SystemdBoot do
   describe "#read" do
     before do
       expect(Bootloader::Systeminfo).to receive(:secure_boot_active?).and_return(true)
+      expect(Bootloader::Systeminfo).to receive(:update_nvram_active?).and_return(true)
       allow(Yast::Installation).to receive(:destdir).and_return(destdir)
     end
 
@@ -36,6 +37,12 @@ describe Bootloader::SystemdBoot do
       subject.read
 
       expect(subject.secure_boot).to eq true
+    end
+
+    it "reads update nvram configuration from sysconfig" do
+      subject.read
+
+      expect(subject.update_nvram).to eq true
     end
 
     it "reads entries from /etc/kernel/cmdline" do
@@ -147,15 +154,17 @@ describe Bootloader::SystemdBoot do
       other.secure_boot = true
       other.timeout = 12
       other.kernel_params.replace(other_cmdline)
+      other.update_nvram = true
 
       subject.secure_boot = false
       subject.timeout = 10
       subject.kernel_params.replace(cmdline_content)
-
+      subject.update_nvram = false
       subject.merge(other)
 
       expect(subject.secure_boot).to eq true
       expect(subject.timeout).to eq 12
+      expect(subject.update_nvram).to eq true
       expect(subject.cpu_mitigations.to_human_string).to eq "Auto"
       expect(subject.kernel_params.serialize).to include "security=apparmor splash=silent quiet mitigations=auto"
     end
@@ -175,6 +184,12 @@ describe Bootloader::SystemdBoot do
       subject.propose
 
       expect(subject.secure_boot).to eq true
+    end
+
+    it "proposes to update nvram" do
+      subject.propose
+
+      expect(subject.update_nvram).to eq true
     end
 
     it "proposes kernel cmdline" do
