@@ -75,7 +75,7 @@ module Bootloader
                                  "Command `%{command}`.\n" \
                                  "Error output: %{stderr}"
                                ), command: e.commands.inspect, stderr: e.stderr)
-        if Stage.initial && Mode.update
+        if Yast::Stage.initial && Mode.update
           Yast::Report.Warning(error_message)
         else
           Yast::Report.Error(error_message)
