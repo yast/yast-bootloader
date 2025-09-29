@@ -62,13 +62,16 @@ module Bootloader
       begin
         output = Yast::Execute.on_target!(SDBOOTUTIL, "get-timeout", stdout: :capture).to_i
       rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot read boot menu timeout:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
+        error_message = format(_(
+                                 "Cannot read boot menu timeout:\n" \
+                                 "Command `%{command}`.\n" \
+                                 "Error output: %{stderr}"
+                               ), command: e.commands.inspect, stderr: e.stderr)
+        if Yast::Stage.initial && Yast::Mode.update
+          Yast::Report.Warning(error_message)
+        else
+          Yast::Report.Error(error_message)
+        end
         output = -2 # -1 will be returned from sdbootutil for menu-force
       end
       output
@@ -94,13 +97,16 @@ module Bootloader
       begin
         output = Yast::Execute.on_target!(SDBOOTUTIL, "get-default", stdout: :capture)
       rescue Cheetah::ExecutionFailed => e
-        Yast::Report.Error(
-          format(_(
-                   "Cannot read default menu:\n" \
-                   "Command `%{command}`.\n" \
-                   "Error output: %{stderr}"
-                 ), command: e.commands.inspect, stderr: e.stderr)
-        )
+        error_message = format(_(
+                                 "Cannot read default menu:\n" \
+                                 "Command `%{command}`.\n" \
+                                 "Error output: %{stderr}"
+                               ), command: e.commands.inspect, stderr: e.stderr)
+        if Yast::Stage.initial && Yast::Mode.update
+          Yast::Report.Warning(error_message)
+        else
+          Yast::Report.Error(error_message)
+        end
         output = ""
       end
       output.strip
