@@ -21,6 +21,8 @@ module Bootloader
     attr_reader :default
 
     def initialize
+      textdomain "bootloader"
+
       @all = []
       @default = ""
     end
