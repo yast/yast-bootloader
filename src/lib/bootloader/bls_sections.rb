@@ -12,6 +12,7 @@ module Bootloader
   # Represents available sections and handling of default BLS boot entry
   class BlsSections
     include Yast::Logger
+    include Yast::I18n    
 
     # @return [Array<String>] list of all available boot titles
     # or an empty array
