@@ -6,6 +6,7 @@ require "yast2/execute"
 require "bootloader/bls"
 
 Yast.import "Misc"
+Yast.import "Mode"
 
 module Bootloader
   # Represents available sections and handling of default BLS boot entry
@@ -60,9 +61,22 @@ module Bootloader
 
     # @return [Array] return array of entries or []
     def read_entries
-      output = Yast::Execute.on_target(
-        "/usr/bin/bootctl", "--json=short", "list", stdout: :capture
-      )
+      begin
+        output = Yast::Execute.on_target(
+          "/usr/bin/bootctl", "--json=short", "list", stdout: :capture
+        )
+      rescue Cheetah::ExecutionFailed => e
+        error_message = format(_(
+                                 "Cannot read boot menu entry:\n" \
+                                 "Command `%{command}`.\n" \
+                                 "Error output: %{stderr}"
+                               ), command: e.commands.inspect, stderr: e.stderr)
+        if Stage.initial && Mode.update
+          Yast::Report.Warning(error_message)
+        else
+          Yast::Report.Error(error_message)
+        end
+      end
       return [] if output.nil?
 
       JSON.parse(output)
