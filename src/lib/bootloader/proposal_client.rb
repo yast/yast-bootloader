@@ -37,8 +37,8 @@ module Bootloader
           "grub2-efi"    => _("EFI boot"),
           # TRANSLATORS: kind of boot. It is term for way how can boot.
           "systemd-boot" => _("Systemd boot"),
-          # TRANSLATORS: kind of boot. It is term for way how can boot.
-          "grub2-bls"    => _("BLS boot")
+          # TRANSLATORS: grub2 adapted bootloader to conform Boot Loader Specification (BLS).
+          "grub2-bls"    => _("grub2 with BLS boot")
         }
       end
 
