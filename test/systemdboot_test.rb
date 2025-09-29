@@ -12,7 +12,7 @@ describe Bootloader::SystemdBoot do
   end
 
   let(:destdir) { File.expand_path("data/", __dir__) }
-  let(:cmdline_content) { "root=/dev/sda3 splash=silent quiet security=apparmor mitigations=off" }
+  let(:cmdline_content) { "splash=silent quiet security=apparmor mitigations=off" }
 
   before do
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
