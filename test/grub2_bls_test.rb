@@ -17,6 +17,12 @@ describe Bootloader::Grub2Bls do
     allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
     allow(Bootloader::Bls).to receive(:default_menu)
       .and_return(subject.sections.default)
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
+      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true," \
+                  " \"type\" : \"type1\", \"id\" : \"file1.conf\" }," \
+                  "{\"title\" : \"Snapper: 20241107\", \"isDefault\" : false,"\
+                  " \"type\" : \"type1\", \"id\" : \"file2.conf\"}]")
   end
 
   describe "#read" do

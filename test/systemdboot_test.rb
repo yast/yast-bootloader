@@ -12,7 +12,7 @@ describe Bootloader::SystemdBoot do
   end
 
   let(:destdir) { File.expand_path("data/", __dir__) }
-  let(:cmdline_content) { "splash=silent quiet security=apparmor mitigations=off" }
+  let(:cmdline_content) { "root=/dev/sda3 splash=silent quiet security=apparmor mitigations=off" }
 
   before do
     allow(Yast::BootStorage).to receive(:available_swap_partitions).and_return([])
@@ -24,6 +24,12 @@ describe Bootloader::SystemdBoot do
       .and_return("Snapper: *openSUSE Tumbleweed 20241107")
     allow(Bootloader::Bls).to receive(:write_menu_timeout)
       .with(subject.timeout)
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
+      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true," \
+                  " \"type\" : \"type1\", \"id\" : \"file1.conf\" }," \
+                  "{\"title\" : \"Snapper: 20241107\", \"isDefault\" : false,"\
+                  " \"type\" : \"type1\", \"id\" : \"file2.conf\"}]")
   end
 
   describe "#read" do
