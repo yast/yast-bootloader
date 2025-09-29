@@ -24,6 +24,12 @@ describe Bootloader::SystemdBoot do
       .and_return("Snapper: *openSUSE Tumbleweed 20241107")
     allow(Bootloader::Bls).to receive(:write_menu_timeout)
       .with(subject.timeout)
+    allow(Yast::Execute).to receive(:on_target!)
+      .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
+      .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true," \
+                  " \"type\" : \"type1\", \"id\" : \"file1.conf\" }," \
+                  "{\"title\" : \"Snapper: 20241107\", \"isDefault\" : false,"\
+                  " \"type\" : \"type1\", \"id\" : \"file2.conf\"}]")
   end
 
   describe "#read" do
