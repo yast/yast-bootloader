@@ -7,6 +7,7 @@ require "bootloader/bls"
 
 Yast.import "Misc"
 Yast.import "Mode"
+Yast.import "Stage"
 
 module Bootloader
   # Represents available sections and handling of default BLS boot entry
