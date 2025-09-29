@@ -38,7 +38,7 @@ module Bootloader
           # TRANSLATORS: kind of boot. It is term for way how can boot.
           "systemd-boot" => _("Systemd boot"),
           # TRANSLATORS: kind of boot. It is term for way how can boot.
-          "grub2-bls" => _("BLS boot")
+          "grub2-bls"    => _("BLS boot")
         }
       end
 
