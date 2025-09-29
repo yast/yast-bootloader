@@ -62,7 +62,7 @@ module Bootloader
     # @return [Array] return array of entries or []
     def read_entries
       begin
-        output = Yast::Execute.on_target(
+        output = Yast::Execute.on_target!(
           "/usr/bin/bootctl", "--json=short", "list", stdout: :capture
         )
       rescue Cheetah::ExecutionFailed => e
