@@ -13,7 +13,7 @@ describe Bootloader::BlsSections do
     allow(Yast::Misc).to receive(:CustomSysconfigRead)
       .with("ID_LIKE", "openSUSE", "/etc/os-release")
       .and_return("openSUSE")
-    allow(Yast::Execute).to receive(:on_target)
+    allow(Yast::Execute).to receive(:on_target!)
       .with("/usr/bin/bootctl", "--json=short", "list", stdout: :capture)
       .and_return("[{\"title\" : \"openSUSE Tumbleweed\", \"isDefault\" : true," \
                   " \"type\" : \"type1\", \"id\" : \"file1.conf\" }," \
