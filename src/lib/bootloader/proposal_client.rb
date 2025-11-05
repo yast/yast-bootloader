@@ -32,13 +32,13 @@ module Bootloader
 
         {
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
-          "grub2"        => _("Legacy BIOS boot"),
+          "grub2"        => _("Legacy BIOS boot (GRUB2)"),
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
-          "grub2-efi"    => _("EFI boot"),
+          "grub2-efi"    => _("GRUB2 for EFI boot"),
           # TRANSLATORS: kind of boot. It is term for way how can boot.
           "systemd-boot" => _("Systemd boot"),
           # TRANSLATORS: grub2 adapted bootloader to conform Boot Loader Specification (BLS).
-          "grub2-bls"    => _("grub2 with BLS boot")
+          "grub2-bls"    => _("GRUB2 with BLS boot")
         }
       end
 
@@ -51,9 +51,12 @@ module Bootloader
                  "The upgraded system uses <i>%{old_boot}</i> while the installation medium " \
                  "has been booted using <i>%{new_boot}</i>.<br><br>" \
                  "This scenario is not supported, the upgraded system may not boot " \
-                 "or the upgrade process can fail later."
+                 "or the upgrade process can fail later." \
+                 "<br>Alternatively, go to the bootloader settings (ignore the read settings " \
+                 "warnings) and select the old bootloader <i>%{old_boot2}</i> again."
                ),
-          old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader])
+          old_boot: boot_map[@old_bootloader], new_boot: boot_map[@new_bootloader],
+          old_boot2: boot_map[@old_bootloader])
       end
     end
 
