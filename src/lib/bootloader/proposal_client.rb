@@ -32,7 +32,7 @@ module Bootloader
 
         {
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
-          "grub2"        => _("Legacy BIOS boot"),
+          "grub2"        => _("Legacy BIOS boot (grub2)"),
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
           "grub2-efi"    => _("grub2 with EFI boot"),
           # TRANSLATORS: kind of boot. It is term for way how can boot.
