@@ -34,7 +34,7 @@ module Bootloader
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
           "grub2"        => _("Legacy BIOS boot"),
           # TRANSLATORS: kind of boot. It is term for way how x86_64 can boot
-          "grub2-efi"    => _("EFI boot"),
+          "grub2-efi"    => _("grub2 with EFI boot"),
           # TRANSLATORS: kind of boot. It is term for way how can boot.
           "systemd-boot" => _("Systemd boot"),
           # TRANSLATORS: grub2 adapted bootloader to conform Boot Loader Specification (BLS).
