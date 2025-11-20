@@ -17,7 +17,7 @@
 
 
 Name:           yast2-bootloader
-Version:        5.0.27
+Version:        5.0.28
 Release:        0
 Summary:        YaST2 - Bootloader Configuration
 License:        GPL-2.0-or-later
@@ -55,6 +55,8 @@ Requires:       rubygem(%rb_default_ruby_abi:cfa_grub2) >= 1.0.1
 # lenses are needed here
 Requires:       augeas-lenses
 Requires:       yast2-ruby-bindings >= 1.0.0
+# dbus-uuidgen needed by BLS
+Requires:       dbus-1-tools
 
 # only recommend syslinux, as it is not needed when generic mbr is not used (bsc#1004229)
 %ifarch %ix86 x86_64

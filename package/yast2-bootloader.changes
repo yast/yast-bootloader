@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Nov 20 10:19:58 UTC 2025 - Stefan Schubert <schubi@suse.de>
+
+- Added requirement dbus-1-tools because /usr/bin/dbus-uuidgen is
+  needed by BLS (bnc#1253724).
+- 5.0.28
+
+-------------------------------------------------------------------
 Wed Nov  5 14:22:48 UTC 2025 - Stefan Schubert <schubi@suse.de>
 
 - Upgrade: Improved error message what do if bootloader does
