@@ -110,12 +110,20 @@ module Bootloader
     private
 
       def use_systemd_boot?
+        # only these architectures are supported.
         Yast::ProductFeatures.GetBooleanFeature("globals", "enable_systemd_boot") &&
-          (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
+          (Yast::Arch.x86_64 ||
+           Yast::Arch.aarch64 ||
+           Yast::Arch.arm ||
+           Yast::Arch.riscv64)
       end
 
       def use_grub2_bls?
-        (Yast::Arch.x86_64 || Yast::Arch.aarch64) # only these architectures are supported.
+        # only these architectures are supported.
+        (Yast::Arch.x86_64 ||
+         Yast::Arch.aarch64 ||
+         Yast::Arch.arm ||
+         Yast::Arch.riscv64)
       end
 
       def grub2_efi_installable?
@@ -124,7 +132,11 @@ module Bootloader
       end
 
       def bls_installable?
-        ((Yast::Arch.x86_64 || Yast::Arch.i386 || Yast::Arch.aarch64) && Systeminfo.efi?)
+        ((Yast::Arch.x86_64 ||
+          Yast::Arch.i386 ||
+          Yast::Arch.aarch64 ||
+          Yast::Arch.arm ||
+          Yast::Arch.riscv64) && Systeminfo.efi?)
       end
 
       def proposed_name

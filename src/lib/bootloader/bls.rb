@@ -155,8 +155,7 @@ module Bootloader
     def self.generate_machine_id
       Yast::SCR.Execute(Yast::Path.new(".target.remove"), "/etc/machine-id")
       begin
-        Yast::Execute.on_target!("/usr/bin/dbus-uuidgen",
-          "--ensure=/etc/machine-id")
+        Yast::Execute.on_target!("/bin/systemd-machine-id-setup")
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(

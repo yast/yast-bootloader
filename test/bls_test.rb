@@ -71,8 +71,7 @@ describe Bootloader::Bls do
       expect(Yast::Execute).to receive(:on_target!)
         .with("/usr/bin/sdbootutil", "enroll", "--method=fido2", "--devices=/dev/vda3")
       expect(Yast::Execute).to receive(:on_target!)
-        .with("/usr/bin/dbus-uuidgen",
-          "--ensure=/etc/machine-id")
+        .with("/bin/systemd-machine-id-setup")
 
       subject.set_authentication
     end
