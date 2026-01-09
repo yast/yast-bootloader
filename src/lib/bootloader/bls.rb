@@ -159,7 +159,7 @@ module Bootloader
       rescue Cheetah::ExecutionFailed => e
         Yast::Report.Error(
           format(_(
-                   "Cannot Cannot create machine-id:\n" \
+                   "Cannot create machine-id:\n" \
                    "Command `%{command}`.\n" \
                    "Error output: %{stderr}"
                  ), command: e.commands.inspect, stderr: e.stderr)
