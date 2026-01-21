@@ -78,7 +78,6 @@ module Bootloader
     end
 
     # general functions
-
     def cpu_mitigations
       CpuMitigations.from_kernel_params(grub_default.kernel_params)
     end

@@ -69,6 +69,32 @@ describe Bootloader::OsProber do
         end
       end
 
+      context "when package availability is explicitly set" do
+        after do
+          subject.package_available = nil
+        end
+
+        it "uses the set value" do
+          subject.package_available = true
+          expect(Yast::Package).to_not receive(:Available)
+          expect(subject.available?("grub2")).to eq true
+
+          subject.package_available = false
+          expect(Yast::Package).to_not receive(:Available)
+          expect(subject.available?("grub2")).to eq false
+        end
+      end
+    end
+  end
+
+  describe "#package_available=" do
+    after do
+      subject.package_available = nil
+    end
+
+    it "sets the package availability" do
+      subject.package_available = true
+      expect(subject.package_available?).to eq true
     end
   end
 end
