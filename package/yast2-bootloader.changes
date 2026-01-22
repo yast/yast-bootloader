@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Jan 22 11:25:04 UTC 2026 - Stefan Schubert <schubi@suse.de>
+
+- Do not try to install shim if secure boot is not available
+  (bnc#1254865)
+- 5.0.31
+
+-------------------------------------------------------------------
 Wed Jan 21 08:40:53 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
 
 - Allow to set explicitly os-prober availability
