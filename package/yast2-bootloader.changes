@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Thu Jan 22 11:25:04 UTC 2026 - Stefan Schubert <schubi@suse.de>
 
-- Do not try to install shim if secure boot is not available
+- Install "shim" only if secure boot is supported
   (bnc#1254865)
 - 5.0.31
 
