@@ -151,7 +151,7 @@ module Bootloader
       res = super
       res << ("grub2-" + grub2bls_architecture + "-efi-bls")
       res << "sdbootutil"
-      res << "shim"
+      res << "shim" if Systeminfo.secure_boot_supported?
       res
     end
 
