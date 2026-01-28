@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jan 23 17:17:19 UTC 2026 - Kristijan Velkovski <me@krisfremen.com>
+
+- Fix typo in error message "Cannot create machine-id"
+  (jsc#PED-10703)
+- 5.0.32
+
+-------------------------------------------------------------------
 Thu Jan 22 11:25:04 UTC 2026 - Stefan Schubert <schubi@suse.de>
 
 - Install "shim" only if secure boot is supported
