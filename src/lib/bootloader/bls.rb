@@ -46,7 +46,7 @@ module Bootloader
     )
     end
 
-    def self.updated_bootloader
+    def self.update_bootloader
       Yast::Execute.on_target!(SDBOOTUTIL, "update-all-entries")
     rescue Cheetah::ExecutionFailed => e
       Yast::Report.Error(
