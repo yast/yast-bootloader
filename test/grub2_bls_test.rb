@@ -73,6 +73,7 @@ describe Bootloader::Grub2Bls do
         .with(subject.grub_default.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:update_bootloader)
       allow(Yast::BootStorage).to receive(:gpt_boot_disk?).and_return(true)
 
       expect(Yast::Execute).to receive(:locally)
@@ -109,6 +110,7 @@ describe Bootloader::Grub2Bls do
         .with(subject.grub_default.timeout)
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:update_bootloader)
 
       subject.write
       # Checking written kernel parameters
@@ -120,6 +122,7 @@ describe Bootloader::Grub2Bls do
     it "saves menu timeout" do
       allow(Bootloader::Bls).to receive(:create_menu_entries)
       allow(Bootloader::Bls).to receive(:install_bootloader)
+      allow(Bootloader::Bls).to receive(:update_bootloader)
       allow(Bootloader::Bls).to receive(:write_default_menu)
         .with(subject.sections.default)
       # Saving menu timeout
