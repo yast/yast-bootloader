@@ -56,7 +56,7 @@ module Bootloader
                "Error output: %{stderr}"
              ), command: e.commands.inspect, stderr: e.stderr)
     )
-    end    
+    end
 
     def self.write_menu_timeout(timeout)
       Yast::Execute.on_target!(SDBOOTUTIL, "set-timeout", "--", timeout)
