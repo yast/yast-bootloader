@@ -107,6 +107,8 @@ module Bootloader
         Bls.install_bootloader
         Bls.create_menu_entries
         Bls.set_authentication
+      else
+        Bls.update_bootloader
       end
       @sections.write
       Bls.write_menu_timeout(grub_default.timeout)

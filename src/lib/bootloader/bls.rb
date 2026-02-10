@@ -46,6 +46,18 @@ module Bootloader
     )
     end
 
+    def self.update_bootloader
+      Yast::Execute.on_target!(SDBOOTUTIL, "update-all-entries")
+    rescue Cheetah::ExecutionFailed => e
+      Yast::Report.Error(
+      format(_(
+               "Cannot update bootloader:\n" \
+               "Command `%{command}`.\n" \
+               "Error output: %{stderr}"
+             ), command: e.commands.inspect, stderr: e.stderr)
+    )
+    end
+
     def self.write_menu_timeout(timeout)
       Yast::Execute.on_target!(SDBOOTUTIL, "set-timeout", "--", timeout)
     rescue Cheetah::ExecutionFailed => e
