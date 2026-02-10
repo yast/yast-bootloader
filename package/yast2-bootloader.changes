@@ -1,8 +1,8 @@
 -------------------------------------------------------------------
 Tue Feb 10 11:53:30 UTC 2026 - Stefan Schubert <schubi@suse.de>
 
-- update BLS: Calling "sdbootutil update-all-entries" in order to set kernel
-              params in an installed system (bsc#1257819).
+- update BLS: Calling "sdbootutil update-all-entries" in order
+     to set kernel params in an installed system (bsc#1257819).
 - 5.0.33
 
 -------------------------------------------------------------------
