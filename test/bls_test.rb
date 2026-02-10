@@ -21,6 +21,14 @@ describe Bootloader::Bls do
     end
   end
 
+  describe "#update_bootloader" do
+    it "calls sdbootutil install" do
+      expect(Yast::Execute).to receive(:on_target!)
+        .with("/usr/bin/sdbootutil", "update-all-entries")
+      subject.update_bootloader
+    end
+  end
+
   describe "#write_menu_timeout" do
     it "calls sdbootutil set-timeout" do
       expect(Yast::Execute).to receive(:on_target!)
