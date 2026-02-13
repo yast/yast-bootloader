@@ -150,7 +150,7 @@ module Bootloader
         #        @boot_objects = Yast::BootStorage.boot_partitions
         #        @boot_devices = @boot_objects.map(&:name)
         #        Yast::BootStorage.boot_filesystem
-        fs = Yast::BootStorage.boot_filesystem
+#        fs = Yast::BootStorage.boot_filesystem
 
         # no boot assigned
         #      return false unless fs
@@ -158,16 +158,16 @@ module Bootloader
         # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
         #      return false if fs.type == ::Y2Storage::Filesystems::Type::XFS
 
-        parts = fs.blk_devices
+#        parts = fs.blk_devices
 
-        parts.each_with_object([]) do |part, result|
-          log.info("xxxxxx #{part.inspect} #{result.inspect})")
-        end
+#        parts.each_with_object([]) do |part, result|
+#          log.info("xxxxxx #{part.inspect} #{result.inspect})")
+#        end
 
-        staging = Y2Storage::StorageManager.instance.staging
-        staging.filesystems.each do |d|
-          log.info("yyyyy #{d.inspect} #{d.mount_path}")
-        end
+#        staging = Y2Storage::StorageManager.instance.staging
+#        staging.filesystems.each do |d|
+#          log.info("yyyyy #{d.inspect} #{d.mount_path}")
+#        end
 
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
