@@ -169,6 +169,7 @@ module Bootloader
         #          log.info("yyyyy #{d.inspect} #{d.mount_path}")
         #        end
         staging = Y2Storage::StorageManager.instance.staging
+        log.info("yyyyy #{staging.inspect}")
         Y2Storage::MountPoint.all(staging).each { |m| log.info("yyyyy #{m.inspect}") }
 
         ((Yast::Arch.x86_64 ||
