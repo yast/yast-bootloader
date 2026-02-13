@@ -150,7 +150,7 @@ module Bootloader
         #        @boot_objects = Yast::BootStorage.boot_partitions
         #        @boot_devices = @boot_objects.map(&:name)
         #        Yast::BootStorage.boot_filesystem
-#        fs = Yast::BootStorage.boot_filesystem
+        fs = Yast::BootStorage.boot_filesystem
 
         # no boot assigned
         #      return false unless fs
