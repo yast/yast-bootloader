@@ -174,6 +174,9 @@ module Bootloader
           log.info("  yyyyy #{m.path}")
           log.info("  yyyyy #{m.mount_by}")
         }
+        log.info("yyyyyyyyy #{staging.disks.inspect}")
+        log.info("yyyyyyyyy #{staging.devices.inspect}")
+        log.info("yyyyyyyyy #{staging.actiongraph.inspect}")
 
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
