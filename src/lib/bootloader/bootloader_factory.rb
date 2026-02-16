@@ -176,7 +176,9 @@ module Bootloader
         }
         log.info("yyyyyyyyy #{staging.disks.inspect}")
         log.info("yyyyyyyyy #{staging.devices.inspect}")
-        log.info("yyyyyyyyy #{staging.actiongraph.inspect}")
+        log.info("yyyyyyyyy #{staging.actiongraph.print_graph}")
+        log.info("yyyyyyyyy #{staging.actiongraph.commit_actions_as_strings}")
+        log.info("yyyyyyyyy #{staging.actiongraph.compound_actions}")
 
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
