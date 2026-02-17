@@ -215,15 +215,15 @@ module Yast
 
     # grub2-bls-related check
     def GRUB2BLS
-        staging = Y2Storage::StorageManager.instance.staging
-        disk_ana = Y2Storage::DiskAnalyzer.new(staging)
-        installed_systems = disk_ana.installed_systems()
-        if installed_systems.size > 0
-          log.info(format(_("Installed system(s) %{systems} will be kept. " \
-                           "So, grub2-bls should not be taken due disk space problems on boot partition."),
-                   systems: installed_systems.join(",")))
-          return false
-        end
+      staging = Y2Storage::StorageManager.instance.staging
+      disk_ana = Y2Storage::DiskAnalyzer.new(staging)
+      installed_systems = disk_ana.installed_systems()
+      if installed_systems.size > 0
+        add_new_problem(format(_("Installed system(s) %{systems} will be kept. " \
+                                 "So, grub2-bls should not be taken due disk space problems on boot partition."),
+                               systems: installed_systems.join(",")))
+        return false
+      end
       true
     end
 
