@@ -8,6 +8,7 @@ require "bootloader/grub2efi"
 require "bootloader/grub2bls"
 require "bootloader/systemdboot"
 require "bootloader/exceptions"
+require "y2storage/disk_analyzer"
 
 Yast.import "Arch"
 Yast.import "Mode"
@@ -174,11 +175,18 @@ module Bootloader
           log.info("  yyyyy #{m.path}")
           log.info("  yyyyy #{m.mount_by}")
         }
-        log.info("yyyyyyyyy #{staging.disks.inspect}")
+        log.info("yyyyyyyyy11 #{staging.disks.inspect}")
         log.info("yyyyyyyyy #{staging.devices.inspect}")
         log.info("yyyyyyyyy #{staging.actiongraph.print_graph}")
         log.info("yyyyyyyyy #{staging.actiongraph.commit_actions_as_strings}")
         log.info("yyyyyyyyy #{staging.actiongraph.compound_actions}")
+        d_ana = Y2Storage::DiskAnalyzer.new(staging)
+        d_ana.installed_systems().each { |d|
+          log.info("installed system: #{d}")
+        }
+        staging.disks.each { |d|
+          log.info("Checking #{d.name}")
+        }
 
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
