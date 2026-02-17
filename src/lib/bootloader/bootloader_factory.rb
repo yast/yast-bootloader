@@ -170,16 +170,16 @@ module Bootloader
         #          log.info("yyyyy #{d.inspect} #{d.mount_path}")
         #        end
         staging = Y2Storage::StorageManager.instance.staging
-        log.info("yyyyy #{staging.inspect}")
-        Y2Storage::MountPoint.all(staging).each { |m|
-          log.info("  yyyyy #{m.path}")
-          log.info("  yyyyy #{m.mount_by}")
-        }
-        log.info("yyyyyyyyy11 #{staging.disks.inspect}")
-        log.info("yyyyyyyyy #{staging.devices.inspect}")
-        log.info("yyyyyyyyy #{staging.actiongraph.print_graph}")
-        log.info("yyyyyyyyy #{staging.actiongraph.commit_actions_as_strings}")
-        log.info("yyyyyyyyy #{staging.actiongraph.compound_actions}")
+#        log.info("yyyyy #{staging.inspect}")
+#        Y2Storage::MountPoint.all(staging).each { |m|
+#          log.info("  yyyyy #{m.path}")
+#          log.info("  yyyyy #{m.mount_by}")
+#        }
+#        log.info("yyyyyyyyy11 #{staging.disks.inspect}")
+#        log.info("yyyyyyyyy #{staging.devices.inspect}")
+#        log.info("yyyyyyyyy #{staging.actiongraph.print_graph}")
+#        log.info("yyyyyyyyy #{staging.actiongraph.commit_actions_as_strings}")
+#        log.info("yyyyyyyyy #{staging.actiongraph.compound_actions}")
         d_ana = Y2Storage::DiskAnalyzer.new(staging)
         d_ana.installed_systems().each { |d|
           log.info("yyyyinstalled system: #{d.inspect}")
