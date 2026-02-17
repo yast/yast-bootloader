@@ -132,64 +132,15 @@ module Bootloader
           ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
       end
 
-      def bls_installable?
-        #      staging = Y2Storage::StorageManager.instance.staging
-        #      staging.disk_devices.each_with_index do |disk, index|
-        #        add_mapping("hd#{index}", disk.name)
-        #      end
-        #      Y2Storage::StorageManager.instance.system
-        #      devicegraph.find_by_any_name
-        #
-        #     fs = filesystems
-        # efi_partition = fs.find { |f| f.mount_path == "/boot/efi" }
-        #
-        #      disks = Yast::BootStorage.stage1_disks_for(efi_partition)
-        # set only gpt disks
-        #        disks.select! { |disk| disk.gpt? }
-        #       pmbr_setup(*disks.map(&:name), action)
-        #
-        #        @boot_objects = Yast::BootStorage.boot_partitions
-        #        @boot_devices = @boot_objects.map(&:name)
-        #        Yast::BootStorage.boot_filesystem
-        #        fs = Yast::BootStorage.boot_filesystem
-
-        # no boot assigned
-        #      return false unless fs
-        #      return false unless fs.is?(:blk_filesystem)
-        # cannot install stage one to xfs as it doesn't have reserved space (bnc#884255)
-        #      return false if fs.type == ::Y2Storage::Filesystems::Type::XFS
-
-        #        parts = fs.blk_devices
-
-        #        parts.each_with_object([]) do |part, result|
-        #          log.info("xxxxxx #{part.inspect} #{result.inspect})")
-        #        end
-
-        #        staging = Y2Storage::StorageManager.instance.staging
-        #        staging.filesystems.each do |d|
-        #          log.info("yyyyy #{d.inspect} #{d.mount_path}")
-        #        end
+      def bls_installable?(preferred_bootloader)
         staging = Y2Storage::StorageManager.instance.staging
-#        log.info("yyyyy #{staging.inspect}")
-#        Y2Storage::MountPoint.all(staging).each { |m|
-#          log.info("  yyyyy #{m.path}")
-#          log.info("  yyyyy #{m.mount_by}")
-#        }
-#        log.info("yyyyyyyyy11 #{staging.disks.inspect}")
-#        log.info("yyyyyyyyy #{staging.devices.inspect}")
-#        log.info("yyyyyyyyy #{staging.actiongraph.print_graph}")
-#        log.info("yyyyyyyyy #{staging.actiongraph.commit_actions_as_strings}")
-#        log.info("yyyyyyyyy #{staging.actiongraph.compound_actions}")
-        d_ana = Y2Storage::DiskAnalyzer.new(staging)
-        d_ana.installed_systems().each { |d|
-          log.info("yyyyinstalled system: #{d.inspect}")
-        }
-        d_ana.windows_partitions().each { |d|
-          log.info("yyywindows system: #{d.inspect}")
-        }
-        d_ana.linux_partitions().each { |d|
-          log.info("yyylinux system: #{d.inspect}")
-        }        
+        disk_ana = Y2Storage::DiskAnalyzer.new(staging)
+        installed_systems = disk_ana.installed_systems()
+        if installed_systems.size > 0 && preferred_bootloader == "grub2-bls"
+          log.info("Installed system(s) #{installed_systems.inspect} will be kept." +
+                   "So, grub2-bls should not be suggested due resulting disk space problems on boot partition.")
+          return false
+        end
         
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
@@ -206,7 +157,7 @@ module Bootloader
           return preferred_bootloader
         end
 
-        if bls_installable? && ["systemd-boot", "grub2-bls"].include?(preferred_bootloader)
+        if bls_installable?(preferred_bootloader) && ["systemd-boot", "grub2-bls"].include?(preferred_bootloader)
           return preferred_bootloader
         end
 
