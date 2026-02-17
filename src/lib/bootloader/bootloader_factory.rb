@@ -182,13 +182,13 @@ module Bootloader
         log.info("yyyyyyyyy #{staging.actiongraph.compound_actions}")
         d_ana = Y2Storage::DiskAnalyzer.new(staging)
         d_ana.installed_systems().each { |d|
-          log.info("yyyyinstalled system: #{d}")
+          log.info("yyyyinstalled system: #{d.inspect}")
         }
         d_ana.windows_partitions().each { |d|
-          log.info("yyywindows system: #{d}")
+          log.info("yyywindows system: #{d.inspect}")
         }
         d_ana.linux_partitions().each { |d|
-          log.info("yyylinux system: #{d}")
+          log.info("yyylinux system: #{d.inspect}")
         }        
         
         ((Yast::Arch.x86_64 ||
