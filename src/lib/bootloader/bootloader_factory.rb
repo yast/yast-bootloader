@@ -136,12 +136,13 @@ module Bootloader
         staging = Y2Storage::StorageManager.instance.staging
         disk_ana = Y2Storage::DiskAnalyzer.new(staging)
         installed_systems = disk_ana.installed_systems()
-        if installed_systems.size > 0 && preferred_bootloader == "grub2-bls"
-          log.info("Installed system(s) #{installed_systems.inspect} will be kept. " +
-                   "So, grub2-bls should not be suggested due resulting disk space problems on boot partition.")
+        if !installed_systems.empty? && preferred_bootloader == "grub2-bls"
+          log.info("Installed system(s) #{installed_systems.inspect} will be kept. " \
+                   "So, grub2-bls should not be suggested due resulting disk space " \
+                   "problems on boot partition.")
           return false
         end
-        
+
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
           Yast::Arch.aarch64 ||
@@ -157,7 +158,8 @@ module Bootloader
           return preferred_bootloader
         end
 
-        if bls_installable?(preferred_bootloader) && ["systemd-boot", "grub2-bls"].include?(preferred_bootloader)
+        if bls_installable?(preferred_bootloader) && ["systemd-boot",
+                                                      "grub2-bls"].include?(preferred_bootloader)
           return preferred_bootloader
         end
 

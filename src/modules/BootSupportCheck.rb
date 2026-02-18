@@ -218,10 +218,10 @@ module Yast
       staging = Y2Storage::StorageManager.instance.staging
       disk_ana = Y2Storage::DiskAnalyzer.new(staging)
       installed_systems = disk_ana.installed_systems()
-      if installed_systems.size > 0
-        add_new_problem(format(_("Installed system(s) %{systems} will be kept. " \
+      if !installed_systems.empty?
+        add_new_problem(format(_("Installed system %{systems} will be kept. " \
                                  "So, grub2-bls should not be taken due disk space problems on boot partition."),
-                               systems: installed_systems.join(",")))
+          systems: installed_systems.join(",")))
         return false
       end
       true
