@@ -137,7 +137,7 @@ module Bootloader
         disk_ana = Y2Storage::DiskAnalyzer.new(staging)
         installed_systems = disk_ana.installed_systems()
         if !installed_systems.empty? && preferred_bootloader == "grub2-bls"
-          log.info("Installed system(s) #{installed_systems.inspect} will be kept. " \
+          log.info("Installed system #{installed_systems.inspect} will be kept. " \
                    "So, grub2-bls should not be suggested due resulting disk space " \
                    "problems on boot partition.")
           return false
