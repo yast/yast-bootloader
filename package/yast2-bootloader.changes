@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Feb 18 14:50:25 UTC 2026 - Stefan Schubert <schubi@suse.de>
+
+- Do not suggest grub2-bls if there is another e.g. windows
+  system is installed (bsc#1257528, bsc#1257510).
+- 5.0.34
+
+-------------------------------------------------------------------
 Tue Feb 10 11:53:30 UTC 2026 - Stefan Schubert <schubi@suse.de>
 
 - update BLS: Calling "sdbootutil update-all-entries" in order
