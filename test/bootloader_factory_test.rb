@@ -27,6 +27,34 @@ describe Bootloader::BootloaderFactory do
       expect(Bootloader::BootloaderFactory.system).to eq nil
     end
   end
+  describe "#proposed" do
+    context "prefered bootloader is grub2-bls" do
+      before do
+        allow(Yast::Arch).to receive(:architecture).and_return("x86_64")
+        allow(Yast::ProductFeatures).to receive(:GetStringFeature).with("globals", "preferred_bootloader").and_return("grub2-bls")
+        allow(Bootloader::BootloaderFactory).to receive(:supported_names).and_return(["grub2-bls"])
+        allow(Bootloader::Systeminfo).to receive(:efi_mandatory?).and_return(true)
+      end
+
+      context "other systems will be kept" do
+        before do
+          allow_any_instance_of(Y2Storage::DiskAnalyzer).to receive(:installed_systems).and_return(["windows"])
+        end
+        it "returns not grub2-bls for proposal" do
+          expect(Bootloader::BootloaderFactory.proposed.name).not_to eq "grub2-bls"
+        end
+      end
+      context "no other system is installed" do
+        before do
+          allow_any_instance_of(Y2Storage::DiskAnalyzer).to receive(:installed_systems).and_return([])
+          allow(Bootloader::Systeminfo).to receive(:efi?).and_return(true)
+        end
+        it "returns grub2-bls for proposal" do
+          expect(Bootloader::BootloaderFactory.proposed.name).to eq "grub2-bls"
+        end
+      end
+    end
+  end
   describe "#supported_names" do
     context "on x86_64 architectures" do
       before do

@@ -8,6 +8,7 @@ require "bootloader/grub2efi"
 require "bootloader/grub2bls"
 require "bootloader/systemdboot"
 require "bootloader/exceptions"
+require "y2storage/disk_analyzer"
 
 Yast.import "Arch"
 Yast.import "Mode"
@@ -131,7 +132,17 @@ module Bootloader
           ((Yast::Arch.x86_64 || Yast::Arch.i386) && Systeminfo.efi?)
       end
 
-      def bls_installable?
+      def bls_installable?(preferred_bootloader)
+        staging = Y2Storage::StorageManager.instance.staging
+        disk_ana = Y2Storage::DiskAnalyzer.new(staging)
+        installed_systems = disk_ana.installed_systems()
+        if !installed_systems.empty? && preferred_bootloader == "grub2-bls"
+          log.info("The installed system #{installed_systems.inspect} will be kept. " \
+                   "To avoid disk space problems on the boot partition, grub2-bls " \
+                   "will not be suggested")
+          return false
+        end
+
         ((Yast::Arch.x86_64 ||
           Yast::Arch.i386 ||
           Yast::Arch.aarch64 ||
@@ -147,7 +158,8 @@ module Bootloader
           return preferred_bootloader
         end
 
-        if bls_installable? && ["systemd-boot", "grub2-bls"].include?(preferred_bootloader)
+        if bls_installable?(preferred_bootloader) && ["systemd-boot",
+                                                      "grub2-bls"].include?(preferred_bootloader)
           return preferred_bootloader
         end
 
