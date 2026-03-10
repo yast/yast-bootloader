@@ -387,6 +387,22 @@ describe Bootloader::Systeminfo do
     context "if arch is s390x" do
       let(:arch) { "s390_64" }
 
+      context "and zipl is on DASD disk with ECKD" do
+        it "returns true" do
+          devicegraph_stub("dasd_eckd.yml")
+
+          expect(described_class.s390_secure_boot_supported?).to be true
+        end
+      end
+
+      context "and zipl is on DASD disk with FBA (bsc#1270367)" do
+        it "returns false" do
+          devicegraph_stub("dasd_fba.yml")
+
+          expect(described_class.s390_secure_boot_supported?).to be false
+        end
+      end
+
       context "and has_secure is 1" do
         context "and zipl is on a SCSI disk" do
           it "returns true" do
