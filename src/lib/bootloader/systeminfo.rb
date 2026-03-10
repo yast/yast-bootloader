@@ -329,11 +329,11 @@ module Bootloader
         false
       end
 
-      # Check if device is a SCSI device.
+      # Check if device is a DASD device.
       #
       # param device [Y2Storage::Partition, NilClass] partition device (or nil)
       #
-      # @return [Boolean] true if device is a SCSI device
+      # @return [Boolean] true if device is a DASD device
       def dasd?(device)
         device.name.start_with?("/dev/dasd")
       rescue StandardError

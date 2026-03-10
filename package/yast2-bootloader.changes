@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Tue Mar 10 08:03:16 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
 
-- propose always secure boot with zipl on DASD (jsc#/PED-13734)
+- Propose always secure boot with zipl on DASD (jsc#/PED-13734)
 
 -------------------------------------------------------------------
 Wed Feb 18 14:50:25 UTC 2026 - Stefan Schubert <schubi@suse.de>
