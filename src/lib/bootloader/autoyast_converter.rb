@@ -51,8 +51,7 @@ module Bootloader
             bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations)
           end
         when "systemd-boot"
-          bootloader.timeout = data.global.timeout.to_s.to_i unless data.global.timeout.nil?
-          bootloader.secure_boot = data.global.secure_boot == "true"
+          import_systemd_boot(data, bootloader)
         else
           raise UnsupportedBootloader, bootloader.name
         end
@@ -82,11 +81,8 @@ module Bootloader
           export_default(global, config.grub_default)
           res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         when "systemd-boot"
-          res["global"]["timeout"] = config.timeout.to_s
-          unless config.secure_boot.nil?
-            res["global"]["secure_boot"] =
-              config.secure_boot ? "true" : "false"
-          end
+          global = res["global"]
+          export_systemd_boot(global, config)
         else
           raise UnsupportedBootloader, config.name
         end
@@ -98,6 +94,11 @@ module Bootloader
       end
 
     private
+
+      def import_systemd_boot(data, bootloader)
+        bootloader.timeout = data.global.timeout.to_s.to_i unless data.global.timeout.nil?
+        bootloader.secure_boot = data.global.secure_boot == "true"
+      end
 
       def import_grub2(data, bootloader)
         return unless bootloader.name == "grub2"
@@ -272,6 +273,14 @@ module Bootloader
         else
           BootloaderFactory.bootloader_by_name(loader_type)
         end
+      end
+
+      def export_systemd_boot(res, config)
+        res["global"]["timeout"] = config.timeout.to_s
+        return if config.secure_boot.nil?
+
+        res["global"]["secure_boot"] =
+          config.secure_boot ? "true" : "false"
       end
 
       # only for grub2efi, not for others
