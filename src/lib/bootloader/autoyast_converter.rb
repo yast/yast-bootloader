@@ -51,8 +51,8 @@ module Bootloader
             bootloader.cpu_mitigations = CpuMitigations.from_string(cpu_mitigations)
           end
         when "systemd-boot"
-          bootloader.timeout = data.global.timeout
-          bootloader.secure_boot = data.global.secure_boot
+          bootloader.timeout = data.global.timeout.to_s.to_i unless data.global.timeout.nil?
+          bootloader.secure_boot = data.global.secure_boot == "true"
         else
           raise UnsupportedBootloader, bootloader.name
         end
@@ -82,8 +82,11 @@ module Bootloader
           export_default(global, config.grub_default)
           res["global"]["cpu_mitigations"] = config.cpu_mitigations.value.to_s
         when "systemd-boot"
-          res["global"]["timeout"] = config.timeout
-          res["global"]["secure_boot"] = config.secure_boot
+          res["global"]["timeout"] = config.timeout.to_s
+          unless config.secure_boot.nil?
+            res["global"]["secure_boot"] =
+              config.secure_boot ? "true" : "false"
+          end
         else
           raise UnsupportedBootloader, config.name
         end
@@ -271,7 +274,7 @@ module Bootloader
         end
       end
 
-      # only for grub2, not for others
+      # only for grub2efi, not for others
       GRUB2EFI_BOOLEAN_MAPPING = {
         "secure_boot"  => :secure_boot,
         "update_nvram" => :update_nvram

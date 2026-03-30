@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Mar 30 10:14:36 UTC 2026 - Stefan Schubert <schubi@suse.de>
+
+  AutoYaST/systemd-boot export/import: Using string for timeout
+  and secure_boot setting in export file (bsc#1260385).
+- 5.0.37
+
+-------------------------------------------------------------------
 Tue Mar 10 09:00:28 UTC 2026 - Michal Filka <mfilka@suse.com>
 
 - jsc#PED-14507
