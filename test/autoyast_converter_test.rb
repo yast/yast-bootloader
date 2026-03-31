@@ -120,7 +120,7 @@ describe Bootloader::AutoyastConverter do
     it "supports systemd-boot bootloader" do
       data = {
         "loader_type" => "systemd-boot",
-        "global"      => { "secure_boot" => true,
+        "global"      => { "secure_boot" => "true",
                            "timeout"     => 30 }
       }
 
@@ -191,7 +191,7 @@ describe Bootloader::AutoyastConverter do
 
       it "exports secure boot key" do
         bootloader.secure_boot = true
-        expect(subject.export(bootloader)["global"]["secure_boot"]).to eq true
+        expect(subject.export(bootloader)["global"]["secure_boot"]).to eq "true"
       end
       it "exports timeout key" do
         bootloader.timeout = 20
