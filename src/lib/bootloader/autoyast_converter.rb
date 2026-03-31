@@ -96,7 +96,7 @@ module Bootloader
     private
 
       def import_systemd_boot(data, bootloader)
-        bootloader.timeout = data.global.timeout.to_s.to_i unless data.global.timeout.nil?
+        bootloader.timeout = data.global.timeout
         bootloader.secure_boot = data.global.secure_boot == "true"
       end
 
@@ -276,7 +276,7 @@ module Bootloader
       end
 
       def export_systemd_boot(res, config)
-        res["global"]["timeout"] = config.timeout.to_s
+        res["global"]["timeout"] = config.timeout
         return if config.secure_boot.nil?
 
         res["global"]["secure_boot"] =
