@@ -276,10 +276,10 @@ module Bootloader
       end
 
       def export_systemd_boot(res, config)
-        res["global"]["timeout"] = config.timeout
+        res["timeout"] = config.timeout
         return if config.secure_boot.nil?
 
-        res["global"]["secure_boot"] =
+        res["secure_boot"] =
           config.secure_boot ? "true" : "false"
       end
 
