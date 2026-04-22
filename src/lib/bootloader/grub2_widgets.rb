@@ -206,61 +206,6 @@ module Bootloader
       end
     end
 
-    # Represents switcher for Trusted Boot
-    class TrustedBootWidget < CWM::CheckBox
-      include Grub2Helper
-
-      def initialize
-        textdomain "bootloader"
-
-        super
-      end
-
-      def label
-        _("&Trusted Boot Support")
-      end
-
-      def help
-        res = _("<p><b>Trusted Boot</b> " \
-                "means measuring the integrity of the boot process,\n" \
-                "with the help from the hardware (a TPM, Trusted Platform Module,\n" \
-                "chip).\n")
-        if grub2.name == "grub2"
-          res += _("First you need to make sure Trusted Boot is enabled in the BIOS\n" \
-                   "setup (the setting may be named \"Security Chip\", for example).\n")
-        end
-
-        res += "</p>"
-
-        res
-      end
-
-      def init
-        self.value = grub2.trusted_boot
-      end
-
-      def store
-        grub2.trusted_boot = value
-      end
-
-      def validate
-        return true if Yast::Mode.config || !value || ["grub2-efi",
-                                                       "grub2-bls"].include?(grub2.name)
-
-        tpm_files = Dir.glob("/sys/**/pcrs")
-        if !tpm_files.empty? && !File.read(tpm_files[0], 1).nil?
-          # check for file size does not work, since FS reports it 4096
-          # even if the file is in fact empty and a single byte cannot
-          # be read, therefore testing real reading (details: bsc#994556)
-          return true
-        end
-
-        Yast::Popup.ContinueCancel(_("Trusted Platform Module not found.\n" \
-                                     "Make sure it is enabled in BIOS.\n" \
-                                     "The system will not boot otherwise."))
-      end
-    end
-
     # Represents grub password protection widget
     class GrubPasswordWidget < CWM::CustomWidget
       include Grub2Helper
@@ -863,7 +808,6 @@ module Bootloader
         end
 
         w << SecureBootWidget.new if secure_boot_widget?
-        w << TrustedBootWidget.new if trusted_boot_widget?
         w << UpdateNvramWidget.new if update_nvram_widget?
 
         w.map do |widget|

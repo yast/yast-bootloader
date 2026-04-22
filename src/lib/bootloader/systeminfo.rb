@@ -76,17 +76,6 @@ module Bootloader
                                                     "grub2-bls"].include?(bootloader_name)
       end
 
-      # Check current trusted boot state.
-      #
-      # ATM this just returns the config file setting.
-      #
-      # @return [Boolean] true if trusted boot is currently active
-      def trusted_boot_active?
-        # FIXME: this should probably be a real check as in Grub2Widget#validate
-        #   and then Grub2Widget#validate could use Systeminfo.trusted_boot_active?
-        Sysconfig.from_system.trusted_boot
-      end
-
       # Check if the system is expected to have nvram - ie. update_nvram_active? makes a difference
       def nvram_available?(bootloader_name = nil)
         (bootloader_name ? efi_used?(bootloader_name) : efi_supported?) || Yast::Arch.ppc
@@ -94,23 +83,6 @@ module Bootloader
 
       def update_nvram_active?
         Sysconfig.from_system.update_nvram
-      end
-
-      # Check if trusted boot is configurable with a bootloader.
-      #
-      # param bootloader_name [String] bootloader name
-      # @return [Boolean] true if trusted boot setting is available with this bootloader
-      def trusted_boot_available?(bootloader_name)
-        # TPM availability is must have
-        return false unless File.exist?("/dev/tpm0")
-        # not for grub2-bls
-        return false if bootloader_name == "grub2-bls"
-
-        # for details about grub2 efi trusted boot support see FATE#315831
-        (
-          bootloader_name == "grub2" &&
-          (Yast::Arch.x86_64 || Yast::Arch.i386)
-        ) || bootloader_name == "grub2-efi"
       end
 
       # Check if UEFI will be used.

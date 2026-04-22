@@ -31,8 +31,7 @@ module Bootloader
       Pmbr.write_efi(pmbr_action)
 
       unless etc_only
-        @grub_install.execute(secure_boot: secure_boot, trusted_boot: trusted_boot,
-          update_nvram: update_nvram)
+        @grub_install.execute(secure_boot: secure_boot, update_nvram: update_nvram)
       end
 
       true
@@ -60,7 +59,6 @@ module Bootloader
       ]
 
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
-      result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
       result << update_nvram_summary if Systeminfo.nvram_available?(name)
 
       result
@@ -96,8 +94,7 @@ module Bootloader
     # overwrite BootloaderBase version to save secure boot
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(bootloader: name,
-        secure_boot: secure_boot, trusted_boot: trusted_boot,
-        update_nvram: update_nvram)
+        secure_boot: secure_boot, update_nvram: update_nvram)
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
   end

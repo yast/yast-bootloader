@@ -47,22 +47,6 @@ describe Bootloader::Grub2Base do
       expect { subject.read }.to_not raise_error
     end
 
-    it "reads trusted boot configuration from sysconfig" do
-      mocked_sysconfig = ::Bootloader::Sysconfig.new(trusted_boot: true)
-      allow(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
-
-      subject.read
-
-      expect(subject.trusted_boot).to eq true
-
-      mocked_sysconfig = ::Bootloader::Sysconfig.new(trusted_boot: false)
-      allow(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
-
-      subject.read
-
-      expect(subject.trusted_boot).to eq false
-    end
-
     it "reads update nvram configuration from sysconfig" do
       mocked_sysconfig = ::Bootloader::Sysconfig.new(update_nvram: true)
       allow(::Bootloader::Sysconfig).to receive(:from_system).and_return(mocked_sysconfig)
@@ -466,12 +450,6 @@ describe Bootloader::Grub2Base do
       expect(subject.grub_default.distributor).to eq ""
     end
 
-    it "proposes to disable trusted boot" do
-      subject.propose
-
-      expect(subject.trusted_boot).to eq false
-    end
-
     it "proposes to update nvram" do
       subject.propose
 
@@ -628,15 +606,6 @@ describe Bootloader::Grub2Base do
       subject.merge(other)
 
       expect(subject.pmbr_action).to eq :nothing
-    end
-
-    it "overwrites trusted boot configuration if merged define it" do
-      subject.trusted_boot = true
-      other.trusted_boot = false
-
-      subject.merge(other)
-
-      expect(subject.trusted_boot).to eq false
     end
   end
 end

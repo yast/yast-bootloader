@@ -74,7 +74,6 @@ bl_global =
 
       element boot_custom { STRING }? &
       element generic_mbr { STRING }? &
-      element trusted_grub{ STRING }? &
       element serial      { STRING }? &
       element terminal    { STRING }? &
       lines_cache_id? &

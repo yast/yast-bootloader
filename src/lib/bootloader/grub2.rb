@@ -67,8 +67,7 @@ module Bootloader
       if !Yast::Arch.board_powernv
         if !etc_only
           failed = @grub_install.execute(
-            devices: stage1.devices, secure_boot: secure_boot, trusted_boot: trusted_boot,
-            update_nvram: update_nvram
+            devices: stage1.devices, secure_boot: secure_boot, update_nvram: update_nvram
           )
           failed.each { |f| stage1.remove_device(f) }
         end
@@ -140,16 +139,13 @@ module Bootloader
       res = super
       res << "grub2"
       res << "syslinux" if include_syslinux_package?
-      res << "trustedgrub2" << "trustedgrub2-i386-pc" if include_trustedgrub2_packages?
       res
     end
 
     # FIXME: refactor with injection like super(prewrite: prewrite, sysconfig = ...)
-    # overwrite BootloaderBase version to save trusted boot
     def write_sysconfig(prewrite: false)
       sysconfig = Bootloader::Sysconfig.new(
-        bootloader: name, secure_boot: secure_boot, trusted_boot: trusted_boot,
-        update_nvram: update_nvram
+        bootloader: name, secure_boot: secure_boot, update_nvram: update_nvram
       )
       prewrite ? sysconfig.pre_write : sysconfig.write
     end
@@ -166,13 +162,6 @@ module Bootloader
       return false if Yast::Stage.initial
 
       stage1.generic_mbr?
-    end
-
-    # @return [Boolean] true when trustedgrub2 packages should be included; false otherwise
-    def include_trustedgrub2_packages?
-      return false unless trusted_boot
-
-      Yast::Arch.x86_64 || Yast::Arch.i386
     end
 
     def devicegraph
@@ -326,7 +315,6 @@ module Bootloader
     def boot_flags_summary
       result = []
       result << secure_boot_summary if Systeminfo.secure_boot_available?(name)
-      result << trusted_boot_summary if Systeminfo.trusted_boot_available?(name)
       result << update_nvram_summary if Systeminfo.nvram_available?(name)
 
       result
