@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Apr 22 12:52:04 UTC 2026 - Michal Filka <mfilka@suse.com>
+
+- bsc#1262249
+  - dropped trusted boot
+- 5.0.38
+
+-------------------------------------------------------------------
 Mon Mar 30 10:14:36 UTC 2026 - Stefan Schubert <schubi@suse.de>
 
   AutoYaST/systemd-boot export/import: Using string for
