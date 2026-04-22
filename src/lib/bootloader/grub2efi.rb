@@ -30,9 +30,7 @@ module Bootloader
 
       Pmbr.write_efi(pmbr_action)
 
-      unless etc_only
-        @grub_install.execute(secure_boot: secure_boot, update_nvram: update_nvram)
-      end
+      @grub_install.execute(secure_boot: secure_boot, update_nvram: update_nvram) unless etc_only
 
       true
     end

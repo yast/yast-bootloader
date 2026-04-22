@@ -89,7 +89,7 @@ module Bootloader
       "enable_secure_boot",
       "disable_secure_boot",
       "enable_update_nvram",
-      "disable_update_nvram",
+      "disable_update_nvram"
     ].freeze
 
     def make_proposal(attrs)

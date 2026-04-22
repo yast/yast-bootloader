@@ -23,7 +23,7 @@ module Bootloader
     # @return [Boolean] if nvram should be updated
     attr_accessor :update_nvram
 
-    def initialize(bootloader: nil, secure_boot: false, false, update_nvram: true)
+    def initialize(bootloader: nil, secure_boot: false, update_nvram: true)
       @sys_agent = AGENT_PATH
       @bootloader = bootloader
       @secure_boot = secure_boot
