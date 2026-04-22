@@ -135,7 +135,7 @@ module Bootloader
       propose_serial
       propose_xen_hypervisor
 
-      self.secure_boot = Systeminfo.secure_boot_active?
+      self.secure_boot = Systeminfo.secure_boot_supported?
       self.update_nvram = true
     end
 
