@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Wed Apr 22 12:52:04 UTC 2026 - Michal Filka <mfilka@suse.com>
 
-- bsc#1262249
+- jsc#PED-7975 and bsc#1262249
   - dropped trusted boot
 - 5.0.38
 
