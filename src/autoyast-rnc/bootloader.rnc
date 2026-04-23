@@ -74,7 +74,7 @@ bl_global =
 
       element boot_custom { STRING }? &
       element generic_mbr { STRING }? &
-      # trusted_grub is for backword compatibility only and is silently ignored. PED-7975
+      # trusted_grub is for backward compatibility only and is silently ignored. PED-7975
       element trusted_grub{ STRING }? &
       element serial      { STRING }? &
       element terminal    { STRING }? &
