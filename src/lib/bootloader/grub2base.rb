@@ -45,10 +45,6 @@ module Bootloader
 
     attr_accessor :pmbr_action
 
-    # @!attribute trusted_boot
-    #   @return [Boolean] current trusted boot setting
-    attr_accessor :trusted_boot
-
     # @!attribute secure_boot
     #   @return [Boolean] current secure boot setting
     attr_accessor :secure_boot
@@ -111,7 +107,6 @@ module Bootloader
       @sections = ::Bootloader::Sections.new(grub_cfg)
       log.info "grub sections: #{@sections.all}"
 
-      self.trusted_boot = Systeminfo.trusted_boot_active?
       self.secure_boot = Systeminfo.secure_boot_active?
       self.update_nvram = Systeminfo.update_nvram_active?
     end
@@ -140,7 +135,6 @@ module Bootloader
       propose_serial
       propose_xen_hypervisor
 
-      self.trusted_boot = false
       self.secure_boot = Systeminfo.secure_boot_supported?
       self.update_nvram = true
     end
@@ -153,7 +147,6 @@ module Bootloader
       merge_pmbr_action(other)
       merge_sections(other)
 
-      self.trusted_boot = other.trusted_boot unless other.trusted_boot.nil?
       self.secure_boot = other.secure_boot unless other.secure_boot.nil?
       self.update_nvram = other.update_nvram unless other.update_nvram.nil?
     end
@@ -391,19 +384,6 @@ module Bootloader
       end
 
       "#{_("Secure Boot:")} #{status_string(secure_boot)} #{link}"
-    end
-
-    # Trusted boot setting shown in summary screen.
-    #
-    # @return [String]
-    def trusted_boot_summary
-      link = if trusted_boot
-        "<a href=\"disable_trusted_boot\">(#{_("disable")})</a>"
-      else
-        "<a href=\"enable_trusted_boot\">(#{_("enable")})</a>"
-      end
-
-      "#{_("Trusted Boot:")} #{status_string(trusted_boot)} #{link}"
     end
 
     # Update nvram shown in summary screen

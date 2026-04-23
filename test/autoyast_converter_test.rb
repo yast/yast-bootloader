@@ -58,7 +58,6 @@ describe Bootloader::AutoyastConverter do
         "timeout"           => 10,
         "activate"          => "true",
         "generic_mbr"       => "false",
-        "trusted_grub"      => "true",
         "update_nvram"      => "true",
         "boot_boot"         => "true",
         "password"          => {
@@ -82,7 +81,6 @@ describe Bootloader::AutoyastConverter do
       expect(bootloader.grub_default.hidden_timeout).to eq "10"
       expect(bootloader.stage1).to be_activate
       expect(bootloader.stage1.boot_partition?).to eq true
-      expect(bootloader.trusted_boot).to eq true
       expect(bootloader.update_nvram).to eq true
       expect(bootloader.password.used?).to eq true
       expect(bootloader.password.unrestricted?).to eq true
@@ -149,7 +147,6 @@ describe Bootloader::AutoyastConverter do
       bootloader.grub_default.os_prober.enable
       bootloader.grub_default.hidden_timeout = "10"
       bootloader.stage1.activate = true
-      bootloader.trusted_boot = true
       bootloader.password.unrestricted = false
       bootloader.password.used = true
       bootloader.password.encrypted_password = "blabla"
@@ -160,7 +157,6 @@ describe Bootloader::AutoyastConverter do
         "os_prober"       => "true",
         "hiddenmenu"      => "true",
         "timeout"         => 10,
-        "trusted_grub"    => "true",
         "update_nvram"    => "true",
         "cpu_mitigations" => "manual",
         "password"        => {

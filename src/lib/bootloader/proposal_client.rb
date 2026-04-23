@@ -89,9 +89,7 @@ module Bootloader
       "enable_secure_boot",
       "disable_secure_boot",
       "enable_update_nvram",
-      "disable_update_nvram",
-      "enable_trusted_boot",
-      "disable_trusted_boot"
+      "disable_update_nvram"
     ].freeze
 
     def make_proposal(attrs)
@@ -378,8 +376,6 @@ module Bootloader
         devices.each do |device|
           value ? stage1.add_udev_device(device) : stage1.remove_device(device)
         end
-      when "trusted_boot"
-        bootloader.trusted_boot = value
       when "update_nvram"
         bootloader.update_nvram = value
       when "secure_boot"

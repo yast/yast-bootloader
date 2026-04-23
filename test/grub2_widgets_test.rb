@@ -238,10 +238,6 @@ describe Bootloader::KernelAppendWidget do
   end
 end
 
-describe Bootloader::Grub2Widget::TrustedBootWidget do
-  include_examples "CWM::AbstractWidget"
-end
-
 describe Bootloader::Grub2Widget::GrubPasswordWidget do
   before do
     assign_bootloader
@@ -660,23 +656,6 @@ describe Bootloader::Grub2Widget::DeviceMapWidget do
     expect(Bootloader::DeviceMapDialog).to receive(:run)
 
     subject.handle
-  end
-end
-
-describe Bootloader::Grub2Widget::TrustedBootWidget do
-  before do
-    assign_bootloader
-  end
-
-  it_behaves_like "labeled widget"
-
-  it "check if trusted platform is found for legacy boot when enabled" do
-    expect(Dir).to receive(:glob).and_return([])
-    expect(Yast::Popup).to receive(:ContinueCancel).and_return(false)
-
-    allow(subject).to receive(:value).and_return(true)
-
-    expect(subject.validate).to eq false
   end
 end
 

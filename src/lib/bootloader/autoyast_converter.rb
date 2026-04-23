@@ -299,7 +299,6 @@ module Bootloader
       # only for grub2, not for others
       GRUB2_BOOLEAN_MAPPING = {
         "secure_boot"  => :secure_boot,
-        "trusted_grub" => :trusted_boot,
         "update_nvram" => :update_nvram
       }.freeze
       private_constant :GRUB2_BOOLEAN_MAPPING

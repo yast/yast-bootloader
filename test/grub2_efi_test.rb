@@ -23,13 +23,12 @@ describe Bootloader::Grub2EFI do
 
   describe "#read" do
     it "reads bootloader flags from sysconfig" do
-      sysconfig = double(Bootloader::Sysconfig, secure_boot: true, trusted_boot: true, update_nvram: true)
+      sysconfig = double(Bootloader::Sysconfig, secure_boot: true, update_nvram: true)
       expect(Bootloader::Sysconfig).to receive(:from_system).and_return(sysconfig).at_least(:once)
 
       subject.read
 
       expect(subject.secure_boot).to eq true
-      expect(subject.trusted_boot).to eq true
       expect(subject.update_nvram).to eq true
     end
   end
@@ -48,11 +47,10 @@ describe Bootloader::Grub2EFI do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       grub_install = double(Bootloader::GrubInstall)
-      expect(grub_install).to receive(:execute).with(secure_boot: true, trusted_boot: true, update_nvram: false)
+      expect(grub_install).to receive(:execute).with(secure_boot: true, update_nvram: false)
       allow(Bootloader::GrubInstall).to receive(:new).and_return(grub_install)
 
       subject.secure_boot = true
-      subject.trusted_boot = true
       subject.update_nvram = false
 
       subject.write
@@ -76,12 +74,11 @@ describe Bootloader::Grub2EFI do
       # This test fails (only!) in Travis with
       # Failure/Error: subject.write Storage::Exception: Storage::Exception
       expect(Bootloader::Sysconfig).to receive(:new)
-        .with(bootloader: "grub2-efi", secure_boot: true, trusted_boot: true, update_nvram: true)
+        .with(bootloader: "grub2-efi", secure_boot: true, update_nvram: true)
         .and_return(sysconfig)
       expect(sysconfig).to receive(:write)
 
       subject.secure_boot = true
-      subject.trusted_boot = true
       subject.update_nvram = true
 
       subject.prepare

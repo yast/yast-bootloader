@@ -83,10 +83,9 @@ describe Bootloader::Grub2 do
 
       grub2_install = double(Bootloader::GrubInstall)
       expect(grub2_install).to receive(:execute)
-        .with(devices: ["/dev/sda", "/dev/sdb1"], secure_boot: nil, trusted_boot: false, update_nvram: true).and_return([])
+        .with(devices: ["/dev/sda", "/dev/sdb1"], secure_boot: nil, update_nvram: true).and_return([])
       expect(Bootloader::GrubInstall).to receive(:new).with(efi: false).and_return(grub2_install)
 
-      subject.trusted_boot = false
       subject.write
 
       expect(grub2_install).to_not receive(:execute)
@@ -189,45 +188,6 @@ describe Bootloader::Grub2 do
         it "contains syslinux package" do
           expect(subject.packages).to_not include("syslinux")
         end
-      end
-    end
-
-    context "when trusted boot is required" do
-      before do
-        allow(subject).to receive(:trusted_boot).and_return(true)
-      end
-
-      context "and is x86_64 architecture" do
-        before do
-          allow(Yast::Arch).to receive(:x86_64).and_return(true)
-        end
-
-        it "contains trustedgrub2 packages" do
-          expect(subject.packages).to include("trustedgrub2")
-          expect(subject.packages).to include("trustedgrub2-i386-pc")
-        end
-      end
-
-      context "and is i386 architecture" do
-        before do
-          allow(Yast::Arch).to receive(:x86_64).and_return(true)
-        end
-
-        it "contains trustedgrub2 packages" do
-          expect(subject.packages).to include("trustedgrub2")
-          expect(subject.packages).to include("trustedgrub2-i386-pc")
-        end
-      end
-    end
-
-    context "when trusted boot is not required" do
-      before do
-        allow(subject).to receive(:trusted_boot).and_return(false)
-      end
-
-      it "does not contain the trusted grub packages" do
-        expect(subject.packages).to_not include("trustedgrub2")
-        expect(subject.packages).to_not include("trustedgrub2-i386-pc")
       end
     end
 

@@ -44,8 +44,6 @@ module Bootloader
           { name: :serial },
           { name: :terminal },
           { name: :timeout },
-          { name: :trusted_boot },
-          { name: :trusted_grub },
           { name: :update_nvram },
           { name: :vgamode },
           { name: :xen_append },
@@ -108,10 +106,6 @@ module Bootloader
 
       # @!attribute timeout
       #   @return [Integer,nil] timeout in seconds until automatic boot.
-
-      # @!attribute trusted_boot
-      #   @return [String,nil] use Trusted GRUB (only for `grub2` loader type). Valid values
-      #     are "true" and "false".
 
       # @!attribute update_nvram
       #   @return [String,nil] Update NVRAM with entry for the installed bootloader. Valid values
