@@ -221,7 +221,7 @@ module Bootloader
       if ["x86_64", "aarch64"].include?(Yast::Arch.architecture)
         res << "shim"
       else
-        log.info "No \"shim\" support for systemd-boot under architecture #{Yast::Arch.architecture}."
+        log.info "No \"shim\" support for systemd-boot and #{Yast::Arch.architecture}."
       end
 
       res
