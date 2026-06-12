@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Fri Jun 12 11:34:43 UTC 2026 - Stefan Schubert <schubi@suse.de>
+
+- Reducing error level for not available shim package while using
+  systemd-boot (bsc#1265870).
+- 5.0.39
+
+-------------------------------------------------------------------
 Wed Apr 22 12:52:04 UTC 2026 - Michal Filka <mfilka@suse.com>
 
 - jsc#PED-7975 and bsc#1262249
