@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Jul 13 20:45:01 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
+
+- propose secure boot only for ECKD DASD (bsc#1270367)
+- 5.0.40
+
+-------------------------------------------------------------------
 Fri Jun 12 11:34:43 UTC 2026 - Stefan Schubert <schubi@suse.de>
 
 - Reducing error level for not available shim package while using
