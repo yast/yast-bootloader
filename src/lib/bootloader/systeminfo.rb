@@ -309,9 +309,12 @@ module Bootloader
       #
       # @return [Boolean] true if device is a DASD device
       def dasd?(device)
+        return unless device
+
         if device.is?(:partition)
           disk = device.partitionable
           return false unless disk
+
           dasd?(disk)
         else
           device.is?(:dasd) && device.type == Y2Storage::DasdType::ECKD
