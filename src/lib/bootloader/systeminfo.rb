@@ -309,7 +309,7 @@ module Bootloader
       #
       # @return [Boolean] true if device is a DASD device
       def dasd?(device)
-        return unless device
+        return false unless device
 
         if device.is?(:partition)
           disk = device.partitionable
