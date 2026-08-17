@@ -69,7 +69,6 @@ As we've previously mentioned, we have 3 options for bootloaders: grub2, grub2-e
 This is the most common option and requires <b>grub2</b>. There is also special cases that may require additional packages:
 
 * Generic mbr binary files will require the package <b>syslinux</b>.
-* If using trusted boot option, systems with x86_64 and i386 architectures will require the packages <b>trustedgrub2</b> and <b>trustedgrub2-i386-pc</b>.
 
 ## grub2-efi
 This option requires packages based on the architecture of the system:
