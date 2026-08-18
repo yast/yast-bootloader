@@ -843,10 +843,6 @@ module Bootloader
         Systeminfo.secure_boot_available?(grub2.name)
       end
 
-      def trusted_boot_widget?
-        Systeminfo.trusted_boot_available?(grub2.name)
-      end
-
       def update_nvram_widget?
         Systeminfo.nvram_available?(grub2.name)
       end
