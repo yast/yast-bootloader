@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Aug 17 10:53:26 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
+
+- remove remaining occurrences of trusted boot to fix crash when
+  writting sysconfig for systemd-boot and grub2-bls (bsc#1274932)
+- 5.0.41
+
+-------------------------------------------------------------------
 Mon Jul 13 20:45:01 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
 
 - propose secure boot only for ECKD DASD (bsc#1270367)
