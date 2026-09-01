@@ -231,7 +231,12 @@ module Bootloader
       def s390_secure_boot_supported?
         return false unless Yast::Arch.s390
 
-        s390_secure_boot_available? && scsi?(zipl_device)
+        zipl_dev = zipl_device
+        # for ECKD DASD zipl install both modes, so secure boot can be always
+        # enabled (jsc#PED-13734)
+        return true if dasd?(zipl_dev)
+
+        s390_secure_boot_available? && scsi?(zipl_dev)
       end
 
       # Check if secure boot is currently active on an s390 machine.
@@ -325,6 +330,26 @@ module Bootloader
         device.name.start_with?("/dev/sd") || device.udev_ids.any?(/^scsi-/)
       rescue StandardError
         false
+      end
+
+      # Check if device is a ECKD DASD device.
+      #
+      # @see https://www.ibm.com/docs/en/linux-on-systems?topic=linux-secure-boot#secure_boot
+      #
+      # param device [Y2Storage::Partition, NilClass] partition device (or nil)
+      #
+      # @return [Boolean] true if device is a DASD device
+      def dasd?(device)
+        return false unless device
+
+        if device.is?(:partition)
+          disk = device.partitionable
+          return false unless disk
+
+          dasd?(disk)
+        else
+          device.is?(:dasd) && device.type == Y2Storage::DasdType::ECKD
+        end
       end
 
       def efi?

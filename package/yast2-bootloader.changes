@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Tue Mar 10 08:03:16 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
+
+- backport: propose always secure boot with zipl on ECKD DASD
+  (jsc#PED-13734, ECO jsc#PED-15966, bsc#1270367)
+- 5.0.21.1
+
+-------------------------------------------------------------------
 Mon Jun 23 11:55:34 UTC 2025 - Josef Reidinger <jreidinger@suse.com>
 
 - Ensure that dracut is on target system for any bootloader to have
