@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
 Mon Aug 31 11:56:44 UTC 2026 - Josef Reidinger <jreidinger@suse.com>
 
-- revert "do not suggest grub2-bls if there are other systemd"
+- revert "do not suggest grub2-bls if there are other systems"
   as it breaks upgrades scenario (bsc#1258861)
 - 5.0.42
 
